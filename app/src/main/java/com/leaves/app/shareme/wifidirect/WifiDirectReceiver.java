@@ -51,10 +51,19 @@ public class WifiDirectReceiver extends BroadcastReceiver {
 
 
     protected interface OnWifiDirectStateChangeListener {
+        /**
+         * WifiDirect功能开关的listener
+         */
         void onWifiDirectStateChange(boolean enable);
 
+        /**
+         * 发现周边的新设备等
+         */
         void onPeersChange();
 
+        /**
+         * 设备连接或断开
+         */
         void onConnectionChange(WifiP2pInfo wifiP2pInfo, NetworkInfo networkInfo);
 
         void onDeviceDetailChange();

@@ -21,12 +21,12 @@
                 android:id="@+id/bt_server"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Server"
+                android:text="Discover"
                 />
         <Button
                 android:id="@+id/bt_client"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Client"/>
+                android:text="setSign"/>
     </LinearLayout>
 </RelativeLayout>

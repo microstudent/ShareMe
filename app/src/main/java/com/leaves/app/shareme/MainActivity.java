@@ -33,8 +33,9 @@ public class MainActivity extends AppCompatActivity {
 
     @OnClick(R.id.bt_server)
     public void goServer() {
-        Intent intent = new Intent(this, ServerActivity.class);
-        startActivity(intent);
+//        Intent intent = new Intent(this, ServerActivity.class);
+//        startActivity(intent);
+        mWifiDirect.scanAndConnect();
     }
 
 
@@ -42,6 +43,6 @@ public class MainActivity extends AppCompatActivity {
     public void goClient() {
 //        Intent intent = new Intent(this, ClientActivity.class);
 //        startActivity(intent);
-        mWifiDirect.scan();
+        mWifiDirect.setupSign("8888");
     }
 }
