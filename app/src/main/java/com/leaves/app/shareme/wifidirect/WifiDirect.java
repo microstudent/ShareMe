@@ -5,7 +5,9 @@ import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.IntentFilter;
 import android.net.NetworkInfo;
-import android.net.wifi.p2p.*;
+import android.net.wifi.p2p.WifiP2pDevice;
+import android.net.wifi.p2p.WifiP2pInfo;
+import android.net.wifi.p2p.WifiP2pManager;
 import android.net.wifi.p2p.nsd.WifiP2pDnsSdServiceInfo;
 import android.net.wifi.p2p.nsd.WifiP2pDnsSdServiceRequest;
 import android.os.Build;
@@ -13,9 +15,7 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v7.app.AppCompatActivity;
 import android.widget.Toast;
-import io.reactivex.Observable;
-import io.reactivex.android.schedulers.AndroidSchedulers;
-import io.reactivex.disposables.Disposable;
+import io.reactivex.disposables.CompositeDisposable;
 import io.reactivex.functions.Consumer;
 import io.reactivex.subjects.PublishSubject;
 
@@ -41,43 +41,50 @@ public class WifiDirect implements IWifiDirect, WifiDirectReceiver.OnWifiDirectS
     private WifiP2pManager mWifiP2pManager;
     private WifiP2pManager.Channel mChannel;
     private WifiDirectReceiver mWifiDirectReceiver;
-    private Disposable mBroadcastingDisposable, mDiscoveringDisposable;
+    private CompositeDisposable mDisposables;
 
     private WifiP2pDnsSdServiceRequest mWifiP2pServiceRequest;
+    private PublishSubject<Integer> mSetSignSubject;
+    private PublishSubject<Integer> mDiscoverSubject;
 
     public WifiDirect(AppCompatActivity rootActivity) {
         mContext = rootActivity.getApplicationContext();
         initWifiP2p();
         initReceiver();
         setupShadowFragment(rootActivity);//绑定生命周期
+        mDisposables = new CompositeDisposable();
     }
 
     @Override
     public void scanAndConnect() {
         prepareServiceDiscovery();
-        final PublishSubject<Integer> subject = PublishSubject.create();
-        subject.subscribe(new Consumer<Integer>() {
+        mDiscoverSubject = PublishSubject.create();
+        mDiscoverSubject.subscribe(new Consumer<Integer>() {
             static final int TYPE_DISCOVER_SERVICES = 3;
             static final int TYPE_ADD_SERVICE_REQUEST = 2;
             static final int TYPE_REMOVE_SERVICE_REQUEST = 1;
             static final int TYPE_DEFAULT = 0;
-
             @Override
             public void accept(Integer integer) throws Exception {
                 switch (integer) {
                     case TYPE_DEFAULT:
                         if (mWifiP2pServiceRequest != null) {
-                            mWifiP2pManager.removeServiceRequest(mChannel, mWifiP2pServiceRequest, new RxActionListener(subject, TYPE_REMOVE_SERVICE_REQUEST));
+                            mWifiP2pManager.removeServiceRequest(mChannel, mWifiP2pServiceRequest, new RxActionListener(mDiscoverSubject, TYPE_REMOVE_SERVICE_REQUEST));
                         }
                         break;
                     case TYPE_REMOVE_SERVICE_REQUEST:
-                        mWifiP2pManager.addServiceRequest(mChannel, mWifiP2pServiceRequest, new RxActionListener(subject, TYPE_ADD_SERVICE_REQUEST));
+                        mWifiP2pManager.addServiceRequest(mChannel, mWifiP2pServiceRequest, new RxActionListener(mDiscoverSubject, TYPE_ADD_SERVICE_REQUEST));
                         break;
                     case TYPE_ADD_SERVICE_REQUEST:
-                        mWifiP2pManager.discoverServices(mChannel, new RxActionListener(subject, TYPE_DISCOVER_SERVICES));
+                        showToast("discovering services");
+                        mWifiP2pManager.discoverServices(mChannel, new RxActionListener(mDiscoverSubject, TYPE_DISCOVER_SERVICES));
+                        mDisposables.add(mDiscoverSubject.delay(SERVICE_DISCOVERING_INTERVAL, TimeUnit.SECONDS).repeat().subscribe(new Consumer<Integer>() {
+                            @Override
+                            public void accept(Integer integer) throws Exception {
+                                mWifiP2pManager.discoverServices(mChannel, new RxActionListener(mDiscoverSubject, TYPE_DISCOVER_SERVICES));
+                            }
+                        }));
                         break;
-                    case TYPE_DISCOVER_SERVICES:
-                        subject.delay(SERVICE_DISCOVERING_INTERVAL, TimeUnit.SECONDS).repeat();
                 }
             }
         }, new Consumer<Throwable>() {
@@ -86,7 +93,7 @@ public class WifiDirect implements IWifiDirect, WifiDirectReceiver.OnWifiDirectS
                 showToast(throwable.toString());
             }
         });
-        subject.onNext(0);
+        mDiscoverSubject.onNext(0);
     }
 
     private void prepareServiceDiscovery() {
@@ -113,10 +120,11 @@ public class WifiDirect implements IWifiDirect, WifiDirectReceiver.OnWifiDirectS
 
     @Override
     public void setupSign(final String key) {
-        final PublishSubject<Integer> subject = PublishSubject.create();
-        subject.subscribe(new Consumer<Integer>() {
+        mSetSignSubject = PublishSubject.create();
+        mSetSignSubject.subscribe(new Consumer<Integer>() {
             static final int TYPE_CLEAR_LOCAL_SERVICES = 1;
             static final int TYPE_ADD_LOCAL_SERVICE = 2;
+
             @Override
             public void accept(Integer integer) throws Exception {
                 switch (integer) {
@@ -124,13 +132,14 @@ public class WifiDirect implements IWifiDirect, WifiDirectReceiver.OnWifiDirectS
                         Map<String, String> txt = new HashMap<>();
                         txt.put("key", key);
                         WifiP2pDnsSdServiceInfo info = WifiP2pDnsSdServiceInfo.newInstance(INSTANCE_NAME, SERVICE_TYPE, txt);
-                        mWifiP2pManager.addLocalService(mChannel, info, new RxActionListener(subject, TYPE_ADD_LOCAL_SERVICE));
+                        mWifiP2pManager.addLocalService(mChannel, info, new RxActionListener(mSetSignSubject, TYPE_ADD_LOCAL_SERVICE));
                         break;
                     case TYPE_ADD_LOCAL_SERVICE:
                         //持久扫描
                         startServiceBroadcasting();
+                        break;
                     default:
-                        mWifiP2pManager.clearLocalServices(mChannel, new RxActionListener(subject, TYPE_CLEAR_LOCAL_SERVICES));
+                        mWifiP2pManager.clearLocalServices(mChannel, new RxActionListener(mSetSignSubject, TYPE_CLEAR_LOCAL_SERVICES));
                         break;
                 }
             }
@@ -140,37 +149,41 @@ public class WifiDirect implements IWifiDirect, WifiDirectReceiver.OnWifiDirectS
                 showToast(throwable.toString());
             }
         });
-        subject.onNext(0);
+        mSetSignSubject.onNext(0);
     }
 
     /**
      * 启动SERVICE广播
      */
     private void startServiceBroadcasting() {
-        mWifiP2pManager.discoverPeers(mChannel, new WifiP2pManager.ActionListener() {
-            @Override
-            public void onSuccess() {
-                showToast("discoverPeers success");
-            }
-            @Override
-            public void onFailure(int error) {}
-        });
-        mBroadcastingDisposable = Observable.just(mWifiP2pManager)
-                .delay(SERVICE_BROADCASTING_INTERVAL, TimeUnit.SECONDS)
-                .repeat()
-                .subscribe(new Consumer<WifiP2pManager>() {
-                    @Override
-                    public void accept(WifiP2pManager wifiP2pManager) throws Exception {
-                        mWifiP2pManager.discoverPeers(mChannel, new WifiP2pManager.ActionListener() {
-                            @Override
-                            public void onSuccess() {
-                                showToast("discoverPeers success");
-                            }
-                            @Override
-                            public void onFailure(int error) {}
-                        });
-                    }
-                });
+        scanAndConnect();
+//        mWifiP2pManager.discoverPeers(mChannel, new WifiP2pManager.ActionListener() {
+//            @Override
+//            public void onSuccess() {
+//                showToast("discoverPeers success");
+//            }
+//            @Override
+//            public void onFailure(int error) {}
+//        });
+//        mDisposables.add(Observable.just(mWifiP2pManager)
+//                .delay(SERVICE_BROADCASTING_INTERVAL, TimeUnit.SECONDS)
+//                .repeat()
+//                .observeOn(AndroidSchedulers.mainThread())
+//                .subscribe(new Consumer<WifiP2pManager>() {
+//                    @Override
+//                    public void accept(WifiP2pManager wifiP2pManager) throws Exception {
+//                        mWifiP2pManager.discoverPeers(mChannel, new WifiP2pManager.ActionListener() {
+//                            @Override
+//                            public void onSuccess() {
+//                                showToast("discoverPeers success");
+//                            }
+//
+//                            @Override
+//                            public void onFailure(int error) {
+//                            }
+//                        });
+//                    }
+//                }));
     }
 
     @Override
@@ -259,11 +272,8 @@ public class WifiDirect implements IWifiDirect, WifiDirectReceiver.OnWifiDirectS
         mWifiP2pManager.cancelConnect(mChannel, null);
         mWifiP2pManager.clearLocalServices(mChannel, null);
         mWifiP2pManager.clearServiceRequests(mChannel, null);
-        if (mBroadcastingDisposable != null) {
-            mBroadcastingDisposable.dispose();
-        }
-        if (mDiscoveringDisposable != null) {
-            mDiscoveringDisposable.dispose();
+        if (mDisposables.size() != 0) {
+            mDisposables.dispose();
         }
     }
 
@@ -274,7 +284,7 @@ public class WifiDirect implements IWifiDirect, WifiDirectReceiver.OnWifiDirectS
 
 
     private static class RxActionListener implements WifiP2pManager.ActionListener {
-        private final PublishSubject<Integer> mSubject;
+        private PublishSubject<Integer> mSubject;
         private final int mType;
 
         RxActionListener(PublishSubject<Integer> subject, int type) {
