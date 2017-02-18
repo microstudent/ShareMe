@@ -4,7 +4,6 @@ import android.net.wifi.p2p.WifiP2pDevice;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.widget.TextView;
-import android.widget.Toast;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import com.leaves.app.shareme.widget.dialpad.NineKeyDialpad;
@@ -42,7 +41,7 @@ public class MainActivity extends AppCompatActivity {
         mWifiDirect.setOnServiceFoundListener(new OnServiceFoundListener() {
             @Override
             public void onServiceFound(WifiP2pDevice device, WifiDirect.ServiceResponse response) {
-                Toast.makeText(MainActivity.this, response.txtRecordMap.toString(), Toast.LENGTH_SHORT).show();
+                mInfoView.setText(device.deviceName);
                 mWifiDirect.stopDiscover();
             }
         });
@@ -60,7 +59,7 @@ public class MainActivity extends AppCompatActivity {
                     txt.put(Constant.WifiDirect.KEY_TIMESTAMP, System.currentTimeMillis() + "");
 
                     mTimeStamp = System.currentTimeMillis() + "";
-                    mWifiDirect.setupSign(txt);
+                    mWifiDirect.setupSignAndScan(txt);
                 }
             }
         });

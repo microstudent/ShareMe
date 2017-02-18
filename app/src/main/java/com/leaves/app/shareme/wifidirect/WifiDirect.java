@@ -5,6 +5,7 @@ import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.IntentFilter;
 import android.net.NetworkInfo;
+import android.net.wifi.p2p.WifiP2pConfig;
 import android.net.wifi.p2p.WifiP2pDevice;
 import android.net.wifi.p2p.WifiP2pInfo;
 import android.net.wifi.p2p.WifiP2pManager;
@@ -69,8 +70,7 @@ public class WifiDirect implements IWifiDirect, WifiDirectReceiver.OnWifiDirectS
         mServiceName = serviceName;
     }
 
-    @Override
-    public void scanAndConnect() {
+    public void discover() {
         setupServiceDiscovery();
         mDiscoverSubject = PublishSubject.create();
         mDiscoverSubject.subscribe(new Consumer<Integer>() {
@@ -124,7 +124,7 @@ public class WifiDirect implements IWifiDirect, WifiDirectReceiver.OnWifiDirectS
     }
 
     @Override
-    public void setupSign(final Map<String, String> params) {
+    public void setupSignAndScan(final Map<String, String> params) {
         mSetSignSubject = PublishSubject.create();
         mSetSignSubject.subscribe(new Consumer<Integer>() {
             static final int TYPE_CLEAR_LOCAL_SERVICES = 1;
@@ -161,11 +161,31 @@ public class WifiDirect implements IWifiDirect, WifiDirectReceiver.OnWifiDirectS
         mDisposables.dispose();
     }
 
+    @Override
+    public void connectTo(WifiP2pDevice device, int groupOwnerIntent) {
+        if (device != null) {
+            if (mChannel == null) {
+                throw new IllegalStateException("you must call setupSign first!");
+            }
+            WifiP2pConfig config = new WifiP2pConfig();
+            config.deviceAddress = device.deviceAddress;
+            config.groupOwnerIntent = groupOwnerIntent;
+            mWifiP2pManager.connect(mChannel, config, new WifiP2pManager.ActionListener() {
+                @Override
+                public void onSuccess() {}
+                @Override
+                public void onFailure(int reason) {
+                    showToast("onConnectFail,reason:" + reason);
+                }
+            });
+        }
+    }
+
     /**
      * 启动SERVICE广播
      */
     private void startServiceBroadcasting() {
-        scanAndConnect();
+        discover();
     }
 
     @Override
