@@ -2,4 +2,39 @@
     <!-- Default screen margins, per the Android Design guidelines. -->
     <dimen name="activity_horizontal_margin">16dp</dimen>
     <dimen name="activity_vertical_margin">16dp</dimen>
+
+    <!-- font sizes -->
+    <dimen name="font_larger">22sp</dimen>
+    <dimen name="font_large">18sp</dimen>
+    <dimen name="font_normal">15sp</dimen>
+    <dimen name="font_small">12sp</dimen>
+    <dimen name="font_more_small">10sp</dimen>
+
+
+    <!-- typical spacing between two views -->
+    <dimen name="spacing_more_huge">50dp</dimen>
+    <dimen name="spacing_huge">40dp</dimen>
+    <dimen name="spacing_more_large">30dp</dimen>
+    <dimen name="spacing_large">24dp</dimen>
+    <dimen name="spacing_normal">14dp</dimen>
+    <dimen name="spacing_small">10dp</dimen>
+    <dimen name="spacing_more_small">5dp</dimen>
+    <dimen name="spacing_tiny">4dp</dimen>
+
+    <!-- 头像大小 -->
+    <dimen name="image_tiny">10dp</dimen>
+    <dimen name="image_more_small">20dp</dimen>
+    <dimen name="image_small">30dp</dimen>
+    <dimen name="image_normal">40dp</dimen>
+    <dimen name="image_large">50dp</dimen>
+    <dimen name="image_more_large">60dp</dimen>
+    <dimen name="image_huge">90dp</dimen>
+
+    <!--item大小-->
+    <dimen name="list_item_height_normal">50dp</dimen>
+    <dimen name="list_item_height_small">40dp</dimen>
+    <dimen name="list_item_height_thin">20dp</dimen>
+    <dimen name="list_item_height_large">60dp</dimen>
+    <dimen name="list_item_height_huge">80dp</dimen>
+    <dimen name="fab_margin">16dp</dimen>
 </resources>

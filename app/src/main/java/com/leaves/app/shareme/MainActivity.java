@@ -1,26 +1,35 @@
 package com.leaves.app.shareme;
 
-import android.content.Intent;
-import android.support.v7.app.AppCompatActivity;
+import android.net.wifi.p2p.WifiP2pDevice;
 import android.os.Bundle;
-import android.util.Log;
+import android.support.v7.app.AppCompatActivity;
+import android.widget.TextView;
+import android.widget.Toast;
+import butterknife.BindView;
 import butterknife.ButterKnife;
-import butterknife.OnClick;
-import com.koushikdutta.async.callback.CompletedCallback;
-import com.koushikdutta.async.http.AsyncHttpClient;
-import com.koushikdutta.async.http.WebSocket;
-import com.koushikdutta.async.http.server.AsyncHttpServer;
-import com.koushikdutta.async.http.server.AsyncHttpServerRequest;
+import com.leaves.app.shareme.widget.dialpad.NineKeyDialpad;
+import com.leaves.app.shareme.widget.dialpad.listener.OnNumberClickListener;
 import com.leaves.app.shareme.wifidirect.WifiDirect;
+import com.leaves.app.shareme.wifidirect.listener.OnServiceFoundListener;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 
 public class MainActivity extends AppCompatActivity {
 
+    @BindView(R.id.dialpad)
+    NineKeyDialpad mNineKeyDialpad;
+
+    @BindView(R.id.tv_key)
+    TextView mKeyView;
+
+    @BindView(R.id.tv_info)
+    TextView mInfoView;
 
     private WifiDirect mWifiDirect;
+
+    private String mTimeStamp;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -28,21 +37,32 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
 
-        mWifiDirect = new WifiDirect(this);
-    }
+        mWifiDirect = new WifiDirect(this, Constant.WifiDirect.INSTANCE_NAME, Constant.WifiDirect.SERVICE_TYPE);
 
-    @OnClick(R.id.bt_server)
-    public void goServer() {
-//        Intent intent = new Intent(this, ServerActivity.class);
-//        startActivity(intent);
-        mWifiDirect.scanAndConnect();
-    }
+        mWifiDirect.setOnServiceFoundListener(new OnServiceFoundListener() {
+            @Override
+            public void onServiceFound(WifiP2pDevice device, WifiDirect.ServiceResponse response) {
+                Toast.makeText(MainActivity.this, response.txtRecordMap.toString(), Toast.LENGTH_SHORT).show();
+                mWifiDirect.stopDiscover();
+            }
+        });
 
+        mNineKeyDialpad.setOnNumberClickListener(new OnNumberClickListener() {
+            @Override
+            public void onNumberClick(String number) {
+                if (mKeyView.getText().length() >= 4) {
+                    return;
+                }
+                mKeyView.append(number);
+                if (mKeyView.getText().length() >= 4) {
+                    Map<String, String> txt = new HashMap<>();
+                    txt.put(Constant.WifiDirect.KEY_NUMBER, mKeyView.getText().toString());
+                    txt.put(Constant.WifiDirect.KEY_TIMESTAMP, System.currentTimeMillis() + "");
 
-    @OnClick(R.id.bt_client)
-    public void goClient() {
-//        Intent intent = new Intent(this, ClientActivity.class);
-//        startActivity(intent);
-        mWifiDirect.setupSign("8888");
+                    mTimeStamp = System.currentTimeMillis() + "";
+                    mWifiDirect.setupSign(txt);
+                }
+            }
+        });
     }
 }

@@ -1,8 +1,8 @@
 package com.leaves.app.shareme.wifidirect;
 
-import android.net.wifi.p2p.WifiP2pDevice;
+import com.leaves.app.shareme.wifidirect.listener.OnConnectionChangeListener;
 
-import java.util.List;
+import java.util.Map;
 
 /**
  * Created by leaves on 17-1-23.
@@ -16,7 +16,9 @@ public interface IWifiDirect {
     /**
      * 设置标识
      */
-    void setupSign(String key);
+    void setupSign(Map<String, String> params);
+
+    void stopDiscover();
 
     /**
      * 设置Listener

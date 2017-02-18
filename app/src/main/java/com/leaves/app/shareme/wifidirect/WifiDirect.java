@@ -15,7 +15,11 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v7.app.AppCompatActivity;
 import android.widget.Toast;
+import com.leaves.app.shareme.wifidirect.listener.LifecycleListener;
+import com.leaves.app.shareme.wifidirect.listener.OnConnectionChangeListener;
+import com.leaves.app.shareme.wifidirect.listener.OnServiceFoundListener;
 import io.reactivex.disposables.CompositeDisposable;
+import io.reactivex.functions.BooleanSupplier;
 import io.reactivex.functions.Consumer;
 import io.reactivex.subjects.PublishSubject;
 
@@ -30,8 +34,6 @@ import java.util.concurrent.TimeUnit;
 @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
 public class WifiDirect implements IWifiDirect, WifiDirectReceiver.OnWifiDirectStateChangeListener, LifecycleListener {
     private static final String FRAGMENT_TAG = "com.leaves.app.shareme.wifidirect.shadowfragment";
-    public static final String INSTANCE_NAME = "shareMe";
-    public static final String SERVICE_TYPE = "shareMe";
 
     private static final long SERVICE_BROADCASTING_INTERVAL = 10;//sec
     private static final long SERVICE_DISCOVERING_INTERVAL = 10;//sec
@@ -43,21 +45,33 @@ public class WifiDirect implements IWifiDirect, WifiDirectReceiver.OnWifiDirectS
     private WifiDirectReceiver mWifiDirectReceiver;
     private CompositeDisposable mDisposables;
 
+    private String mInstanceName, mServiceName;
+
     private WifiP2pDnsSdServiceRequest mWifiP2pServiceRequest;
     private PublishSubject<Integer> mSetSignSubject;
     private PublishSubject<Integer> mDiscoverSubject;
 
-    public WifiDirect(AppCompatActivity rootActivity) {
+    private boolean isServiceDiscovered = false;
+
+    private String mTimeStamp;
+    private String mKey;
+
+    private OnServiceFoundListener mOnServiceFoundListener;
+    private DnsSdServiceResponseHandler mDnsSdServiceResponseHandler;
+
+    public WifiDirect(AppCompatActivity rootActivity, String instanceName, String serviceName) {
         mContext = rootActivity.getApplicationContext();
         initWifiP2p();
         initReceiver();
         setupShadowFragment(rootActivity);//绑定生命周期
         mDisposables = new CompositeDisposable();
+        mInstanceName = instanceName;
+        mServiceName = serviceName;
     }
 
     @Override
     public void scanAndConnect() {
-        prepareServiceDiscovery();
+        setupServiceDiscovery();
         mDiscoverSubject = PublishSubject.create();
         mDiscoverSubject.subscribe(new Consumer<Integer>() {
             static final int TYPE_DISCOVER_SERVICES = 3;
@@ -78,7 +92,12 @@ public class WifiDirect implements IWifiDirect, WifiDirectReceiver.OnWifiDirectS
                     case TYPE_ADD_SERVICE_REQUEST:
                         showToast("discovering services");
                         mWifiP2pManager.discoverServices(mChannel, new RxActionListener(mDiscoverSubject, TYPE_DISCOVER_SERVICES));
-                        mDisposables.add(mDiscoverSubject.delay(SERVICE_DISCOVERING_INTERVAL, TimeUnit.SECONDS).repeat().subscribe(new Consumer<Integer>() {
+                        mDisposables.add(mDiscoverSubject.delay(SERVICE_DISCOVERING_INTERVAL, TimeUnit.SECONDS).repeatUntil(new BooleanSupplier() {
+                            @Override
+                            public boolean getAsBoolean() throws Exception {
+                                return isServiceDiscovered;
+                            }
+                        }).subscribe(new Consumer<Integer>() {
                             @Override
                             public void accept(Integer integer) throws Exception {
                                 mWifiP2pManager.discoverServices(mChannel, new RxActionListener(mDiscoverSubject, TYPE_DISCOVER_SERVICES));
@@ -96,30 +115,16 @@ public class WifiDirect implements IWifiDirect, WifiDirectReceiver.OnWifiDirectS
         mDiscoverSubject.onNext(0);
     }
 
-    private void prepareServiceDiscovery() {
-        mWifiP2pManager.setDnsSdResponseListeners(mChannel,
-                new WifiP2pManager.DnsSdServiceResponseListener() {
-                    @Override
-                    public void onDnsSdServiceAvailable(String instanceName,
-                                                        String registrationType, WifiP2pDevice srcDevice) {
-                        // do all the things you need to do with detected service
-                        showToast(instanceName);
-                    }
-                }, new WifiP2pManager.DnsSdTxtRecordListener() {
-
-                    @Override
-                    public void onDnsSdTxtRecordAvailable(
-                            String fullDomainName, Map<String, String> record,
-                            WifiP2pDevice device) {
-                        // do all the things you need to do with detailed information about detected service
-                        showToast(record.toString());
-                    }
-                });
+    private void setupServiceDiscovery() {
+        if (mDnsSdServiceResponseHandler == null) {
+            mDnsSdServiceResponseHandler = new DnsSdServiceResponseHandler(mOnServiceFoundListener);
+        }
+        mWifiP2pManager.setDnsSdResponseListeners(mChannel, mDnsSdServiceResponseHandler, mDnsSdServiceResponseHandler);
         mWifiP2pServiceRequest = WifiP2pDnsSdServiceRequest.newInstance();
     }
 
     @Override
-    public void setupSign(final String key) {
+    public void setupSign(final Map<String, String> params) {
         mSetSignSubject = PublishSubject.create();
         mSetSignSubject.subscribe(new Consumer<Integer>() {
             static final int TYPE_CLEAR_LOCAL_SERVICES = 1;
@@ -129,9 +134,7 @@ public class WifiDirect implements IWifiDirect, WifiDirectReceiver.OnWifiDirectS
             public void accept(Integer integer) throws Exception {
                 switch (integer) {
                     case TYPE_CLEAR_LOCAL_SERVICES:
-                        Map<String, String> txt = new HashMap<>();
-                        txt.put("key", key);
-                        WifiP2pDnsSdServiceInfo info = WifiP2pDnsSdServiceInfo.newInstance(INSTANCE_NAME, SERVICE_TYPE, txt);
+                        WifiP2pDnsSdServiceInfo info = WifiP2pDnsSdServiceInfo.newInstance(mInstanceName, mServiceName, params);
                         mWifiP2pManager.addLocalService(mChannel, info, new RxActionListener(mSetSignSubject, TYPE_ADD_LOCAL_SERVICE));
                         break;
                     case TYPE_ADD_LOCAL_SERVICE:
@@ -152,38 +155,17 @@ public class WifiDirect implements IWifiDirect, WifiDirectReceiver.OnWifiDirectS
         mSetSignSubject.onNext(0);
     }
 
+    @Override
+    public void stopDiscover() {
+        isServiceDiscovered = true;
+        mDisposables.dispose();
+    }
+
     /**
      * 启动SERVICE广播
      */
     private void startServiceBroadcasting() {
         scanAndConnect();
-//        mWifiP2pManager.discoverPeers(mChannel, new WifiP2pManager.ActionListener() {
-//            @Override
-//            public void onSuccess() {
-//                showToast("discoverPeers success");
-//            }
-//            @Override
-//            public void onFailure(int error) {}
-//        });
-//        mDisposables.add(Observable.just(mWifiP2pManager)
-//                .delay(SERVICE_BROADCASTING_INTERVAL, TimeUnit.SECONDS)
-//                .repeat()
-//                .observeOn(AndroidSchedulers.mainThread())
-//                .subscribe(new Consumer<WifiP2pManager>() {
-//                    @Override
-//                    public void accept(WifiP2pManager wifiP2pManager) throws Exception {
-//                        mWifiP2pManager.discoverPeers(mChannel, new WifiP2pManager.ActionListener() {
-//                            @Override
-//                            public void onSuccess() {
-//                                showToast("discoverPeers success");
-//                            }
-//
-//                            @Override
-//                            public void onFailure(int error) {
-//                            }
-//                        });
-//                    }
-//                }));
     }
 
     @Override
@@ -239,6 +221,93 @@ public class WifiDirect implements IWifiDirect, WifiDirectReceiver.OnWifiDirectS
         FragmentManager manager = activity.getSupportFragmentManager();
         ShadowFragment current = getShadowFragment(manager);
         current.getLifecycle().addListener(this);
+    }
+
+
+    public void setOnServiceFoundListener(OnServiceFoundListener onServiceFoundListener) {
+        mOnServiceFoundListener = onServiceFoundListener;
+        if (mDnsSdServiceResponseHandler != null) {
+            mDnsSdServiceResponseHandler.setOnServiceFoundListener(mOnServiceFoundListener);
+        }
+    }
+
+    private class DnsSdServiceResponseHandler implements WifiP2pManager.DnsSdServiceResponseListener, WifiP2pManager.DnsSdTxtRecordListener {
+        private HashMap<String, ServiceResponse> mResponseHashMap;
+        private OnServiceFoundListener mOnServiceFoundListener;
+
+
+        public DnsSdServiceResponseHandler() {
+            this(null);
+        }
+
+        public DnsSdServiceResponseHandler(OnServiceFoundListener listener) {
+            mOnServiceFoundListener = listener;
+            mResponseHashMap = new HashMap<>();
+        }
+
+        public void setOnServiceFoundListener(OnServiceFoundListener onServiceFoundListener) {
+            mOnServiceFoundListener = onServiceFoundListener;
+        }
+
+        @Override
+        public void onDnsSdServiceAvailable(String instanceName, String registrationType, WifiP2pDevice srcDevice) {
+            ServiceResponse response = mResponseHashMap.get(srcDevice.deviceAddress);
+            if (response != null && mOnServiceFoundListener != null) {
+                response.setInstanceName(instanceName);
+                response.setRegistrationType(registrationType);
+                mOnServiceFoundListener.onServiceFound(srcDevice, response);
+            } else {
+                response = new ServiceResponse(instanceName, registrationType, srcDevice);
+                mResponseHashMap.put(srcDevice.deviceAddress, response);
+            }
+        }
+
+        @Override
+        public void onDnsSdTxtRecordAvailable(String fullDomainName, Map<String, String> txtRecordMap, WifiP2pDevice srcDevice) {
+            ServiceResponse response = mResponseHashMap.get(srcDevice.deviceAddress);
+            if (response != null && mOnServiceFoundListener != null) {
+                response.setFullDomainName(fullDomainName);
+                response.setTxtRecordMap(txtRecordMap);
+                mOnServiceFoundListener.onServiceFound(srcDevice, response);
+            } else {
+                response = new ServiceResponse(fullDomainName, txtRecordMap, srcDevice);
+                mResponseHashMap.put(srcDevice.deviceAddress, response);
+            }
+        }
+    }
+
+    public class ServiceResponse {
+        public String instanceName,registrationType, fullDomainName;
+        public Map<String, String> txtRecordMap;
+        public WifiP2pDevice wifiP2pDevice;
+
+        public ServiceResponse(String instanceName, String registrationType, WifiP2pDevice wifiP2pDevice) {
+            this.instanceName = instanceName;
+            this.registrationType = registrationType;
+            this.wifiP2pDevice = wifiP2pDevice;
+        }
+
+        public ServiceResponse(String fullDomainName, Map<String, String> txtRecordMap, WifiP2pDevice wifiP2pDevice) {
+            this.fullDomainName = fullDomainName;
+            this.txtRecordMap = txtRecordMap;
+            this.wifiP2pDevice = wifiP2pDevice;
+        }
+
+        public void setInstanceName(String instanceName) {
+            this.instanceName = instanceName;
+        }
+
+        public void setRegistrationType(String registrationType) {
+            this.registrationType = registrationType;
+        }
+
+        public void setFullDomainName(String fullDomainName) {
+            this.fullDomainName = fullDomainName;
+        }
+
+        public void setTxtRecordMap(Map<String, String> txtRecordMap) {
+            this.txtRecordMap = txtRecordMap;
+        }
     }
 
 

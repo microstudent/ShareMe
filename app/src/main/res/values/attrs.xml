@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <attr name="tint_color" format="color" />
+    <declare-styleable name="NineKeyButton">
+        <attr name="search_view_id" format="reference"/>
+        <attr name="keywords" format="string"/>
+        <attr name="number" format="string" />
+    </declare-styleable>
+    <declare-styleable name="NineKeyDialpad">
+        <attr name="divider_color" format="color"/>
+        <attr name="show_keyword" format="boolean"/>
+        <attr name="tint_color"/>
+    </declare-styleable>
+    <declare-styleable name="DeletableEditText">
+        <attr name="clean_icon" format="reference"/>
+        <attr name="tint_color"/>
+    </declare-styleable>
+</resources>
