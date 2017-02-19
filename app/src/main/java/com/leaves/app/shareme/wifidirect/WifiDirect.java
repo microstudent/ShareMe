@@ -5,13 +5,11 @@ import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.IntentFilter;
 import android.net.NetworkInfo;
-import android.net.wifi.p2p.WifiP2pConfig;
-import android.net.wifi.p2p.WifiP2pDevice;
-import android.net.wifi.p2p.WifiP2pInfo;
-import android.net.wifi.p2p.WifiP2pManager;
+import android.net.wifi.p2p.*;
 import android.net.wifi.p2p.nsd.WifiP2pDnsSdServiceInfo;
 import android.net.wifi.p2p.nsd.WifiP2pDnsSdServiceRequest;
 import android.os.Build;
+import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v7.app.AppCompatActivity;
@@ -36,7 +34,6 @@ import java.util.concurrent.TimeUnit;
 public class WifiDirect implements IWifiDirect, WifiDirectReceiver.OnWifiDirectStateChangeListener, LifecycleListener {
     private static final String FRAGMENT_TAG = "com.leaves.app.shareme.wifidirect.shadowfragment";
 
-    private static final long SERVICE_BROADCASTING_INTERVAL = 10;//sec
     private static final long SERVICE_DISCOVERING_INTERVAL = 10;//sec
 
     private IntentFilter mIntentFilter;
@@ -52,6 +49,8 @@ public class WifiDirect implements IWifiDirect, WifiDirectReceiver.OnWifiDirectS
     private PublishSubject<Integer> mSetSignSubject;
     private PublishSubject<Integer> mDiscoverSubject;
 
+
+
     private boolean isServiceDiscovered = false;
 
     private String mTimeStamp;
@@ -59,6 +58,9 @@ public class WifiDirect implements IWifiDirect, WifiDirectReceiver.OnWifiDirectS
 
     private OnServiceFoundListener mOnServiceFoundListener;
     private DnsSdServiceResponseHandler mDnsSdServiceResponseHandler;
+
+    private OnConnectionChangeListener mOnConnectionChangeListener;
+    private WifiP2pInfo mWifiP2pInfo;
 
     public WifiDirect(AppCompatActivity rootActivity, String instanceName, String serviceName) {
         mContext = rootActivity.getApplicationContext();
@@ -190,6 +192,7 @@ public class WifiDirect implements IWifiDirect, WifiDirectReceiver.OnWifiDirectS
 
     @Override
     public void setOnConnectionChangeListener(OnConnectionChangeListener listener) {
+        mOnConnectionChangeListener = listener;
     }
 
     /**
@@ -225,9 +228,30 @@ public class WifiDirect implements IWifiDirect, WifiDirectReceiver.OnWifiDirectS
 
     @Override
     public void onConnectionChange(WifiP2pInfo wifiP2pInfo, NetworkInfo networkInfo) {
-        if (wifiP2pInfo.groupOwnerAddress != null) {
-            showToast("onConnect" + wifiP2pInfo.groupOwnerAddress.getHostAddress());
+        //使用requestPeer来获取设备列表
+        if (mWifiP2pManager != null && mChannel != null) {
+            mWifiP2pManager.requestPeers(mChannel, new WifiP2pManager.PeerListListener() {
+                @Override
+                public void onPeersAvailable(WifiP2pDeviceList peers) {
+                    if (mOnConnectionChangeListener != null) {
+                        mOnConnectionChangeListener.onConnectionChange(peers);
+                    }
+                }
+            });
         }
+        mWifiP2pInfo = wifiP2pInfo;
+    }
+
+    public boolean isGroupOwner() {
+        return mWifiP2pInfo != null && mWifiP2pInfo.isGroupOwner;
+    }
+
+    @Nullable
+    public String getGroupOwnerIp() {
+        if (mWifiP2pInfo != null && mWifiP2pInfo.groupOwnerAddress != null) {
+            return mWifiP2pInfo.groupOwnerAddress.getHostAddress();
+        }
+        return null;
     }
 
     @Override

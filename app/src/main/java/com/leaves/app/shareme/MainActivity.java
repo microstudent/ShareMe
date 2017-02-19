@@ -1,8 +1,10 @@
 package com.leaves.app.shareme;
 
+import android.content.Intent;
 import android.net.wifi.p2p.WifiP2pDevice;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.view.View;
 import android.widget.TextView;
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -43,6 +45,7 @@ public class MainActivity extends AppCompatActivity {
             public void onServiceFound(WifiP2pDevice device, WifiDirect.ServiceResponse response) {
                 mInfoView.setText(device.deviceName);
                 mWifiDirect.stopDiscover();
+                mWifiDirect.connectTo(device, -1);
             }
         });
 
@@ -63,5 +66,20 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
+    }
+
+    public void startService(View view) {
+        if (mWifiDirect.isGroupOwner()) {
+            Intent intent = new Intent(this, ServerActivity.class);
+            startService(intent);
+        }
+    }
+
+
+    public void client(View view) {
+        if (!mWifiDirect.isGroupOwner()) {
+            Intent intent = new Intent(this, ClientActivity.class);
+            startActivity(intent);
+        }
     }
 }
