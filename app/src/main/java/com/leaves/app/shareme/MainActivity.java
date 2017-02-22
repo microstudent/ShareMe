@@ -71,7 +71,7 @@ public class MainActivity extends AppCompatActivity {
     public void startService(View view) {
         if (mWifiDirect.isGroupOwner()) {
             Intent intent = new Intent(this, ServerActivity.class);
-            startService(intent);
+            startActivity(intent);
         }
     }
 
@@ -79,6 +79,7 @@ public class MainActivity extends AppCompatActivity {
     public void client(View view) {
         if (!mWifiDirect.isGroupOwner()) {
             Intent intent = new Intent(this, ClientActivity.class);
+            intent.putExtra("ip", mWifiDirect.getGroupOwnerIp());
             startActivity(intent);
         }
     }

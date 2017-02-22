@@ -1,10 +1,7 @@
 package com.leaves.app.shareme;
 
-import android.app.Activity;
-import android.content.Intent;
-import android.os.Environment;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.widget.EditText;
 import android.widget.TextView;
 import butterknife.BindView;
@@ -12,8 +9,6 @@ import butterknife.ButterKnife;
 import butterknife.OnClick;
 import com.koushikdutta.async.http.AsyncHttpClient;
 import com.koushikdutta.async.http.WebSocket;
-import droidninja.filepicker.FilePickerBuilder;
-import droidninja.filepicker.FilePickerConst;
 import io.reactivex.Observable;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.functions.Consumer;
@@ -21,7 +16,6 @@ import io.reactivex.functions.Consumer;
 import java.io.*;
 import java.util.ArrayList;
 
-import static android.os.Environment.DIRECTORY_PICTURES;
 
 public class ClientActivity extends AppCompatActivity {
 
@@ -39,17 +33,18 @@ public class ClientActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_client);
         ButterKnife.bind(this);
+        String ip = getIntent().getStringExtra("ip");
+        mIPView.setText(ip + ":8877");
     }
 
 
     @OnClick(R.id.bt_send)
     public void send() {
-        String ip = mIPView.getText().toString();
+        String ip1 = mIPView.getText().toString();
         if (mWebSocket != null) {
-//            mWebSocket.send(mMsgView.getText().toString());
-            pickPhoto();
+            mWebSocket.send(mMsgView.getText().toString());
         } else {
-            AsyncHttpClient.getDefaultInstance().websocket("http://" + ip, "test", new AsyncHttpClient.WebSocketConnectCallback() {
+            AsyncHttpClient.getDefaultInstance().websocket("http://" + ip1, "test", new AsyncHttpClient.WebSocketConnectCallback() {
                 @Override
                 public void onCompleted(Exception ex, WebSocket webSocket) {
                     if (ex != null) {
@@ -58,8 +53,6 @@ public class ClientActivity extends AppCompatActivity {
                         return;
                     }
                     mWebSocket = webSocket;
-
-                    pickPhoto();
 
 //                    webSocket.send(mMsgView.getText().toString());
                     webSocket.setStringCallback(new WebSocket.StringCallback() {
@@ -85,30 +78,6 @@ public class ClientActivity extends AppCompatActivity {
             mWebSocket.send(bytes);
         }
     }
-
-
-    private void pickPhoto() {
-        FilePickerBuilder.getInstance().setMaxCount(1)
-                .setSelectedFiles(new ArrayList<String>())
-                .setActivityTheme(R.style.AppTheme)
-                .pickPhoto(this);
-    }
-
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-
-        switch (requestCode)
-        {
-            case FilePickerConst.REQUEST_CODE_PHOTO:
-                if(resultCode== Activity.RESULT_OK && data!=null)
-                {
-                    sendPic(data.getStringArrayListExtra(FilePickerConst.KEY_SELECTED_PHOTOS));
-                }
-                break;
-        }
-    }
-
 
 
     public byte[] getContent(String filePath) throws IOException {
@@ -145,7 +114,9 @@ public class ClientActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        mWebSocket.close();
+        if (mWebSocket != null) {
+            mWebSocket.close();
+        }
     }
 
     public void log(final String msg) {

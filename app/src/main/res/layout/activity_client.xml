@@ -18,7 +18,6 @@
     <EditText
             android:id="@+id/et_ip"
             android:hint="IP address"
-            android:text="172.18.38.203:8877"
             android:layout_below="@id/tv_title"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"/>
