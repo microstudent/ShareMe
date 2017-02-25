@@ -2,18 +2,17 @@ package com.leaves.app.shareme.widget.dialpad;
 
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
+import android.animation.ArgbEvaluator;
 import android.animation.ValueAnimator;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.support.v4.graphics.drawable.DrawableCompat;
-import android.support.v7.widget.RecyclerView;
 import android.util.AttributeSet;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.animation.AccelerateDecelerateInterpolator;
-import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.TableLayout;
 import android.widget.TableRow;
@@ -23,7 +22,6 @@ import com.leaves.app.shareme.widget.dialpad.listener.OnNumberClickListener;
 import com.leaves.app.shareme.widget.dialpad.listener.OnQueryTextListener;
 import com.leaves.app.shareme.widget.dialpad.ninekeybutton.INineKeyButton;
 import com.leaves.app.shareme.widget.dialpad.ninekeybutton.NineKeyButton;
-import com.leaves.app.shareme.widget.dialpad.query.IQuery;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -33,17 +31,16 @@ import java.util.List;
  * Created by MicroStudent on 2016/5/19.
  */
 public class NineKeyDialpad extends FrameLayout implements INineKeyDialpad, View.OnClickListener {
+    public static final int COLORFUL = -1;//键盘颜色
 
     private static final String TAG = "NineKeyDialpad";
-    private List<INineKeyButton> mNineKeyButtons;
+    private List<NineKeyButton> mNineKeyButtons;
 
     private TableLayout mContainer;
 
     private OnQueryTextListener mOnQueryTextListener;
 
     private OnNumberClickListener mOnNumberClickListener;
-
-    private RecyclerView mRecyclerView;
 
     private int mTintColor;
 
@@ -56,6 +53,9 @@ public class NineKeyDialpad extends FrameLayout implements INineKeyDialpad, View
     private StringBuilder mAppendingString;
 
     private int mDividerColor;
+
+    private int mTintColor2;
+    private ArgbEvaluator mArgbEvaluator;
 
     public NineKeyDialpad(Context context) {
         this(context, null);
@@ -70,12 +70,16 @@ public class NineKeyDialpad extends FrameLayout implements INineKeyDialpad, View
 
         LayoutInflater.from(context).inflate(R.layout.layout_ninekey_dialpad, this, true);
         mNineKeyButtons = new ArrayList<>();
+        mArgbEvaluator = new ArgbEvaluator();
 
         initView();
 
         handleAttrs(attrs);
 
-        getAllNineKeyButton();
+        loadAllNineKeyButton();
+        for (int i = 0; i < mNineKeyButtons.size(); i++) {
+            styleNineKeyButton(mNineKeyButtons.get(i), i);
+        }
 
         setupListener();
     }
@@ -115,6 +119,10 @@ public class NineKeyDialpad extends FrameLayout implements INineKeyDialpad, View
         TypedArray array = getContext().obtainStyledAttributes(attrs, R.styleable.NineKeyDialpad);
         mTintColor = array.getColor(R.styleable.NineKeyDialpad_tint_color, Color.BLACK);
         mDividerColor = array.getColor(R.styleable.NineKeyDialpad_divider_color, Color.TRANSPARENT);
+        boolean isColorful = array.getBoolean(R.styleable.NineKeyDialpad_colorful, false);
+        if (isColorful) {
+            mTintColor2 = array.getColor(R.styleable.NineKeyDialpad_tint_color2, Color.BLACK);
+        }
         array.recycle();
     }
 
@@ -139,23 +147,24 @@ public class NineKeyDialpad extends FrameLayout implements INineKeyDialpad, View
         }
     }
 
-    private void getAllNineKeyButton() {
+    private void loadAllNineKeyButton() {
         int count = mContainer.getChildCount();
         for (int i = 0; i < count; i++) {
             TableRow row = (TableRow) mContainer.getChildAt(i);
             for (int j = 0; j < 3; j++) {
                 View view = row.getChildAt(j);
                 if (view instanceof NineKeyButton) {
-                    mNineKeyButtons.add((INineKeyButton) view);
-                    styleNineKeyButton((Button) view);
+                    mNineKeyButtons.add((NineKeyButton) view);
                 }
             }
         }
     }
 
-    private void styleNineKeyButton(Button button) {
-        if (button != null) {
-            button.setTextColor(mTintColor);
+    private void styleNineKeyButton(NineKeyButton button, int index) {
+        if (button != null && mNineKeyButtons != null && !mNineKeyButtons.isEmpty()) {
+            float fun = (float) index / mNineKeyButtons.size();
+            int color = (int) mArgbEvaluator.evaluate(fun, mTintColor, mTintColor2);
+            button.setTextColor(color);
         }
     }
 
@@ -167,7 +176,6 @@ public class NineKeyDialpad extends FrameLayout implements INineKeyDialpad, View
     public OnQueryTextListener getOnQueryTextListener() {
         return mOnQueryTextListener;
     }
-
 
     @Override
     public void show() {
@@ -185,19 +193,6 @@ public class NineKeyDialpad extends FrameLayout implements INineKeyDialpad, View
         }
         mDropAnimator.start();
         isShown = false;
-    }
-
-    @Override
-    public void setRecyclerView(RecyclerView recyclerView) {
-        this.mRecyclerView = recyclerView;
-
-    }
-
-    @Override
-    public void setQuery(IQuery query) {
-        if (mOnQueryTextListener != null) {
-            mOnQueryTextListener.setQuery(query);
-        }
     }
 
     @Override
