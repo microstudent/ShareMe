@@ -8,13 +8,30 @@
         android:layout_height="match_parent"
         tools:context="com.leaves.app.shareme.MainActivity">
 
+    <com.gjiazhe.panoramaimageview.PanoramaImageView
+            android:id="@+id/iv_bg"
+            android:scaleType="centerCrop"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:src="@drawable/bg_piano"
+            app:piv_enablePanoramaMode="true"
+            app:piv_show_scrollbar="true"
+            app:piv_invertScrollDirection="false"
+            />
+    <com.fivehundredpx.android.blur.BlurringView
+            android:id="@+id/view_blur"
+            android:layout_alignTop="@+id/dialpad"
+            android:layout_alignBottom="@+id/dialpad"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
     <com.leaves.app.shareme.widget.dialpad.NineKeyDialpad
             android:id="@+id/dialpad"
             app:tint_color="@color/colorPrimary"
+            app:tint_color2="@color/colorAccent"
+            app:colorful="true"
             android:layout_alignParentBottom="true"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"/>
-
     <TextView
             android:id="@+id/tv_key"
             android:layout_above="@id/dialpad"
@@ -24,19 +41,6 @@
     <TextView
             android:id="@+id/tv_info"
             android:layout_centerHorizontal="true"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"/>
-
-    <Button
-            android:onClick="startService"
-            android:text="server"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"/>
-
-    <Button
-            android:text="client"
-            android:onClick="client"
-            android:layout_alignParentRight="true"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"/>
 </RelativeLayout>

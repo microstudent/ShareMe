@@ -18,16 +18,4 @@ public interface INineKeyDialpad {
      * 隐藏九宫格面板
      */
     void hide();
-
-    /**
-     * 设置与之关联的RecyclerView，建立连接
-     * @param recyclerView 建立连接的RecyclerView
-     */
-    void setRecyclerView(RecyclerView recyclerView);
-
-    /**
-     * 设置查询的查询器
-     * @param query
-     */
-    void setQuery(IQuery query);
 }

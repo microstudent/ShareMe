@@ -1,13 +1,19 @@
 package com.leaves.app.shareme;
 
 import android.content.Intent;
+import android.graphics.Color;
 import android.net.wifi.p2p.WifiP2pDevice;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.TextView;
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import com.bumptech.glide.Glide;
+import com.fivehundredpx.android.blur.BlurringView;
+import com.gjiazhe.panoramaimageview.GyroscopeObserver;
+import com.gjiazhe.panoramaimageview.PanoramaImageView;
 import com.leaves.app.shareme.widget.dialpad.NineKeyDialpad;
 import com.leaves.app.shareme.widget.dialpad.listener.OnNumberClickListener;
 import com.leaves.app.shareme.wifidirect.WifiDirect;
@@ -28,9 +34,20 @@ public class MainActivity extends AppCompatActivity {
     @BindView(R.id.tv_info)
     TextView mInfoView;
 
+    @BindView(R.id.iv_bg)
+    PanoramaImageView mImageView;
+
+    @BindView(R.id.activity_main)
+    ViewGroup mRootView;
+
+    @BindView(R.id.view_blur)
+    BlurringView mBlurringView;
+
     private WifiDirect mWifiDirect;
 
     private String mTimeStamp;
+
+    private GyroscopeObserver mGyroscopeObserver;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -66,6 +83,17 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
+        Glide.with(this).load(R.drawable.bg_piano).into(mImageView);
+//        Drawable drawable = getDrawable(R.drawable.bg_piano);
+//        mImageView.setImageDrawable(drawable);
+        mBlurringView.setBlurredView(mImageView);
+        mBlurringView.setBlurRadius(10);
+        mBlurringView.setDownsampleFactor(10);
+        mBlurringView.setOverlayColor(Color.TRANSPARENT);
+
+        mGyroscopeObserver = new GyroscopeObserver();
+        mGyroscopeObserver.setMaxRotateRadian(Math.PI/9);
+        mImageView.setGyroscopeObserver(mGyroscopeObserver);
     }
 
     public void startService(View view) {
@@ -75,6 +103,17 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        mGyroscopeObserver.register(this);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        mGyroscopeObserver.unregister();
+    }
 
     public void client(View view) {
         if (!mWifiDirect.isGroupOwner()) {

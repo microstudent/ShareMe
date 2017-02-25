@@ -2,22 +2,31 @@ package com.leaves.app.shareme.widget.dialpad.ninekeybutton;
 
 import android.content.Context;
 import android.content.res.TypedArray;
-import android.text.SpannableStringBuilder;
-import android.text.Spanned;
-import android.text.style.RelativeSizeSpan;
+import android.graphics.Canvas;
+import android.graphics.Paint;
+import android.graphics.Rect;
+import android.text.TextPaint;
 import android.util.AttributeSet;
-import android.view.Gravity;
-import android.widget.Button;
+import android.view.View;
 import com.leaves.app.shareme.R;
+import com.leaves.app.shareme.util.DensityUtil;
 
 
 /**
  * Created by MicroStudent on 2016/5/19.
  */
-public class NineKeyButton extends Button implements INineKeyButton {
-    private SpannableStringBuilder mSpannableStringBuilder;
+public class NineKeyButton extends View implements INineKeyButton {
+    public static final int DEFAULT_NUMBER_TEXT_SIZE = 25;//sp
+    public static final int DEFAULT_KEYWORD_TEXT_SIZE = 15;//sp
+    public static final int DEFAULT_LINE_SPACE = 8;//dp行距
+
     private String mKeywords;
     private String mNumber;
+    private TextPaint mTextPaint;
+    private Rect mNumberRect, mKeywordRect;
+    private int mNumberTextSize;
+    private int mKeywordTextSize;
+    private int mLineSpace;
 
     public NineKeyButton(Context context) {
         this(context, null);
@@ -30,12 +39,15 @@ public class NineKeyButton extends Button implements INineKeyButton {
     public NineKeyButton(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
         handleAttrs(attrs);
-        //最多两行
-        setMaxLines(2);
-        //一个格式化的文本Builder
-        mSpannableStringBuilder = new SpannableStringBuilder("\n");
+        mTextPaint = new TextPaint(Paint.ANTI_ALIAS_FLAG);
         //设置居中
-        setGravity(Gravity.CENTER);
+        mTextPaint.setTextAlign(Paint.Align.CENTER);
+        mNumberRect = new Rect();
+        mKeywordRect = new Rect();
+        mKeywordTextSize = DensityUtil.sp2px(context, DEFAULT_KEYWORD_TEXT_SIZE);
+        mNumberTextSize = DensityUtil.sp2px(context, DEFAULT_NUMBER_TEXT_SIZE);
+        mLineSpace = DensityUtil.dip2px(context, DEFAULT_LINE_SPACE);
+
         updateText();
     }
 
@@ -56,19 +68,19 @@ public class NineKeyButton extends Button implements INineKeyButton {
 
 
     private void updateText() {
-        mSpannableStringBuilder.clear();
         if (mKeywords == null && mNumber == null) {
             setVisibility(INVISIBLE);
-        }
-        if (mNumber != null) {
-            mSpannableStringBuilder.append(mNumber);
-            mSpannableStringBuilder.append("\n");
-            mSpannableStringBuilder.setSpan(new RelativeSizeSpan(2.0f), 0, mNumber.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+            return;
         }
         if (mKeywords != null) {
-            mSpannableStringBuilder.append(mKeywords);
+            mTextPaint.setTextSize(mKeywordTextSize);
+            mTextPaint.getTextBounds(mKeywords, 0, mKeywords.length(), mKeywordRect);
         }
-        setText(mSpannableStringBuilder);
+        if (mNumber != null) {
+            mTextPaint.setTextSize(mNumberTextSize);
+            mTextPaint.getTextBounds(mNumber, 0, mNumber.length(), mNumberRect);
+        }
+        requestLayout();
     }
 
     @Override
@@ -77,6 +89,46 @@ public class NineKeyButton extends Button implements INineKeyButton {
     }
 
 
+    @Override
+    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+        int wSize = MeasureSpec.getSize(widthMeasureSpec);
+        int hSize = MeasureSpec.getSize(heightMeasureSpec);
+        int wMode = MeasureSpec.getMode(widthMeasureSpec);
+        int hMode = MeasureSpec.getMode(heightMeasureSpec);
+        int width = 0, height = 0;
+
+        int maxWidth = mKeywordRect.width() > mNumberRect.width() ? mKeywordRect.width() : mNumberRect.width();
+        int maxHeight = mKeywordRect.height() + mNumberRect.height();
+        if (mNumber != null && mNumber.length() != 0) {
+            maxHeight += mLineSpace;
+        }
+        if (mKeywords != null && mKeywords.length() != 0) {
+            maxHeight += mLineSpace;
+        }
+
+        if (wMode == MeasureSpec.AT_MOST) {
+            width =maxWidth + getPaddingRight() + getPaddingLeft();
+        } else if (wMode == MeasureSpec.EXACTLY) {
+            width = wSize;
+        }
+        if (hMode == MeasureSpec.AT_MOST) {
+            height = maxHeight + getPaddingBottom() + getPaddingTop();
+        } else if (hMode == MeasureSpec.EXACTLY) {
+            height = hSize;
+        }
+        setMeasuredDimension(width, height);
+    }
+
+    @Override
+    protected void onDraw(Canvas canvas) {
+        int width = getWidth();
+        mTextPaint.setTextSize(mNumberTextSize);
+        Paint.FontMetricsInt fontMetricsInt = mTextPaint.getFontMetricsInt();
+        canvas.drawText(mNumber, 0, mNumber.length(), width / 2, getPaddingTop() - fontMetricsInt.ascent, mTextPaint);
+        mTextPaint.setTextSize(mKeywordTextSize);
+        fontMetricsInt = mTextPaint.getFontMetricsInt();
+        canvas.drawText(mKeywords, 0, mKeywords.length(), width / 2, mLineSpace + getPaddingTop() + mNumberRect.height() - fontMetricsInt.ascent, mTextPaint);
+    }
 
     @Override
     public void setNumber(char title) {
@@ -93,4 +145,9 @@ public class NineKeyButton extends Button implements INineKeyButton {
         return mNumber;
     }
 
+    public void setTextColor(int color) {
+        if (mTextPaint != null) {
+            mTextPaint.setColor(color);
+        }
+    }
 }

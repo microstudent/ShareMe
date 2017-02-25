@@ -10,6 +10,8 @@
         <attr name="divider_color" format="color"/>
         <attr name="show_keyword" format="boolean"/>
         <attr name="tint_color"/>
+        <attr name="tint_color2" format="color"/>
+        <attr name="colorful" format="boolean"/>
     </declare-styleable>
     <declare-styleable name="DeletableEditText">
         <attr name="clean_icon" format="reference"/>
