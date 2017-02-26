@@ -37,4 +37,6 @@
     <dimen name="list_item_height_large">60dp</dimen>
     <dimen name="list_item_height_huge">80dp</dimen>
     <dimen name="fab_margin">16dp</dimen>
+
+    <dimen name="status_bar_height">25dp</dimen>
 </resources>

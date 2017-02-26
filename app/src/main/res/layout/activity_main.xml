@@ -7,17 +7,18 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         tools:context="com.leaves.app.shareme.MainActivity">
-
-    <com.gjiazhe.panoramaimageview.PanoramaImageView
+    <ImageView
             android:id="@+id/iv_bg"
             android:scaleType="centerCrop"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:src="@drawable/bg_piano"
-            app:piv_enablePanoramaMode="true"
-            app:piv_show_scrollbar="true"
-            app:piv_invertScrollDirection="false"
             />
+    <android.support.v7.widget.Toolbar
+            app:title="ShareMe"
+            app:titleTextColor="@color/white"
+            android:layout_marginTop="@dimen/status_bar_height"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
     <com.fivehundredpx.android.blur.BlurringView
             android:id="@+id/view_blur"
             android:layout_alignTop="@+id/dialpad"
