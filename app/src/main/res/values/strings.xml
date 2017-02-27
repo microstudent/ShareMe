@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">ShareMe</string>
+    <string name="title_share">Start sharing your media</string>
 </resources>
