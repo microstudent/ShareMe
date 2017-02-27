@@ -40,7 +40,7 @@
             android:layout_alignParentBottom="true"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"/>
-    <TextView
+    <com.leaves.app.shareme.widget.PasswordTextView
             android:id="@+id/tv_key"
             android:layout_above="@id/dialpad"
             android:layout_width="match_parent"

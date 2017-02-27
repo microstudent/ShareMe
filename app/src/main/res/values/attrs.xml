@@ -17,4 +17,10 @@
         <attr name="clean_icon" format="reference"/>
         <attr name="tint_color"/>
     </declare-styleable>
+    <declare-styleable name="PasswordTextView">
+        <attr name="show_clear_icon" format="boolean"/>
+        <attr name="dot_color" format="color"/>
+        <attr name="dot_width" format="dimension"/>
+        <attr name="password_length" format="integer"/>
+    </declare-styleable>
 </resources>

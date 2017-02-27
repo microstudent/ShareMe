@@ -13,6 +13,7 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import com.bumptech.glide.Glide;
 import com.fivehundredpx.android.blur.BlurringView;
+import com.leaves.app.shareme.widget.PasswordTextView;
 import com.leaves.app.shareme.widget.dialpad.NineKeyDialpad;
 import com.leaves.app.shareme.widget.dialpad.listener.OnNumberClickListener;
 import com.leaves.app.shareme.wifidirect.WifiDirect;
@@ -28,7 +29,7 @@ public class MainActivity extends AppCompatActivity {
     NineKeyDialpad mNineKeyDialpad;
 
     @BindView(R.id.tv_key)
-    TextView mKeyView;
+    PasswordTextView mKeyView;
 
     @BindView(R.id.tv_info)
     TextView mInfoView;
@@ -69,13 +70,13 @@ public class MainActivity extends AppCompatActivity {
         mNineKeyDialpad.setOnNumberClickListener(new OnNumberClickListener() {
             @Override
             public void onNumberClick(String number) {
-                if (mKeyView.getText().length() >= 4) {
+                if (mKeyView.getPassword().length() >= 4) {
                     return;
                 }
                 mKeyView.append(number);
-                if (mKeyView.getText().length() >= 4) {
+                if (mKeyView.getPassword().length() >= 4) {
                     Map<String, String> txt = new HashMap<>();
-                    txt.put(Constant.WifiDirect.KEY_NUMBER, mKeyView.getText().toString());
+                    txt.put(Constant.WifiDirect.KEY_NUMBER, mKeyView.getPassword());
                     txt.put(Constant.WifiDirect.KEY_TIMESTAMP, System.currentTimeMillis() + "");
 
                     mTimeStamp = System.currentTimeMillis() + "";
