@@ -6,17 +6,21 @@ import android.animation.ArgbEvaluator;
 import android.animation.ValueAnimator;
 import android.content.Context;
 import android.content.res.TypedArray;
+import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Paint;
 import android.graphics.drawable.Drawable;
 import android.support.v4.graphics.drawable.DrawableCompat;
 import android.util.AttributeSet;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.animation.AccelerateDecelerateInterpolator;
 import android.widget.FrameLayout;
 import android.widget.TableLayout;
 import android.widget.TableRow;
 import com.leaves.app.shareme.R;
+import com.leaves.app.shareme.util.DensityUtil;
 import com.leaves.app.shareme.widget.dialpad.animation.OnAnimationListener;
 import com.leaves.app.shareme.widget.dialpad.listener.OnNumberClickListener;
 import com.leaves.app.shareme.widget.dialpad.listener.OnQueryTextListener;
@@ -57,6 +61,10 @@ public class NineKeyDialpad extends FrameLayout implements INineKeyDialpad, View
     private int mTintColor2;
     private ArgbEvaluator mArgbEvaluator;
 
+    float[] mLines2Draw = new float[20];
+
+    private Paint mDividerPaint;
+
     public NineKeyDialpad(Context context) {
         this(context, null);
     }
@@ -82,6 +90,8 @@ public class NineKeyDialpad extends FrameLayout implements INineKeyDialpad, View
         }
 
         setupListener();
+
+        setWillNotDraw(false);
     }
 
     /**
@@ -119,6 +129,7 @@ public class NineKeyDialpad extends FrameLayout implements INineKeyDialpad, View
         TypedArray array = getContext().obtainStyledAttributes(attrs, R.styleable.NineKeyDialpad);
         mTintColor = array.getColor(R.styleable.NineKeyDialpad_tint_color, Color.BLACK);
         mDividerColor = array.getColor(R.styleable.NineKeyDialpad_divider_color, Color.TRANSPARENT);
+        mDividerPaint.setColor(mDividerColor);
         boolean isColorful = array.getBoolean(R.styleable.NineKeyDialpad_colorful, false);
         if (isColorful) {
             mTintColor2 = array.getColor(R.styleable.NineKeyDialpad_tint_color2, Color.BLACK);
@@ -139,6 +150,8 @@ public class NineKeyDialpad extends FrameLayout implements INineKeyDialpad, View
 
     private void initView() {
         mContainer = (TableLayout) findViewById(R.id.container);
+        mDividerPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        mDividerPaint.setStrokeWidth(DensityUtil.dip2px(getContext(), 1));
     }
 
     private void setupListener() {
@@ -202,6 +215,35 @@ public class NineKeyDialpad extends FrameLayout implements INineKeyDialpad, View
             return;
         }
     }
+
+    @Override
+    protected void onDraw(Canvas canvas) {
+        //取0,3,6个button的bottom画横线
+        if (mNineKeyButtons != null && !mNineKeyButtons.isEmpty() && mDividerPaint != null) {
+            int lineCount = 0;
+            for (int i = 0; i < 9; i += 3) {
+                float y = ((ViewGroup) mNineKeyButtons.get(i).getParent()).getBottom();
+                addDividerLine(lineCount, 0, y, getWidth(), y);
+                lineCount++;
+            }
+            //画0，1个button的竖线
+            float x1 = mNineKeyButtons.get(0).getRight();
+            float x2 = mNineKeyButtons.get(1).getRight();
+            addDividerLine(lineCount, x1, 0, x1, getHeight());
+            lineCount++;
+            addDividerLine(lineCount, x2, 0, x2, getHeight());
+            canvas.drawLines(mLines2Draw, 0, mLines2Draw.length, mDividerPaint);
+        }
+    }
+
+    private void addDividerLine(int lineIndex, float x1, float y1, float x2, float y2) {
+        int index = lineIndex * 4;
+        mLines2Draw[index] = x1;
+        mLines2Draw[index + 1] = y1;
+        mLines2Draw[index + 2] = x2;
+        mLines2Draw[index + 3] = y2;
+    }
+
 
     private void handleNineKeyButtonOnClick(INineKeyButton button) {
         if (mAppendingString == null) {

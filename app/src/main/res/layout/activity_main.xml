@@ -13,14 +13,20 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             />
+    <com.fivehundredpx.android.blur.BlurringView
+            android:id="@+id/blur_toolbar"
+            android:layout_alignBottom="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"/>
     <android.support.v7.widget.Toolbar
+            android:id="@+id/toolbar"
             app:title="ShareMe"
-            app:titleTextColor="@color/white"
+            app:titleTextColor="@color/colorAccent"
             android:layout_marginTop="@dimen/status_bar_height"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"/>
     <com.fivehundredpx.android.blur.BlurringView
-            android:id="@+id/view_blur"
+            android:id="@+id/blur_dialpad"
             android:layout_alignTop="@+id/dialpad"
             android:layout_alignBottom="@+id/dialpad"
             android:layout_width="match_parent"
@@ -29,6 +35,7 @@
             android:id="@+id/dialpad"
             app:tint_color="@color/colorPrimary"
             app:tint_color2="@color/colorAccent"
+            app:divider_color="#79ffffff"
             app:colorful="true"
             android:layout_alignParentBottom="true"
             android:layout_width="match_parent"

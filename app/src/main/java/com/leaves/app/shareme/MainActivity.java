@@ -13,8 +13,6 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import com.bumptech.glide.Glide;
 import com.fivehundredpx.android.blur.BlurringView;
-import com.gjiazhe.panoramaimageview.GyroscopeObserver;
-import com.gjiazhe.panoramaimageview.PanoramaImageView;
 import com.leaves.app.shareme.widget.dialpad.NineKeyDialpad;
 import com.leaves.app.shareme.widget.dialpad.listener.OnNumberClickListener;
 import com.leaves.app.shareme.wifidirect.WifiDirect;
@@ -41,8 +39,11 @@ public class MainActivity extends AppCompatActivity {
     @BindView(R.id.activity_main)
     ViewGroup mRootView;
 
-    @BindView(R.id.view_blur)
-    BlurringView mBlurringView;
+    @BindView(R.id.blur_dialpad)
+    BlurringView mDialpadBlurringView;
+
+    @BindView(R.id.blur_toolbar)
+    BlurringView mToolbarBlurringView;
 
     private WifiDirect mWifiDirect;
 
@@ -83,10 +84,14 @@ public class MainActivity extends AppCompatActivity {
             }
         });
         Glide.with(this).load(R.drawable.bg_piano).into(mImageView);
-        mBlurringView.setBlurredView(mImageView);
-        mBlurringView.setBlurRadius(10);
-        mBlurringView.setDownsampleFactor(10);
-        mBlurringView.setOverlayColor(Color.TRANSPARENT);
+        mDialpadBlurringView.setBlurredView(mImageView);
+        mDialpadBlurringView.setBlurRadius(10);
+        mDialpadBlurringView.setDownsampleFactor(10);
+        mDialpadBlurringView.setOverlayColor(Color.TRANSPARENT);
+        mToolbarBlurringView.setBlurredView(mImageView);
+        mToolbarBlurringView.setBlurRadius(10);
+        mToolbarBlurringView.setDownsampleFactor(10);
+        mToolbarBlurringView.setOverlayColor(Color.TRANSPARENT);
     }
 
     public void startService(View view) {
