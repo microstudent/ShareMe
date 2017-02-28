@@ -5,6 +5,7 @@ import android.content.res.TypedArray;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.text.TextPaint;
 import android.util.AttributeSet;
 import android.view.View;
 import com.leaves.app.shareme.R;
@@ -18,16 +19,22 @@ public class PasswordTextView extends View{
     public static final int DEFAULT_DOT_WIDTH = 8;//dp
     public static final int DEFAULT_PASSWORD_LENGTH = 4;//长度
     public static final int DEFAULT_DOT_MARGIN = 6;//dp
+    public static final int DEFAULT_TEXT_SIZE = 25;//sp
 
     private int mDotWidth;
     private int mDotColor;
     private int mDotMargin;
     private int mPasswordLength;
     private boolean showClearIcon;
+    private int mTextSize;
+    private String mPwStub = "_";
 
-    private StringBuilder mStringBuilder;
+    private char[] mPasswords;
+    private int mCurrentPwCount;
 
-    private Paint mPaint;
+    private Paint mCirclePaint;
+    private TextPaint mTextPaint;
+    private boolean showPassword;
 
     public PasswordTextView(Context context) {
         this(context, null);
@@ -49,17 +56,22 @@ public class PasswordTextView extends View{
             showClearIcon = array.getBoolean(R.styleable.PasswordTextView_show_clear_icon, false);
             mDotColor = array.getColor(R.styleable.PasswordTextView_dot_color, DEFAULT_DOT_COLOR);
             mDotWidth = array.getDimensionPixelOffset(R.styleable.PasswordTextView_dot_width, DensityUtil.dip2px(context, DEFAULT_DOT_WIDTH));
+            mTextSize = array.getDimensionPixelSize(R.styleable.PasswordTextView_text_size, DensityUtil.sp2px(context, DEFAULT_TEXT_SIZE));
+            showPassword = array.getBoolean(R.styleable.PasswordTextView_show_password, true);
             mPasswordLength = array.getInt(R.styleable.PasswordTextView_password_length, DEFAULT_PASSWORD_LENGTH);
+            mPasswords = new char[mPasswordLength];
             array.recycle();
         }
         mDotMargin = DensityUtil.dip2px(context, DEFAULT_DOT_MARGIN);
-        mPaint.setColor(mDotColor);
-        mPaint.setStrokeWidth(mDotWidth);
+        mCirclePaint.setColor(mDotColor);
+        mCirclePaint.setStrokeWidth(mDotWidth);
+        mTextPaint.setColor(mDotColor);
+        mTextPaint.setTextSize(mTextSize);
     }
 
     private void initView() {
-        mPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        mStringBuilder = new StringBuilder();
+        mTextPaint = new TextPaint(Paint.ANTI_ALIAS_FLAG);
+        mCirclePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     }
 
 
@@ -86,22 +98,45 @@ public class PasswordTextView extends View{
 
     @Override
     protected void onDraw(Canvas canvas) {
-        canvas.translate(getWidth() / 2 - (2 * mDotMargin * mPasswordLength + mPasswordLength * mDotWidth) / 2, getHeight() / 2);
-        int x = mDotMargin + mDotWidth / 2;
-        int y = 0;
-        for (int i = 0; i < mPasswordLength; i++) {
-            canvas.drawCircle(x, y, mDotWidth / 2, mPaint);
-            x += mDotWidth / 2 + 2 * mDotMargin;
+        if (!showPassword) {
+            //画圆
+            canvas.translate(getWidth() / 2 - (2 * mDotMargin * mPasswordLength + mPasswordLength * mDotWidth) / 2, getHeight() / 2);
+            int x = mDotMargin + mDotWidth / 2;
+            int y = 0;
+            for (int i = 0; i < mPasswordLength; i++) {
+                canvas.drawCircle(x, y, mDotWidth / 2, mCirclePaint);
+                x += mDotWidth / 2 + 2 * mDotMargin;
+            }
+        } else {
+            //画密码
+            canvas.translate(getWidth() / 2 - (2 * mDotMargin * mPasswordLength + mPasswordLength * mTextSize) / 2, getHeight() / 2);
+            int x = mDotMargin + mTextSize / 2;
+            int y = 0;
+            for (int i = 0; i < mPasswordLength; i++) {
+                if (mCurrentPwCount > i) {
+                    canvas.drawText(String.valueOf(mPasswords[i]), x, y, mTextPaint);
+                } else {
+                    canvas.drawText(mPwStub, x, y, mTextPaint);
+                }
+                x += mTextSize / 2 + 2 * mDotMargin;
+            }
         }
     }
 
 
     public String getPassword() {
-        return mStringBuilder.toString();
+        StringBuilder builder = new StringBuilder();
+        for (int i = 0; i < mCurrentPwCount; i++) {
+            builder.append(mPasswords[i]);
+        }
+        return builder.toString();
     }
 
     public void append(String s) {
-        mStringBuilder.append(s);
+        if (s != null && mCurrentPwCount < mPasswordLength) {
+            mPasswords[mCurrentPwCount] = s.charAt(0);
+            mCurrentPwCount++;
+            invalidate();
+        }
     }
-
 }

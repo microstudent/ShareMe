@@ -26,35 +26,12 @@
             android:layout_marginTop="@dimen/status_bar_height"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"/>
-    <android.support.v7.widget.CardView
-            app:cardCornerRadius="10dp"
-            app:cardPreventCornerOverlap="true"
-            app:cardUseCompatPadding="true"
-            android:layout_above="@+id/tv_key"
-            android:layout_below="@id/toolbar"
+    <include
+            layout="@layout/layout_content"
             android:layout_width="match_parent"
-            android:layout_height="match_parent">
-        <FrameLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content">
-            <View
-                    android:background="@color/colorAccent"
-                    android:layout_width="match_parent"
-                    android:layout_height="@dimen/list_item_height_normal"/>
-            <TextView
-                    android:text="@string/title_share"
-                    android:textColor="@color/white"
-                    android:layout_marginLeft="@dimen/spacing_normal"
-                    android:layout_gravity="center_vertical"
-                    android:textSize="@dimen/font_normal"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"/>
-        </FrameLayout>
-        <ImageView
-                android:src="@drawable/ic_account_grey600_48dp"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"/>
-    </android.support.v7.widget.CardView>
+            android:layout_height="match_parent"
+            android:layout_above="@+id/dialpad"
+            android:layout_below="@id/toolbar"/>
     <com.fivehundredpx.android.blur.BlurringView
             android:id="@+id/blur_dialpad"
             tools:visibility="gone"
@@ -69,11 +46,6 @@
             app:divider_color="#79ffffff"
             app:colorful="true"
             android:layout_alignParentBottom="true"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"/>
-    <com.leaves.app.shareme.widget.PasswordTextView
-            android:id="@+id/tv_key"
-            android:layout_above="@id/dialpad"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"/>
 
