@@ -61,6 +61,7 @@ public class WifiDirect implements IWifiDirect, WifiDirectReceiver.OnWifiDirectS
 
     private OnConnectionChangeListener mOnConnectionChangeListener;
     private WifiP2pInfo mWifiP2pInfo;
+    private WifiP2pDevice mThisDevice;
 
     public WifiDirect(AppCompatActivity rootActivity, String instanceName, String serviceName) {
         mContext = rootActivity.getApplicationContext();
@@ -242,6 +243,13 @@ public class WifiDirect implements IWifiDirect, WifiDirectReceiver.OnWifiDirectS
         mWifiP2pInfo = wifiP2pInfo;
     }
 
+    public String getDeviceName() {
+        if (mThisDevice != null) {
+            return mThisDevice.deviceName;
+        }
+        return "";
+    }
+
     public boolean isGroupOwner() {
         return mWifiP2pInfo != null && mWifiP2pInfo.isGroupOwner;
     }
@@ -255,7 +263,8 @@ public class WifiDirect implements IWifiDirect, WifiDirectReceiver.OnWifiDirectS
     }
 
     @Override
-    public void onDeviceDetailChange() {
+    public void onDeviceDetailChange(WifiP2pDevice device) {
+        mThisDevice = device;
     }
 
     /**

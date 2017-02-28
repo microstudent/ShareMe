@@ -46,6 +46,9 @@ public class MainActivity extends AppCompatActivity {
     @BindView(R.id.blur_toolbar)
     BlurringView mToolbarBlurringView;
 
+    @BindView(R.id.tv_device_name)
+    TextView mDeviceNameView;
+
     private WifiDirect mWifiDirect;
 
     private String mTimeStamp;
