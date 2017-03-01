@@ -17,6 +17,7 @@ import com.leaves.app.shareme.widget.PasswordTextView;
 import com.leaves.app.shareme.widget.dialpad.NineKeyDialpad;
 import com.leaves.app.shareme.widget.dialpad.listener.OnNumberClickListener;
 import com.leaves.app.shareme.wifidirect.WifiDirect;
+import com.leaves.app.shareme.wifidirect.listener.OnDeviceDetailChangeListener;
 import com.leaves.app.shareme.wifidirect.listener.OnServiceFoundListener;
 
 import java.util.HashMap;
@@ -67,6 +68,12 @@ public class MainActivity extends AppCompatActivity {
                 mInfoView.setText(device.deviceName);
                 mWifiDirect.stopDiscover();
                 mWifiDirect.connectTo(device, -1);
+            }
+        });
+        mWifiDirect.setOnDeviceDetailChangeListener(new OnDeviceDetailChangeListener() {
+            @Override
+            public void onDeviceDetailChanged(WifiP2pDevice device) {
+                mDeviceNameView.setText(device.deviceName);
             }
         });
 

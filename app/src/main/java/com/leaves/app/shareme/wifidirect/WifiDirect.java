@@ -16,6 +16,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.widget.Toast;
 import com.leaves.app.shareme.wifidirect.listener.LifecycleListener;
 import com.leaves.app.shareme.wifidirect.listener.OnConnectionChangeListener;
+import com.leaves.app.shareme.wifidirect.listener.OnDeviceDetailChangeListener;
 import com.leaves.app.shareme.wifidirect.listener.OnServiceFoundListener;
 import io.reactivex.disposables.CompositeDisposable;
 import io.reactivex.functions.BooleanSupplier;
@@ -62,6 +63,8 @@ public class WifiDirect implements IWifiDirect, WifiDirectReceiver.OnWifiDirectS
     private OnConnectionChangeListener mOnConnectionChangeListener;
     private WifiP2pInfo mWifiP2pInfo;
     private WifiP2pDevice mThisDevice;
+
+    private OnDeviceDetailChangeListener mOnDeviceDetailChangeListener;
 
     public WifiDirect(AppCompatActivity rootActivity, String instanceName, String serviceName) {
         mContext = rootActivity.getApplicationContext();
@@ -265,6 +268,13 @@ public class WifiDirect implements IWifiDirect, WifiDirectReceiver.OnWifiDirectS
     @Override
     public void onDeviceDetailChange(WifiP2pDevice device) {
         mThisDevice = device;
+        if (mOnDeviceDetailChangeListener != null) {
+            mOnDeviceDetailChangeListener.onDeviceDetailChanged(device);
+        }
+    }
+
+    public void setOnDeviceDetailChangeListener(OnDeviceDetailChangeListener onDeviceDetailChangeListener) {
+        mOnDeviceDetailChangeListener = onDeviceDetailChangeListener;
     }
 
     /**
