@@ -22,7 +22,7 @@ public class RTSPActivity extends AppCompatActivity {
 //                response.send("hello");
 //            }
 //        });
-        server.listen(8080);
+        server.listen(7236);
     }
 
 

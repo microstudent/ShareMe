@@ -11,7 +11,10 @@ import com.koushikdutta.async.callback.DataCallback;
 import com.koushikdutta.async.http.AsyncHttpClient;
 import com.koushikdutta.async.LineEmitter.StringCallback;
 import com.koushikdutta.async.rtsp.Headers;
+import com.koushikdutta.async.rtsp.Protocol;
+import com.koushikdutta.async.rtsp.RtspUtil;
 import com.koushikdutta.async.rtsp.body.AsyncRtspRequestBody;
+import com.koushikdutta.async.rtsp.body.UnknownRtspRequestBody;
 
 import java.util.regex.Matcher;
 
@@ -28,7 +31,6 @@ public abstract class AsyncRtspServerRequestImpl extends FilteredDataEmitter imp
     String method;
     AsyncRtspRequestBody mBody;
 
-
     StringCallback mHeaderCallback = new StringCallback() {
         @Override
         public void onStringAvailable(String s) {
@@ -36,7 +38,7 @@ public abstract class AsyncRtspServerRequestImpl extends FilteredDataEmitter imp
             try {
                 if (statusLine == null) {
                     statusLine = s;
-                    if (statusLine.contains("RTSP/")) {
+                    if (!statusLine.contains("RTSP/")) {
                         onNotRtsp();
                         mSocket.setDataCallback(null);
                     }
@@ -44,7 +46,15 @@ public abstract class AsyncRtspServerRequestImpl extends FilteredDataEmitter imp
                     mRawHeaders.addLine(s);
                 } else {
                     //header解析完毕
-
+                    DataEmitter emitter = RtspUtil.getBodyDecoder(mSocket, Protocol.RTSP_1_0, mRawHeaders, true);
+                    mBody = RtspUtil.getBody(emitter, AsyncRtspServerRequestImpl.this, mRawHeaders);
+                    if (mBody == null) {
+                        mBody = onUnknownBody(mRawHeaders);
+                        if (mBody == null)
+                            mBody = new UnknownRtspRequestBody(mRawHeaders.get("Content-Type"));
+                    }
+                    mBody.parse(emitter, AsyncRtspServerRequestImpl.this);
+                    onHeadersReceived();
                 }
             }
             catch (Exception ex) {
@@ -52,6 +62,10 @@ public abstract class AsyncRtspServerRequestImpl extends FilteredDataEmitter imp
             }
         }
     };
+
+    private AsyncRtspRequestBody onUnknownBody(Headers mRawHeaders) {
+        return null;
+    }
 
     abstract protected void onHeadersReceived();
 

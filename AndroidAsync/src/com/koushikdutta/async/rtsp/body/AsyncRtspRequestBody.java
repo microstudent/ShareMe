@@ -4,9 +4,10 @@ import com.koushikdutta.async.DataEmitter;
 import com.koushikdutta.async.DataSink;
 import com.koushikdutta.async.callback.CompletedCallback;
 import com.koushikdutta.async.http.AsyncHttpRequest;
+import com.koushikdutta.async.rtsp.AsyncRtspRequest;
 
 public interface AsyncRtspRequestBody<T> {
-    public void write(AsyncHttpRequest request, DataSink sink, CompletedCallback completed);
+    public void write(AsyncRtspRequest request, DataSink sink, CompletedCallback completed);
     public void parse(DataEmitter emitter, CompletedCallback completed);
     public String getContentType();
     public boolean readFullyOnRequest();

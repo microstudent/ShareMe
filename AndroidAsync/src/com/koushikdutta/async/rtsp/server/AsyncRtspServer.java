@@ -13,6 +13,7 @@ import com.koushikdutta.async.rtsp.Headers;
 
 import java.util.ArrayList;
 import java.util.Hashtable;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
@@ -39,7 +40,7 @@ public class AsyncRtspServer {
             String path;
             boolean responseComplete;
             boolean requestComplete;
-            AsyncRtspServerRequestImpl rtspServerRequest = new AsyncRtspServerRequestImpl() {
+            AsyncRtspServerRequestImpl request = new AsyncRtspServerRequestImpl() {
                 RtspServerRequestCallback match;
                 String fullPath;
                 String path;
@@ -55,28 +56,24 @@ public class AsyncRtspServer {
 
                 @Override
                 protected void onHeadersReceived() {
-                    Headers headers = getHeaders();
-
-//                    System.out.println(headers.toHeaderString());
-
-//                    String statusLine = getStatusLine();
-//                    String[] parts = statusLine.split(" ");
-//                    fullPath = parts[1];
-//                    path = fullPath.split("\\?")[0];
-//                    method = parts[0];
-//                    synchronized (mActions) {
-//                        ArrayList<Pair> pairs = mActions.get(method);
-//                        if (pairs != null) {
-//                            for (Pair p : pairs) {
-//                                Matcher m = p.regex.matcher(path);
-//                                if (m.matches()) {
-//                                    mMatcher = m;
-//                                    match = p.callback;
-//                                    break;
-//                                }
-//                            }
-//                        }
-//                    }
+                    String statusLine = getStatusLine();
+                    String[] parts = statusLine.split(" ");
+                    fullPath = parts[1];
+                    path = fullPath.split("\\?")[0];
+                    method = parts[0];
+                    synchronized (mActions) {
+                        ArrayList<Pair> pairs = mActions.get(method);
+                        if (pairs != null) {
+                            for (Pair p : pairs) {
+                                Matcher m = p.regex.matcher(path);
+                                if (m.matches()) {
+                                    mMatcher = m;
+                                    match = p.callback;
+                                    break;
+                                }
+                            }
+                        }
+                    }
 //                    res = new AsyncRtspServerResponseImpl(socket, this) {
 //                        @Override
 //                        protected void report(Exception e) {
@@ -146,6 +143,8 @@ public class AsyncRtspServer {
 //                    }
                 }
             };
+            request.setSocket(socket);
+            socket.resume();
         }
 
         @Override
@@ -182,6 +181,10 @@ public class AsyncRtspServer {
 
     public CompletedCallback getErrorCallback() {
         return mCompletedCallback;
+    }
+
+    public static Object getResponseCodeDescription(int code) {
+        return null;
     }
 
     private static class Pair {
