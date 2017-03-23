@@ -3,6 +3,7 @@ package com.koushikdutta.async.rtsp.server;
 import android.text.TextUtils;
 import com.koushikdutta.async.*;
 import com.koushikdutta.async.callback.CompletedCallback;
+import com.koushikdutta.async.callback.DataCallback;
 import com.koushikdutta.async.callback.WritableCallback;
 import com.koushikdutta.async.http.filter.ChunkedOutputFilter;
 import com.koushikdutta.async.http.server.MalformedRangeException;
@@ -205,7 +206,7 @@ public abstract class AsyncRtspServerResponseImpl implements AsyncRtspServerResp
     public void send(String string) {
         String contentType = mRawHeaders.get("Content-Type");
         if (contentType == null)
-            contentType = "text/html; charset=utf-8";
+            contentType = "text/plain; charset=utf-8";
         send(contentType, string);
     }
 
@@ -262,6 +263,66 @@ public abstract class AsyncRtspServerResponseImpl implements AsyncRtspServerResp
             code(500);
             end();
         }
+    }
+
+    @Override
+    public AsyncRtspServerResponse code(int code) {
+        this.code = code;
+        return this;
+    }
+
+    @Override
+    public int code() {
+        return code;
+    }
+
+    @Override
+    public void redirect(String location) {
+        code(302);
+        mRawHeaders.set("Location", location);
+        end();
+    }
+
+
+    @Override
+    public void onCompleted(Exception ex) {
+        end();
+    }
+
+    @Override
+    public boolean isOpen() {
+        if (mSink != null)
+            return mSink.isOpen();
+        return mSocket.isOpen();
+    }
+
+    @Override
+    public void setClosedCallback(CompletedCallback handler) {
+        if (mSink != null)
+            mSink.setClosedCallback(handler);
+        else
+            closedCallback = handler;
+    }
+
+
+    @Override
+    public CompletedCallback getClosedCallback() {
+        if (mSink != null)
+            return mSink.getClosedCallback();
+        return closedCallback;
+    }
+
+    @Override
+    public AsyncServer getServer() {
+        return mSocket.getServer();
+    }
+
+    @Override
+    public String toString() {
+        if (mRawHeaders == null)
+            return super.toString();
+        String statusLine = String.format(Locale.ENGLISH, "RTSP/1.0 %s %s", code, AsyncRtspServer.getResponseCodeDescription(code));
+        return mRawHeaders.toPrefixString(statusLine);
     }
 
     protected abstract void report(Exception ex);

@@ -1,6 +1,7 @@
 package com.koushikdutta.async.rtsp.server;
 
 
+import android.util.SparseArray;
 import com.koushikdutta.async.AsyncServer;
 import com.koushikdutta.async.AsyncServerSocket;
 import com.koushikdutta.async.AsyncSocket;
@@ -27,6 +28,7 @@ public class AsyncRtspServer {
 
     final Hashtable<String, ArrayList<Pair>> mActions = new Hashtable<String, ArrayList<Pair>>();
 
+    private static SparseArray<String> mCodes = new SparseArray<>();
 
     public AsyncRtspServer() {
         mListeners = new ArrayList<>();
@@ -183,8 +185,32 @@ public class AsyncRtspServer {
         return mCompletedCallback;
     }
 
+    static {
+        mCodes.put(100, "Continue");
+        mCodes.put(200, "OK");
+        mCodes.put(201, "Created");
+        mCodes.put(250, "Low on Storage Space");
+        mCodes.put(300, "Multiple Choices");
+        mCodes.put(302, "Moved Temporarily");
+        mCodes.put(303, "See Other");
+        mCodes.put(400, "Bad Request");
+        mCodes.put(404, "Not Found");
+        mCodes.put(412, "Precondition Failed");
+        mCodes.put(451, "Parameter Not Understood");
+        mCodes.put(452, "Conference Not Found");
+        mCodes.put(453, "Not Enough Bandwidth");
+        mCodes.put(457, "Invalid Range");
+        mCodes.put(458, "Parameter Is Read-Only");
+        mCodes.put(502, "Bad Gateway");
+        mCodes.put(505, "RTSP Version not supported");
+        mCodes.put(551, "Option not supported");
+    }
+
     public static Object getResponseCodeDescription(int code) {
-        return null;
+        String d = mCodes.get(code);
+        if (d == null)
+            return "Unknown";
+        return d;
     }
 
     private static class Pair {
