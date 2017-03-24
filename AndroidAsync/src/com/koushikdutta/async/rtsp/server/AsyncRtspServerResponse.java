@@ -15,7 +15,6 @@ public interface AsyncRtspServerResponse extends DataSink, CompletedCallback {
     public void send(String contentType, byte[] bytes);
     public void send(String contentType, String string);
     public void send(String string);
-    public void sendFile(File file);
     public void sendStream(InputStream inputStream, long totalLength);
     public AsyncRtspServerResponse code(int code);
     public int code();

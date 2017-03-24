@@ -9,6 +9,8 @@ import com.koushikdutta.async.callback.CompletedCallback;
 import com.koushikdutta.async.http.WebSocket;
 import com.koushikdutta.async.http.server.AsyncHttpServer;
 import com.koushikdutta.async.http.server.AsyncHttpServerRequest;
+import com.koushikdutta.async.http.server.AsyncHttpServerResponse;
+import com.koushikdutta.async.http.server.HttpServerRequestCallback;
 import io.reactivex.Observable;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.functions.Consumer;
@@ -29,35 +31,14 @@ public class ServerActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_server);
         ButterKnife.bind(this);
-        server.websocket("/", "test", new AsyncHttpServer.WebSocketRequestCallback() {
+        server.get("/", new HttpServerRequestCallback() {
             @Override
-            public void onConnected(final WebSocket webSocket, AsyncHttpServerRequest request) {
-                _sockets.add(webSocket);
-
-                //Use this to clean up any references to your websocket
-                webSocket.setClosedCallback(new CompletedCallback() {
-                    @Override
-                    public void onCompleted(Exception ex) {
-                        try {
-                            if (ex != null)
-                                log(ex.toString());
-                        } finally {
-                            _sockets.remove(webSocket);
-                        }
-                    }
-                });
-
-                webSocket.setStringCallback(new WebSocket.StringCallback() {
-                    @Override
-                    public void onStringAvailable(String s) {
-                        log(s);
-                        _sockets.get(0).send("hello,My friend");
-                    }
-                });
+            public void onRequest(AsyncHttpServerRequest request, AsyncHttpServerResponse response) {
+                response.send("fuckyou");
             }
         });
 
-        server.listen(8877);
+        server.listen(8080);
     }
 
 

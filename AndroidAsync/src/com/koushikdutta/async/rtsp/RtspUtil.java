@@ -88,6 +88,21 @@ public class RtspUtil {
         return null;
     }
 
+    public static String getRelativePath(String fullPath) {
+        if (fullPath != null) {
+            if (fullPath.matches("[a-zA-z]+://[^\\s]*")) {
+                String[] splits = fullPath.split("/");
+                StringBuilder sb = new StringBuilder();
+                for (int i = splits.length - 1; i > 2; i--) {
+                    sb.insert(0, splits[i]);
+                    sb.insert(0, '/');
+                }
+                return sb.toString();
+            }
+        }
+        return "";
+    }
+
 
     static class EndEmitter extends FilteredDataEmitter {
         private EndEmitter() {

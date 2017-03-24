@@ -37,8 +37,6 @@ public abstract class AsyncRtspServerResponseImpl implements AsyncRtspServerResp
     AsyncRtspServerResponseImpl(AsyncSocket socket, AsyncRtspServerRequestImpl req) {
         mSocket = socket;
         mRequest = req;
-        if (RtspUtil.isKeepAlive(Protocol.RTSP_1_0, req.getHeaders()))
-            mRawHeaders.set("Connection", "Keep-Alive");
     }
 
     @Override
@@ -71,7 +69,7 @@ public abstract class AsyncRtspServerResponseImpl implements AsyncRtspServerResp
         String currentEncoding = mRawHeaders.get("Transfer-Encoding");
         if ("".equals(currentEncoding))
             mRawHeaders.removeAll("Transfer-Encoding");
-        boolean canUseChunked = ("Chunked".equalsIgnoreCase(currentEncoding) || currentEncoding == null)
+        boolean canUseChunked = ("Chunked".equalsIgnoreCase(currentEncoding))
                 && !"close".equalsIgnoreCase(mRawHeaders.get("Connection"));
         if (mContentLength < 0) {
             String contentLength = mRawHeaders.get("Content-Length");
@@ -84,8 +82,12 @@ public abstract class AsyncRtspServerResponseImpl implements AsyncRtspServerResp
         } else {
             isChunked = false;
         }
+        //添加CSeq的header
+        if (mRequest != null) {
+            mRawHeaders.set("CSeq", mRequest.getCSeq());
+        }
 
-        String statusLine = String.format(Locale.ENGLISH, "HTTP/1.1 %s %s", code, AsyncRtspServer.getResponseCodeDescription(code));
+        String statusLine = String.format(Locale.ENGLISH, "RTSP/1.0 %s %s", code, AsyncRtspServer.getResponseCodeDescription(code));
         String rh = mRawHeaders.toPrefixString(statusLine);
 
         Util.writeAll(mSocket, rh.getBytes(), new CompletedCallback() {

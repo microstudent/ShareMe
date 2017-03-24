@@ -23,7 +23,7 @@ import java.util.regex.Matcher;
  */
 
 public abstract class AsyncRtspServerRequestImpl extends FilteredDataEmitter implements AsyncRtspServerRequest, CompletedCallback {
-    public static final String TAG = "AsyncRtspServerRequest";
+    private static final String TAG = "AsyncRtspServerRequest";
     private String statusLine;
     private Headers mRawHeaders = new Headers();
     AsyncSocket mSocket;
@@ -62,6 +62,14 @@ public abstract class AsyncRtspServerRequestImpl extends FilteredDataEmitter imp
             }
         }
     };
+
+    @Override
+    public String getCSeq() {
+        if (mRawHeaders != null) {
+            return mRawHeaders.get("CSeq");
+        }
+        return null;
+    }
 
     private AsyncRtspRequestBody onUnknownBody(Headers mRawHeaders) {
         return null;

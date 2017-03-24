@@ -18,4 +18,5 @@ public interface AsyncRtspServerRequest extends DataEmitter {
     public AsyncSocket getSocket();
     public String getPath();
     public String getMethod();
+    String getCSeq();
 }
