@@ -128,4 +128,5 @@ public class RtspUtil {
             return protocol == Protocol.RTSP_1_0;
         return "keep-alive".equalsIgnoreCase(connection);
     }
+
 }

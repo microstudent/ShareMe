@@ -25,7 +25,8 @@ import java.util.regex.Pattern;
  */
 
 public class AsyncRtspServer {
-    public static final String TAG = "AsyncRtspServer";
+    private static final String TAG = "AsyncRtspServer";
+    private static final String VERSION = "1.0";
 
     ArrayList<AsyncServerSocket> mListeners;
 
@@ -43,10 +44,6 @@ public class AsyncRtspServer {
     private ListenCallback mListenCallback = new ListenCallback() {
         @Override
         public void onAccepted(final AsyncSocket socket) {
-            String fullPath;
-            String path;
-            boolean responseComplete;
-            boolean requestComplete;
             AsyncRtspServerRequestImpl request = new AsyncRtspServerRequestImpl() {
                 RtspServerRequestCallback match;
                 String fullPath;
@@ -67,14 +64,13 @@ public class AsyncRtspServer {
                     String[] parts = statusLine.split(" ");
                     fullPath = parts[1];
                     path = RtspUtil.getRelativePath(fullPath);
-                    Log.d("AsyncRtspServer", path);
                     method = parts[0];
                     synchronized (mActions) {
                         ArrayList<Pair> pairs = mActions.get(method);
                         if (pairs != null) {
                             for (Pair p : pairs) {
                                 Matcher m = p.regex.matcher(path);
-                                if (m.matches()) {
+                                if (m.find()) {
                                     mMatcher = m;
                                     match = p.callback;
                                     break;
@@ -213,10 +209,16 @@ public class AsyncRtspServer {
         return mCompletedCallback;
     }
 
+    /**
+     * 这个onRequest无论是否符合路径都会进入
+     */
     protected boolean onRequest(AsyncRtspServerRequest request, AsyncRtspServerResponse response) {
         return false;
     }
 
+    /**
+     * 这个只有在符合一定条件的时候才会进入
+     */
     protected void onRequest(RtspServerRequestCallback callback, AsyncRtspServerRequest request, AsyncRtspServerResponse response) {
         if (callback != null)
             callback.onRequest(request, response);
@@ -270,6 +272,7 @@ public class AsyncRtspServer {
         }
     }
 
-
-
+    public static String getServerDescribe() {
+        return TAG + VERSION;
+    }
 }

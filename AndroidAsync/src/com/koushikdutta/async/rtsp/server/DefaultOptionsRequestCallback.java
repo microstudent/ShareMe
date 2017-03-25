@@ -1,6 +1,7 @@
 package com.koushikdutta.async.rtsp.server;
 
-import com.koushikdutta.async.rtsp.action.RtspOptions;
+import android.media.session.MediaSession;
+import com.koushikdutta.async.rtsp.action.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,6 +15,10 @@ public class DefaultOptionsRequestCallback implements RtspServerRequestCallback 
     public List<String> getSupportActions() {
         List<String> actions = new ArrayList<>();
         actions.add(RtspOptions.METHOD);
+        actions.add(RtspDescribe.METHOD);
+        actions.add(RtspSetup.METHOD);
+        actions.add(RtspPlay.METHOD);
+        actions.add(RtspTeardown.METHOD);
         return actions;
     }
 

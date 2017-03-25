@@ -10,6 +10,10 @@ public interface AsyncRtspRequestBody<T> {
     public void write(AsyncRtspRequest request, DataSink sink, CompletedCallback completed);
     public void parse(DataEmitter emitter, CompletedCallback completed);
     public String getContentType();
+
+    /**
+     * 是否在上一个onRequest中完全处理完毕
+     */
     public boolean readFullyOnRequest();
     public int length();
     public T get();

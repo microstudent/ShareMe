@@ -31,7 +31,7 @@ public class ServerActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_server);
         ButterKnife.bind(this);
-        server.get("/", new HttpServerRequestCallback() {
+        server.get("/fuck", new HttpServerRequestCallback() {
             @Override
             public void onRequest(AsyncHttpServerRequest request, AsyncHttpServerResponse response) {
                 response.send("fuckyou");

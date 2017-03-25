@@ -17,7 +17,7 @@ public class RTSPActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_rtsp);
         AsyncRtspServer server = new AsyncRtspServer();
-        server.options("/test.mp3");
+        server.options("/");
 //        server.get("/", new HttpServerRequestCallback() {
 //            @Override
 //            public void onRequest(AsyncHttpServerRequest request, AsyncHttpServerResponse response) {
@@ -26,7 +26,4 @@ public class RTSPActivity extends AppCompatActivity {
 //        });
         server.listen(7236);
     }
-
-
-
 }

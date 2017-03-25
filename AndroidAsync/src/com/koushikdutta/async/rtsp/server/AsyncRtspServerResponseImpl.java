@@ -86,6 +86,8 @@ public abstract class AsyncRtspServerResponseImpl implements AsyncRtspServerResp
         if (mRequest != null) {
             mRawHeaders.set("CSeq", mRequest.getCSeq());
         }
+        //添加服务器名称
+        mRawHeaders.set("Server", AsyncRtspServer.getServerDescribe());
 
         String statusLine = String.format(Locale.ENGLISH, "RTSP/1.0 %s %s", code, AsyncRtspServer.getResponseCodeDescription(code));
         String rh = mRawHeaders.toPrefixString(statusLine);
