@@ -5,7 +5,7 @@ android {
     buildToolsVersion "25.0.2"
     defaultConfig {
         applicationId "com.leaves.app.shareme"
-        minSdkVersion 15
+        minSdkVersion 16
         targetSdkVersion 25
         versionCode 1
         versionName "1.0"
@@ -27,6 +27,7 @@ dependencies {
         exclude group: 'com.android.support', module: 'support-annotations'
     })
     compile project(':AndroidAsync')
+    compile project(':libstreaming')
     compile 'com.android.support:appcompat-v7:25.2.0'
     compile 'com.google.dagger:dagger:2.8'
     compile 'io.reactivex.rxjava2:rxjava:2.0.4'
