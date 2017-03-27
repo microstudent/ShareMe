@@ -8,8 +8,6 @@ import android.os.Environment;
 import android.util.Log;
 import net.majorkernelpanic.streaming.exceptions.ConfNotSupportedException;
 import net.majorkernelpanic.streaming.rtp.AACADTSPacketizer;
-import net.majorkernelpanic.streaming.rtp.AACLATMPacketizer;
-import net.majorkernelpanic.streaming.rtp.MediaCodecInputStream;
 
 import java.io.File;
 import java.io.IOException;
@@ -25,6 +23,7 @@ public class MP3Stream extends AudioStream {
     private static final String TAG = "MP3Stream";
 
     private String mMp3Path;
+    private Mp3Wrapper mMp3Wrapper;
 
     public MP3Stream(String mp3Path) {
         mMp3Path = mp3Path;
@@ -105,6 +104,7 @@ public class MP3Stream extends AudioStream {
     public synchronized void configure() throws IllegalStateException, IOException {
         super.configure();
         mQuality = mRequestedQuality.clone();
+        mMp3Wrapper = new Mp3Wrapper(mMp3Path);
 
         // Checks if the user has supplied an exotic sampling rate
         int i=0;
@@ -119,21 +119,17 @@ public class MP3Stream extends AudioStream {
 
         if (mMode != mRequestedMode || mPacketizer==null) {
             mMode = mRequestedMode;
-            mPacketizer = new AACLATMPacketizer();
+            mPacketizer = new AACADTSPacketizer();
             mPacketizer.setDestination(mDestination, mRtpPort, mRtcpPort);
             mPacketizer.getRtpSocket().setOutputStream(mOutputStream, mChannelIdentifier);
         }
-       {
             mProfile = 2; // AAC LC
             mChannel = 1;
             mConfig = (mProfile & 0x1F) << 11 | (mSamplingRateIndex & 0x0F) << 7 | (mChannel & 0x0F) << 3;
 
-            mSessionDescription = "m=audio "+String.valueOf(getDestinationPorts()[0])+" RTP/AVP 96\r\n" +
-                    "a=rtpmap:96 mpeg4-generic/"+mQuality.samplingRate+"\r\n"+
-                    "a=fmtp:96 streamtype=5; profile-level-id=15; mode=AAC-hbr; config="+Integer.toHexString(mConfig)+"; SizeLength=13; IndexLength=3; IndexDeltaLength=3;\r\n";
-
-        }
-
+        mSessionDescription = "m=audio " + String.valueOf(getDestinationPorts()[0]) + " RTP/AVP 96\r\n" +
+                "a=rtpmap:96 mpeg4-generic/" + mQuality.samplingRate + "\r\n" +
+                "a=fmtp:96 streamtype=5; profile-level-id=15; mode=AAC-hbr; config=" + Integer.toHexString(mConfig) + "; SizeLength=13; IndexLength=3; IndexDeltaLength=3;\r\n";
     }
 
     @Override
@@ -145,9 +141,9 @@ public class MP3Stream extends AudioStream {
     @SuppressLint({ "InlinedApi", "NewApi" })
     protected void encodeWithMediaCodec() throws IOException {
 
-        final int bufferSize = AudioRecord.getMinBufferSize(mQuality.samplingRate, AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT)*2;
+        final int bufferSize = 4608;
 
-        ((AACLATMPacketizer)mPacketizer).setSamplingRate(mQuality.samplingRate);
+        ((AACADTSPacketizer)mPacketizer).setSamplingRate(mQuality.samplingRate);
 
         mMediaCodec = MediaCodec.createEncoderByType("audio/mp4a-latm");
         MediaFormat format = new MediaFormat();
@@ -157,28 +153,42 @@ public class MP3Stream extends AudioStream {
         format.setInteger(MediaFormat.KEY_SAMPLE_RATE, mQuality.samplingRate);
         format.setInteger(MediaFormat.KEY_AAC_PROFILE, MediaCodecInfo.CodecProfileLevel.AACObjectLC);
         format.setInteger(MediaFormat.KEY_MAX_INPUT_SIZE, bufferSize);
+//        MediaFormat encodeFormat = MediaFormat.createAudioFormat("audio/mp4a-latm", 44100, 2);//参数对应-> mime type、采样率、声道数
+//        encodeFormat.setInteger(MediaFormat.KEY_BIT_RATE, 96000);//比特率
+//        encodeFormat.setInteger(MediaFormat.KEY_AAC_PROFILE, MediaCodecInfo.CodecProfileLevel.AACObjectLC);
+//        encodeFormat.setInteger(MediaFormat.KEY_MAX_INPUT_SIZE, bufferSize);
+//        encodeFormat.setInteger(MediaFormat.KEY_SAMPLE_RATE, mQuality.samplingRate);
+
+
         mMediaCodec.configure(format, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE);
         mMediaCodec.start();
 
-        final MediaCodecInputStream inputStream = new MediaCodecInputStream(mMediaCodec);
+        final ACCCodecInputStream inputStream = new ACCCodecInputStream(mMediaCodec);
         final ByteBuffer[] inputBuffers = mMediaCodec.getInputBuffers();
 
         mThread = new Thread(new Runnable() {
             @Override
             public void run() {
+                long firstTime= 0;
                 int len = 0, bufferIndex = 0;
-                Mp3Wrapper wrapper = new Mp3Wrapper(mMp3Path);
                 try {
                     while (!Thread.interrupted()) {
                         bufferIndex = mMediaCodec.dequeueInputBuffer(10000);
                         if (bufferIndex>=0) {
                             inputBuffers[bufferIndex].clear();
-                            len = wrapper.read(inputBuffers[bufferIndex], bufferSize);
+                            if (firstTime == 0) {
+                                firstTime = System.currentTimeMillis();
+                            }
+//                            mMp3Wrapper.seekTo(System.currentTimeMillis() - firstTime);
+                            len = mMp3Wrapper.read(inputBuffers[bufferIndex], bufferSize);
                             if (len ==  AudioRecord.ERROR_INVALID_OPERATION || len == AudioRecord.ERROR_BAD_VALUE) {
                                 Log.e(TAG,"An error occured with the AudioRecord API !");
+                            } else if (len == Mp3Wrapper.SUCCESS_END_OF_STREAM) {
+                                Log.e(TAG, "END OF STEAM");
+                                break;
                             } else {
-                                //Log.v(TAG,"Pushing raw audio to the decoder: len="+len+" bs: "+inputBuffers[bufferIndex].capacity());
-                                mMediaCodec.queueInputBuffer(bufferIndex, 0, len, System.nanoTime()/1000, 0);
+                                Log.v(TAG, "Pushing raw audio to the decoder: len=" + len + " bs: " + inputBuffers[bufferIndex].capacity());
+                                mMediaCodec.queueInputBuffer(bufferIndex, 0, len, System.nanoTime() / 1000, 0);
                             }
                         }
                     }

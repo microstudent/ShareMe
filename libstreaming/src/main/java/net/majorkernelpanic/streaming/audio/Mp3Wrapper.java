@@ -1,9 +1,8 @@
 package net.majorkernelpanic.streaming.audio;
 
-import android.media.MediaCodec;
-import android.media.MediaExtractor;
-import android.media.MediaFormat;
+import android.media.*;
 import android.support.annotation.NonNull;
+import android.util.Log;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -17,6 +16,9 @@ public class Mp3Wrapper {
      * Denotes a successful operation.
      */
     public static final int SUCCESS = 0;
+
+    public static final int SUCCESS_END_OF_STREAM = -5;
+
     /**
      * Denotes a generic operation failure.
      */
@@ -38,6 +40,7 @@ public class Mp3Wrapper {
     private final ByteBuffer[] mDecodeInputBuffers;
     private final ByteBuffer[] mDecodeOutputBuffers;
     private final MediaCodec.BufferInfo mDecodeBufferInfo;
+    private AudioTrack mAudioTrack;
     private MediaCodec mMediaDecode;
 
     private MediaExtractor mMediaExtractor;
@@ -52,20 +55,31 @@ public class Mp3Wrapper {
         try {
             mMediaExtractor.setDataSource(mPath);
             for (int i = 0; i < mMediaExtractor.getTrackCount(); i++) {//遍历媒体轨道 此处我们传入的是音频文件，所以也就只有一条轨道
-                MediaFormat format = mMediaExtractor.getTrackFormat(i);
-                String mime = format.getString(MediaFormat.KEY_MIME);
+                mMediaFormat = mMediaExtractor.getTrackFormat(i);
+                String mime = mMediaFormat.getString(MediaFormat.KEY_MIME);
                 if (mime.startsWith("audio")) {//获取音频轨道
 //                    format.setInteger(MediaFormat.KEY_MAX_INPUT_SIZE, 200 * 1024);
                     mMediaExtractor.selectTrack(i);//选择此音频轨道
                     mMediaDecode = MediaCodec.createDecoderByType(mime);//创建Decode解码器
-                    mMediaDecode.configure(format, null, null, 0);
+                    mMediaDecode.configure(mMediaFormat, null, null, 0);
                     break;
                 }
             }
+            int minBufferSize = AudioTrack.getMinBufferSize(44100, AudioFormat.CHANNEL_CONFIGURATION_STEREO, AudioFormat.ENCODING_PCM_16BIT);
+            int bufferSize = 4 * minBufferSize;
+            mAudioTrack = new AudioTrack(
+                    AudioManager.STREAM_MUSIC,
+                    mMediaFormat.getInteger(MediaFormat.KEY_SAMPLE_RATE),
+                    AudioFormat.CHANNEL_OUT_STEREO,
+                    AudioFormat.ENCODING_PCM_16BIT,
+                    bufferSize,
+                    AudioTrack.MODE_STREAM
+            );
         } catch (IOException e) {
             e.printStackTrace();
         }
         mMediaDecode.start();
+        mAudioTrack.play();
         mDecodeInputBuffers = mMediaDecode.getInputBuffers();//MediaCodec在此ByteBuffer[]中获取输入数据
         mDecodeOutputBuffers = mMediaDecode.getOutputBuffers();//MediaCodec将解码后的数据放到此ByteBuffer[]中 我们可以直接在这里面得到PCM数据
         mDecodeBufferInfo = new MediaCodec.BufferInfo();//用于描述解码得到的byte[]数据的相关信息
@@ -73,6 +87,12 @@ public class Mp3Wrapper {
 
     public MediaFormat getMediaFormat() {
         return mMediaFormat;
+    }
+
+    public void seekTo(long timeUs){
+        if (mMediaExtractor != null) {
+            mMediaExtractor.seekTo(timeUs, MediaExtractor.SEEK_TO_CLOSEST_SYNC);
+        }
     }
 
     /**
@@ -107,7 +127,7 @@ public class Mp3Wrapper {
         while (sizeHasRead < sizeInBytes) {
             // Read data from the file into the codec.
             if (!isEndOfInputFile) {
-                int inputBufferIndex = mMediaDecode.dequeueInputBuffer(10000);
+                int inputBufferIndex = mMediaDecode.dequeueInputBuffer(0);
                 if (inputBufferIndex >= 0) {
                     int size = mMediaExtractor.readSampleData(mDecodeInputBuffers[inputBufferIndex], 0);
                     if (size < 0) {
@@ -117,7 +137,6 @@ public class Mp3Wrapper {
                     } else {
                         mMediaDecode.queueInputBuffer(inputBufferIndex, 0, size, mMediaExtractor.getSampleTime(), 0);
                         mMediaExtractor.advance();
-                        sizeHasRead += size;
                     }
                 }
             }
@@ -125,22 +144,40 @@ public class Mp3Wrapper {
             // Read the output from the codec.
             if (mOutputBufferIndex >= 0)
                 // Ensure that the data is placed at the start of the buffer
-                mDecodeOutputBuffers[mOutputBufferIndex].position(0);
+//                mDecodeOutputBuffers[mOutputBufferIndex].position(0);
+                mDecodeOutputBuffers[mOutputBufferIndex].clear();
 
-            mOutputBufferIndex = mMediaDecode.dequeueOutputBuffer(mDecodeBufferInfo, 10000);
+            mOutputBufferIndex = mMediaDecode.dequeueOutputBuffer(mDecodeBufferInfo, 0);
             if (mOutputBufferIndex >= 0) {
                 // Handle EOF
                 if (mDecodeBufferInfo.flags != 0) {
+                    Log.d(TAG, "EOF,flag = " + mDecodeBufferInfo.flags);
+
                     mMediaDecode.stop();
                     mMediaDecode.release();
                     mMediaDecode = null;
-                    return 0;
+                    return SUCCESS_END_OF_STREAM;
                 }
 
-                audioBuffer.put(mDecodeOutputBuffers[mOutputBufferIndex]);
-                // Release the buffer so MediaCodec can use it again.
-                // The data should stay there until the next time we are called.
-                mMediaDecode.releaseOutputBuffer(mOutputBufferIndex, false);
+                if (mDecodeOutputBuffers[mOutputBufferIndex].remaining() <= audioBuffer.remaining()) {
+                    sizeHasRead += mDecodeOutputBuffers[mOutputBufferIndex].remaining();
+                    byte[] chunk = new byte[mDecodeBufferInfo.size];
+                    mDecodeOutputBuffers[mOutputBufferIndex].mark();
+                    mDecodeOutputBuffers[mOutputBufferIndex].get(chunk);
+                    mDecodeOutputBuffers[mOutputBufferIndex].reset();
+                    if (chunk.length > 0) {
+                        mAudioTrack.write(chunk, 0, chunk.length);
+                    }
+                    audioBuffer.put(mDecodeOutputBuffers[mOutputBufferIndex]);
+                    // Release the buffer so MediaCodec can use it again.
+                    // The data should stay there until the next time we are called.
+                    mMediaDecode.releaseOutputBuffer(mOutputBufferIndex, false);
+                } else {
+                    // Release the buffer so MediaCodec can use it again.
+                    // The data should stay there until the next time we are called.
+                    mMediaDecode.releaseOutputBuffer(mOutputBufferIndex, false);
+                    break;
+                }
             }
         }
         return sizeHasRead;

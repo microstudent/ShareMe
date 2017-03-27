@@ -162,7 +162,7 @@ public class AACADTSPacketizer extends AbstractPacketizer implements Runnable {
 		} catch (IOException e) {
 			// Ignore
 		} catch (ArrayIndexOutOfBoundsException e) {
-			Log.e(TAG,"ArrayIndexOutOfBoundsException: "+(e.getMessage()!=null?e.getMessage():"unknown error"));
+			Log.e(TAG, "ArrayIndexOutOfBoundsException: " + (e.getMessage() != null ? e.getMessage() : "unknown error"));
 			e.printStackTrace();
 		} catch (InterruptedException ignore) {}
 

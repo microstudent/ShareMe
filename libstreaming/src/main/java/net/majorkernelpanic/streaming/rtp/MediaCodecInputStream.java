@@ -37,12 +37,12 @@ public class MediaCodecInputStream extends InputStream {
 
 	public final String TAG = "MediaCodecInputStream"; 
 
-	private MediaCodec mMediaCodec = null;
-	private BufferInfo mBufferInfo = new BufferInfo();
-	private ByteBuffer[] mBuffers = null;
-	private ByteBuffer mBuffer = null;
-	private int mIndex = -1;
-	private boolean mClosed = false;
+	protected MediaCodec mMediaCodec = null;
+	protected BufferInfo mBufferInfo = new BufferInfo();
+	protected ByteBuffer[] mBuffers = null;
+	protected ByteBuffer mBuffer = null;
+	protected int mIndex = -1;
+	protected boolean mClosed = false;
 	
 	public MediaFormat mMediaFormat;
 

@@ -9,10 +9,13 @@ import android.os.Bundle;
 import android.util.Log;
 
 import net.majorkernelpanic.streaming.SessionBuilder;
+import net.majorkernelpanic.streaming.gl.SurfaceView;
 import net.majorkernelpanic.streaming.rtsp.RtspServer;
 
 
 public class RTSPActivity extends AppCompatActivity {
+
+    private SurfaceView mSurfaceView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -24,10 +27,12 @@ public class RTSPActivity extends AppCompatActivity {
         editor.apply();
 
         String path = Environment.getExternalStorageDirectory().getAbsolutePath();
+
+        mSurfaceView = (SurfaceView) findViewById(R.id.surface);
+
         // Configures the SessionBuilder
         SessionBuilder.getInstance()
                 .setContext(getApplicationContext())
-                .setMp3Path(path + "/a.mp3")
                 .setVideoEncoder(SessionBuilder.VIDEO_NONE)
                 .setAudioEncoder(SessionBuilder.AUDIO_MP3);
 
