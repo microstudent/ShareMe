@@ -38,7 +38,7 @@ public class Mp3Wrapper {
     public static final int ERROR_DEAD_OBJECT = -6;
 
     private final ByteBuffer[] mDecodeInputBuffers;
-    private final ByteBuffer[] mDecodeOutputBuffers;
+    private ByteBuffer[] mDecodeOutputBuffers;
     private final MediaCodec.BufferInfo mDecodeBufferInfo;
     private AudioTrack mAudioTrack;
     private MediaCodec mMediaDecode;
@@ -127,7 +127,7 @@ public class Mp3Wrapper {
         while (sizeHasRead < sizeInBytes) {
             // Read data from the file into the codec.
             if (!isEndOfInputFile) {
-                int inputBufferIndex = mMediaDecode.dequeueInputBuffer(0);
+                int inputBufferIndex = mMediaDecode.dequeueInputBuffer(10000);
                 if (inputBufferIndex >= 0) {
                     int size = mMediaExtractor.readSampleData(mDecodeInputBuffers[inputBufferIndex], 0);
                     if (size < 0) {
@@ -147,7 +147,7 @@ public class Mp3Wrapper {
 //                mDecodeOutputBuffers[mOutputBufferIndex].position(0);
                 mDecodeOutputBuffers[mOutputBufferIndex].clear();
 
-            mOutputBufferIndex = mMediaDecode.dequeueOutputBuffer(mDecodeBufferInfo, 0);
+            mOutputBufferIndex = mMediaDecode.dequeueOutputBuffer(mDecodeBufferInfo, 10000);
             if (mOutputBufferIndex >= 0) {
                 // Handle EOF
                 if (mDecodeBufferInfo.flags != 0) {
@@ -178,6 +178,17 @@ public class Mp3Wrapper {
                     mMediaDecode.releaseOutputBuffer(mOutputBufferIndex, false);
                     break;
                 }
+            } else if (mOutputBufferIndex == MediaCodec.INFO_OUTPUT_BUFFERS_CHANGED) {
+                mDecodeOutputBuffers = mMediaDecode.getOutputBuffers();
+            } else if (mOutputBufferIndex == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED) {
+                mMediaFormat = mMediaDecode.getOutputFormat();
+                Log.i(TAG,mMediaFormat.toString());
+            } else if (mOutputBufferIndex == MediaCodec.INFO_TRY_AGAIN_LATER) {
+                Log.v(TAG,"No buffer available...");
+                return 0;
+            } else {
+                Log.e(TAG, "Message: " + mOutputBufferIndex);
+                return 0;
             }
         }
         return sizeHasRead;
