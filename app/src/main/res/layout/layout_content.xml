@@ -31,9 +31,8 @@
         <RelativeLayout
                 android:layout_width="match_parent"
                 android:layout_height="match_parent">
-            <com.leaves.app.shareme.widget.PasswordTextView
+            <com.leaves.app.shareme.ui.widget.PasswordTextView
                     android:id="@+id/tv_key"
-                    android:layout_above="@id/dialpad"
                     app:dot_color="@color/colorAccent"
                     app:text_size="@dimen/font_larger"
                     android:layout_centerInParent="true"

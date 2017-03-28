@@ -10,7 +10,7 @@
 
     <TableRow>
 
-        <com.leaves.app.shareme.widget.dialpad.ninekeybutton.NineKeyButton
+        <com.leaves.app.shareme.ui.widget.dialpad.ninekeybutton.NineKeyButton
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:background="?android:attr/selectableItemBackground"
@@ -20,7 +20,7 @@
                 app:number="1"
                 />
 
-        <com.leaves.app.shareme.widget.dialpad.ninekeybutton.NineKeyButton
+        <com.leaves.app.shareme.ui.widget.dialpad.ninekeybutton.NineKeyButton
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:background="?android:attr/selectableItemBackground"
@@ -30,7 +30,7 @@
                 app:number="2"
                 />
 
-        <com.leaves.app.shareme.widget.dialpad.ninekeybutton.NineKeyButton
+        <com.leaves.app.shareme.ui.widget.dialpad.ninekeybutton.NineKeyButton
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:background="?android:attr/selectableItemBackground"
@@ -43,7 +43,7 @@
 
     <TableRow>
 
-        <com.leaves.app.shareme.widget.dialpad.ninekeybutton.NineKeyButton
+        <com.leaves.app.shareme.ui.widget.dialpad.ninekeybutton.NineKeyButton
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:background="?android:attr/selectableItemBackground"
@@ -53,7 +53,7 @@
                 app:number="4"
                 />
 
-        <com.leaves.app.shareme.widget.dialpad.ninekeybutton.NineKeyButton
+        <com.leaves.app.shareme.ui.widget.dialpad.ninekeybutton.NineKeyButton
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:background="?android:attr/selectableItemBackground"
@@ -63,7 +63,7 @@
                 app:number="5"
                 />
 
-        <com.leaves.app.shareme.widget.dialpad.ninekeybutton.NineKeyButton
+        <com.leaves.app.shareme.ui.widget.dialpad.ninekeybutton.NineKeyButton
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:background="?android:attr/selectableItemBackground"
@@ -77,7 +77,7 @@
     <TableRow
             >
 
-        <com.leaves.app.shareme.widget.dialpad.ninekeybutton.NineKeyButton
+        <com.leaves.app.shareme.ui.widget.dialpad.ninekeybutton.NineKeyButton
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:background="?android:attr/selectableItemBackground"
@@ -87,7 +87,7 @@
                 app:number="7"
                 />
 
-        <com.leaves.app.shareme.widget.dialpad.ninekeybutton.NineKeyButton
+        <com.leaves.app.shareme.ui.widget.dialpad.ninekeybutton.NineKeyButton
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:background="?android:attr/selectableItemBackground"
@@ -97,7 +97,7 @@
                 app:number="8"
                 />
 
-        <com.leaves.app.shareme.widget.dialpad.ninekeybutton.NineKeyButton
+        <com.leaves.app.shareme.ui.widget.dialpad.ninekeybutton.NineKeyButton
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:background="?android:attr/selectableItemBackground"
@@ -111,14 +111,14 @@
     <TableRow
             >
 
-        <com.leaves.app.shareme.widget.dialpad.ninekeybutton.NineKeyButton
+        <com.leaves.app.shareme.ui.widget.dialpad.ninekeybutton.NineKeyButton
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:background="?android:attr/selectableItemBackground"
                 android:paddingTop="20dp"
                 android:paddingBottom="20dp"/>
 
-        <com.leaves.app.shareme.widget.dialpad.ninekeybutton.NineKeyButton
+        <com.leaves.app.shareme.ui.widget.dialpad.ninekeybutton.NineKeyButton
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:background="?android:attr/selectableItemBackground"
@@ -128,7 +128,7 @@
                 app:number="0"
                 />
 
-        <com.leaves.app.shareme.widget.dialpad.ninekeybutton.NineKeyButton
+        <com.leaves.app.shareme.ui.widget.dialpad.ninekeybutton.NineKeyButton
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:background="?android:attr/selectableItemBackground"
