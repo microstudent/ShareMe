@@ -34,6 +34,7 @@ public class RTSPActivity extends AppCompatActivity {
         SessionBuilder.getInstance()
                 .setContext(getApplicationContext())
                 .setVideoEncoder(SessionBuilder.VIDEO_NONE)
+                .setMp3Path(path + "/a.mp3")
                 .setAudioEncoder(SessionBuilder.AUDIO_MP3);
 
         // Starts the RTSP server

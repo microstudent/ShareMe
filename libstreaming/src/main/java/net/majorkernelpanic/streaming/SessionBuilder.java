@@ -87,7 +87,7 @@ public class SessionBuilder {
     private String mOrigin = null;
     private String mDestination = null;
     private Session.Callback mCallback = null;
-    private String mMp3Path = "/storage/emulated/0/a.mp3";
+    private String mMp3Path;
 
     // Removes the default public constructor
     private SessionBuilder() {
@@ -371,7 +371,7 @@ public class SessionBuilder {
                 .setAudioEncoder(mAudioEncoder)
                 .setAudioQuality(mAudioQuality)
                 .setContext(mContext)
-                .setCallback(mCallback);
+                .setCallback(mCallback)
+                .setMp3Path(mMp3Path);
     }
-
 }
