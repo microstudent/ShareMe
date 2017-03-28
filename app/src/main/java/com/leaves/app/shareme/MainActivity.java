@@ -32,23 +32,14 @@ public class MainActivity extends AppCompatActivity {
     @BindView(R.id.tv_key)
     PasswordTextView mKeyView;
 
-    @BindView(R.id.tv_info)
-    TextView mInfoView;
-
     @BindView(R.id.iv_bg)
     ImageView mImageView;
 
     @BindView(R.id.activity_main)
     ViewGroup mRootView;
 
-    @BindView(R.id.blur_dialpad)
-    BlurringView mDialpadBlurringView;
-
     @BindView(R.id.blur_toolbar)
     BlurringView mToolbarBlurringView;
-
-    @BindView(R.id.tv_device_name)
-    TextView mDeviceNameView;
 
     private WifiDirect mWifiDirect;
 
@@ -65,15 +56,8 @@ public class MainActivity extends AppCompatActivity {
         mWifiDirect.setOnServiceFoundListener(new OnServiceFoundListener() {
             @Override
             public void onServiceFound(WifiP2pDevice device, WifiDirect.ServiceResponse response) {
-                mInfoView.setText(device.deviceName);
                 mWifiDirect.stopDiscover();
                 mWifiDirect.connectTo(device, -1);
-            }
-        });
-        mWifiDirect.setOnDeviceDetailChangeListener(new OnDeviceDetailChangeListener() {
-            @Override
-            public void onDeviceDetailChanged(WifiP2pDevice device) {
-                mDeviceNameView.setText(device.deviceName);
             }
         });
 
@@ -95,10 +79,6 @@ public class MainActivity extends AppCompatActivity {
             }
         });
         Glide.with(this).load(R.drawable.bg_piano).into(mImageView);
-        mDialpadBlurringView.setBlurredView(mImageView);
-        mDialpadBlurringView.setBlurRadius(10);
-        mDialpadBlurringView.setDownsampleFactor(10);
-        mDialpadBlurringView.setOverlayColor(Color.TRANSPARENT);
         mToolbarBlurringView.setBlurredView(mImageView);
         mToolbarBlurringView.setBlurRadius(10);
         mToolbarBlurringView.setDownsampleFactor(10);
