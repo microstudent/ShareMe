@@ -96,7 +96,7 @@ public class WifiDirect implements IWifiDirect, WifiDirectReceiver.OnWifiDirectS
                         mWifiP2pManager.addServiceRequest(mChannel, mWifiP2pServiceRequest, new RxActionListener(mDiscoverSubject, TYPE_ADD_SERVICE_REQUEST));
                         break;
                     case TYPE_ADD_SERVICE_REQUEST:
-                        showToast("discovering services");
+//                        showToast("discovering services");
                         mWifiP2pManager.discoverServices(mChannel, new RxActionListener(mDiscoverSubject, TYPE_DISCOVER_SERVICES));
                         mDisposables.add(mDiscoverSubject.delay(SERVICE_DISCOVERING_INTERVAL, TimeUnit.SECONDS).repeatUntil(new BooleanSupplier() {
                             @Override
@@ -115,7 +115,7 @@ public class WifiDirect implements IWifiDirect, WifiDirectReceiver.OnWifiDirectS
         }, new Consumer<Throwable>() {
             @Override
             public void accept(Throwable throwable) throws Exception {
-                showToast(throwable.toString());
+//                showToast(throwable.toString());
             }
         });
         mDiscoverSubject.onNext(0);
@@ -155,7 +155,7 @@ public class WifiDirect implements IWifiDirect, WifiDirectReceiver.OnWifiDirectS
         }, new Consumer<Throwable>() {
             @Override
             public void accept(Throwable throwable) throws Exception {
-                showToast(throwable.toString());
+//                showToast(throwable.toString());
             }
         });
         mSetSignSubject.onNext(0);
@@ -181,7 +181,7 @@ public class WifiDirect implements IWifiDirect, WifiDirectReceiver.OnWifiDirectS
                 public void onSuccess() {}
                 @Override
                 public void onFailure(int reason) {
-                    showToast("onConnectFail,reason:" + reason);
+//                    showToast("onConnectFail,reason:" + reason);
                 }
             });
         }
@@ -222,7 +222,7 @@ public class WifiDirect implements IWifiDirect, WifiDirectReceiver.OnWifiDirectS
 
     @Override
     public void onWifiDirectStateChange(boolean enable) {
-        showToast("onWifiDirectStateChange");
+//        showToast("onWifiDirectStateChange");
     }
 
     @Override
@@ -408,12 +408,6 @@ public class WifiDirect implements IWifiDirect, WifiDirectReceiver.OnWifiDirectS
             mDisposables.dispose();
         }
     }
-
-
-    private void showToast(String msg) {
-        Toast.makeText(mContext, msg, Toast.LENGTH_SHORT).show();
-    }
-
 
     private static class RxActionListener implements WifiP2pManager.ActionListener {
         private PublishSubject<Integer> mSubject;

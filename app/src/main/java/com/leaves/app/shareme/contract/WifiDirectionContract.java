@@ -13,6 +13,6 @@ public interface WifiDirectionContract {
     }
 
     interface Presenter extends BasePresenter {
-        void setPassword(String password);
+        void appendPassword(String number);
     }
 }

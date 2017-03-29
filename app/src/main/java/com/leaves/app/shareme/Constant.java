@@ -5,9 +5,9 @@ package com.leaves.app.shareme;
  */
 public class Constant {
     public interface WifiDirect {
-        String INSTANCE_NAME = "shareMe";
-        String SERVICE_TYPE = "shareMe";
-        String KEY_NUMBER = "number";
+        String INSTANCE_NAME = "ShareMe";
+        String SERVICE_NAME = "sync music player";
+        String KEY_PASSWORD = "password";
         String KEY_TIMESTAMP = "timestamp";
     }
 }

@@ -1,5 +1,6 @@
 package com.leaves.app.shareme.ui.activity;
 
+import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -7,14 +8,18 @@ import android.support.design.widget.BottomSheetBehavior;
 import android.support.design.widget.CoordinatorLayout;
 import android.support.v4.app.FragmentManager;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.Toast;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import jp.wasabeef.blurry.Blurry;
+
 import com.bumptech.glide.Glide;
-import com.fivehundredpx.android.blur.BlurringView;
+import com.bumptech.glide.request.RequestListener;
+import com.bumptech.glide.request.target.Target;
 import com.leaves.app.shareme.R;
 import com.leaves.app.shareme.contract.WifiDirectionContract;
 import com.leaves.app.shareme.presenter.WifiDirectionPresenter;
@@ -32,16 +37,14 @@ public class MainActivity extends AppCompatActivity implements WifiDirectionCont
     @BindView(R.id.iv_bg)
     ImageView mImageView;
 
-    @BindView(R.id.blur_toolbar)
-    BlurringView mToolbarBlurringView;
-
     @BindView(R.id.activity_main)
     CoordinatorLayout mRootView;
 
     @BindView(R.id.tv_key)
     PasswordTextView mPasswordTextView;
 
-    private StringBuilder mPassword;
+    @BindView(R.id.toolbar)
+    Toolbar mToolbar;
 
     private WifiDirectionContract.Presenter mPresenter;
 
@@ -63,8 +66,7 @@ public class MainActivity extends AppCompatActivity implements WifiDirectionCont
         if (behavior instanceof DodgeBottomSheetBehavior) {
             mBottomSheetBehavior = (DodgeBottomSheetBehavior) behavior;
         }
-        mPassword = new StringBuilder();
-        mPresenter = new WifiDirectionPresenter(this);
+        mPresenter = new WifiDirectionPresenter(this, this);
     }
 
     private void setupView() {
@@ -85,11 +87,18 @@ public class MainActivity extends AppCompatActivity implements WifiDirectionCont
         mBottomSheetBehavior.setMinOffset(300);
         mBottomSheetBehavior.setScrollable(false);
 
-        Glide.with(this).load(R.drawable.bg_piano).into(mImageView);
-        mToolbarBlurringView.setBlurredView(mImageView);
-        mToolbarBlurringView.setBlurRadius(10);
-        mToolbarBlurringView.setDownsampleFactor(10);
-        mToolbarBlurringView.setOverlayColor(Color.TRANSPARENT);
+        Glide.with(this).load(R.drawable.bg_piano).asBitmap().listener(new RequestListener<Integer, Bitmap>() {
+            @Override
+            public boolean onException(Exception e, Integer model, Target<Bitmap> target, boolean isFirstResource) {
+                return false;
+            }
+
+            @Override
+            public boolean onResourceReady(Bitmap resource, Integer model, Target<Bitmap> target, boolean isFromMemoryCache, boolean isFirstResource) {
+                Blurry.with(MainActivity.this).radius(10).sampling(10).async().animate().from(resource).into(mImageView);
+                return true;
+            }
+        }).preload();
     }
 
     @Override
@@ -101,14 +110,8 @@ public class MainActivity extends AppCompatActivity implements WifiDirectionCont
 
     @Override
     public void onNumberClick(String number) {
-        if (mPassword.length() >= 4) {
-            return;
-        }
+        mPresenter.appendPassword(number);
         mPasswordTextView.append(number);
-        mPassword.append(number);
-        if (mPassword.length() >= 4) {
-            mPresenter.setPassword(mPassword.toString());
-        }
     }
 
     @Override
