@@ -9,7 +9,7 @@
     android:focusable="false"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="com.leaves.app.shareme.MainActivity">
+    tools:context="com.leaves.app.shareme.ui.activity.MainActivity">
 
     <ImageView
         android:id="@+id/iv_bg"
@@ -25,14 +25,15 @@
         android:layout_alignBottom="@+id/toolbar"
         tools:visibility="gone"/>
 
-        <android.support.v7.widget.Toolbar
-            android:id="@+id/toolbar"
-            android:layout_width="match_parent"
-            android:layout_height="?attr/actionBarSize"
-            android:layout_marginTop="@dimen/status_bar_height"
-            app:layout_insetEdge="top"
-            app:title="ShareMe"
-            app:titleTextColor="@color/colorAccent"/>
+    <android.support.v7.widget.Toolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:layout_marginTop="@dimen/status_bar_height"
+        app:layout_insetEdge="top"
+        app:title="ShareMe"
+        app:titleTextColor="@color/colorAccent"/>
+
     <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -49,39 +50,23 @@
             />
     </FrameLayout>
 
-    <android.support.v4.widget.NestedScrollView
+    <android.support.v7.widget.CardView
         android:id="@+id/bottom_sheet"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_marginBottom="-10dp"
+        android:layout_marginLeft="@dimen/spacing_more_small"
+        android:layout_marginRight="@dimen/spacing_more_small"
+        android:layout_marginTop="@dimen/spacing_more_small"
+        app:cardCornerRadius="10dp"
+        app:contentPaddingBottom="10dp"
         app:behavior_hideable="false"
         app:behavior_peekHeight="280dp"
-        app:layout_behavior="com.leaves.app.shareme.ui.behavior.DodgeBottomSheetBehavior"
-        >
-
+        app:layout_behavior="com.leaves.app.shareme.ui.behavior.DodgeBottomSheetBehavior">
         <FrameLayout
+            android:id="@+id/container_bottom"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
-
-            <android.support.v7.widget.CardView
-                android:layout_width="match_parent"
-                android:layout_height="1000dp"
-                android:layout_alignParentBottom="true"
-                android:layout_marginBottom="-10dp"
-                android:layout_marginLeft="@dimen/spacing_more_small"
-                android:layout_marginRight="@dimen/spacing_more_small"
-                android:layout_marginTop="@dimen/spacing_more_small"
-                app:cardCornerRadius="10dp"
-                app:contentPaddingBottom="10dp">
-
-                <com.leaves.app.shareme.ui.widget.dialpad.NineKeyDialpad
-                    android:id="@+id/dialpad"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    app:colorful="true"
-                    app:divider_color="#11000000"
-                    app:tint_color="@color/colorPrimary"
-                    app:tint_color2="@color/colorAccent"/>
-            </android.support.v7.widget.CardView>
-        </FrameLayout>
-    </android.support.v4.widget.NestedScrollView>
+            android:layout_height="wrap_content"/>
+    </android.support.v7.widget.CardView>
 </android.support.design.widget.CoordinatorLayout>

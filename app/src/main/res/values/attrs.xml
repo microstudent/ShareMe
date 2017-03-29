@@ -25,4 +25,7 @@
         <attr name="text_size" format="dimension"/>
         <attr name="show_password" format="boolean"/>
     </declare-styleable>
+    <declare-styleable name="ColorfulAnim">
+        <attr name="speed_factor" format="float" />
+    </declare-styleable>
 </resources>

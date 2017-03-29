@@ -97,7 +97,7 @@ public class NineKeyButton extends View implements INineKeyButton {
         int hMode = MeasureSpec.getMode(heightMeasureSpec);
         int width = 0, height = 0;
 
-        int maxWidth = mKeywordRect.width() > mNumberRect.width() ? mKeywordRect.width() : mNumberRect.width();
+        int maxWidth = Math.max(mKeywordRect.width(), mNumberRect.width());
         int maxHeight = mKeywordRect.height() + mNumberRect.height();
         if (mNumber != null && mNumber.length() != 0) {
             maxHeight += mLineSpace;
@@ -106,7 +106,7 @@ public class NineKeyButton extends View implements INineKeyButton {
             maxHeight += mLineSpace;
         }
 
-        if (wMode == MeasureSpec.AT_MOST || hMode == MeasureSpec.UNSPECIFIED) {
+        if (wMode == MeasureSpec.AT_MOST || wMode == MeasureSpec.UNSPECIFIED) {
             width = maxWidth + getPaddingRight() + getPaddingLeft();
         } else {
             width = wSize;

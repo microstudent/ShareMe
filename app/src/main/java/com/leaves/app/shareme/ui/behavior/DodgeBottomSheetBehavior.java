@@ -4,6 +4,7 @@ import android.content.Context;
 import android.support.design.widget.BottomSheetBehavior;
 import android.support.design.widget.CoordinatorLayout;
 import android.util.AttributeSet;
+import android.view.MotionEvent;
 import android.view.View;
 
 import java.lang.reflect.Field;
@@ -12,8 +13,9 @@ import java.lang.reflect.Field;
  * Created by Leaves on 2017/3/29.
  */
 
-public class DodgeBottomSheetBehavior extends BottomSheetBehavior {
+public class DodgeBottomSheetBehavior extends BottomSheetBehavior<View> {
     private int mMinOffset;
+    private boolean isScrollable;
 
     public DodgeBottomSheetBehavior(Context context, AttributeSet attrs) {
         super(context, attrs);
@@ -29,6 +31,20 @@ public class DodgeBottomSheetBehavior extends BottomSheetBehavior {
 
     public void setMinOffset(int minOffset) {
         mMinOffset = minOffset;
+    }
+
+    public void setScrollable(boolean scrollable) {
+        isScrollable = scrollable;
+    }
+
+    @Override
+    public boolean onInterceptTouchEvent(CoordinatorLayout parent, View child, MotionEvent event) {
+        return isScrollable && super.onInterceptTouchEvent(parent, child, event);
+    }
+
+    @Override
+    public boolean onTouchEvent(CoordinatorLayout parent, View child, MotionEvent event) {
+        return isScrollable && super.onTouchEvent(parent, child, event);
     }
 
     private void reflectMinOffset(int minOffset) {
