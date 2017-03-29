@@ -13,6 +13,7 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import com.bumptech.glide.Glide;
 import com.fivehundredpx.android.blur.BlurringView;
+import com.leaves.app.shareme.ui.behavior.DodgeBottomSheetBehavior;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -33,7 +34,7 @@ public class MainActivity extends AppCompatActivity {
         ButterKnife.bind(this);
 
         View bottomSheet = mRootView.findViewById(R.id.bottom_sheet);
-        BottomSheetBehavior behavior = BottomSheetBehavior.from(bottomSheet);
+        final BottomSheetBehavior behavior = BottomSheetBehavior.from(bottomSheet);
         behavior.setBottomSheetCallback(new BottomSheetBehavior.BottomSheetCallback() {
             @Override
             public void onStateChanged(@NonNull View bottomSheet, int newState) {
@@ -45,6 +46,7 @@ public class MainActivity extends AppCompatActivity {
 
             }
         });
+        ((DodgeBottomSheetBehavior) behavior).setMinOffset(300);
 
         Glide.with(this).load(R.drawable.bg_piano).into(mImageView);
         mToolbarBlurringView.setBlurredView(mImageView);
