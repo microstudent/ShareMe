@@ -1,7 +1,9 @@
 package com.leaves.app.shareme.presenter;
 
+import android.content.Context;
 import android.net.wifi.p2p.WifiP2pDevice;
 import android.net.wifi.p2p.WifiP2pDeviceList;
+import android.support.v4.app.FragmentManager;
 import android.support.v7.app.AppCompatActivity;
 
 import com.leaves.app.shareme.Constant;
@@ -29,14 +31,17 @@ public class WifiDirectionPresenter implements WifiDirectionContract.Presenter, 
     private StringBuilder mPassword;
 
     public WifiDirectionPresenter(WifiDirectionContract.View view, AppCompatActivity rootActivity) {
+        this(view, rootActivity.getSupportFragmentManager(), rootActivity.getApplicationContext());
+    }
+
+    public WifiDirectionPresenter(WifiDirectionContract.View view, FragmentManager manager, Context context) {
         mView = view;
-        mWifiDirect = new WifiDirect(rootActivity, INSTANCE_NAME, SERVICE_NAME);
+        mWifiDirect = new WifiDirect(manager, context, INSTANCE_NAME, SERVICE_NAME);
         mPassword = new StringBuilder();
         mWifiDirect.setOnConnectionChangeListener(this);
         mWifiDirect.setOnDeviceDetailChangeListener(this);
         mWifiDirect.setOnServiceFoundListener(this);
     }
-
 
     @Override
     public void start() {
@@ -59,6 +64,7 @@ public class WifiDirectionPresenter implements WifiDirectionContract.Presenter, 
         params.put(Constant.WifiDirect.KEY_PASSWORD, mPassword.toString());
         params.put(Constant.WifiDirect.KEY_TIMESTAMP, String.valueOf(System.currentTimeMillis()));
         mWifiDirect.setupSignAndScan(params);
+        mView.onStartDiscover();
     }
 
     @Override
@@ -74,6 +80,7 @@ public class WifiDirectionPresenter implements WifiDirectionContract.Presenter, 
     @Override
     public void onServiceFound(WifiP2pDevice device, WifiDirect.ServiceResponse response) {
         if (isPasswordCorrect(response)) {
+            mView.onDeviceFound();
             mView.showToast(response.wifiP2pDevice.deviceName);
         }
     }

@@ -27,21 +27,20 @@
         app:title="ShareMe"
         app:titleTextColor="@color/colorAccent"/>
 
-    <FrameLayout
+    <android.support.v7.widget.CardView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_marginTop="80dp"
+        app:cardCornerRadius="10dp"
+        android:layout_marginBottom="@dimen/spacing_more_small"
+        android:layout_marginLeft="@dimen/spacing_more_small"
+        android:layout_marginRight="@dimen/spacing_more_small"
         app:layout_behavior="com.leaves.app.shareme.ui.behavior.DockerBehavior">
-
-        <include
-            layout="@layout/layout_content"
+        <FrameLayout
+            android:id="@+id/container_main"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_marginBottom="@dimen/spacing_more_small"
-            android:layout_marginLeft="@dimen/spacing_more_small"
-            android:layout_marginRight="@dimen/spacing_more_small"
-            />
-    </FrameLayout>
+            android:layout_height="match_parent"/>
+    </android.support.v7.widget.CardView>
 
     <android.support.v7.widget.CardView
         android:id="@+id/bottom_sheet"

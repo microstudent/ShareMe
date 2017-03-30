@@ -1,139 +1,138 @@
 <?xml version="1.0" encoding="utf-8"?>
 <TableLayout
-        xmlns:android="http://schemas.android.com/apk/res/android"
-        xmlns:app="http://schemas.android.com/apk/res-auto"
-        android:id="@+id/container"
-        android:stretchColumns="0,1,2"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/container"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:stretchColumns="0,1,2"
+    >
+
+    <TableRow>
+
+        <com.leaves.app.shareme.ui.widget.dialpad.ninekeybutton.NineKeyButton
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="?android:attr/selectableItemBackground"
+            android:paddingBottom="20dp"
+            android:paddingTop="20dp"
+            app:keywords=""
+            app:number="1"
+            />
+
+        <com.leaves.app.shareme.ui.widget.dialpad.ninekeybutton.NineKeyButton
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="?android:attr/selectableItemBackground"
+            android:paddingBottom="20dp"
+            android:paddingTop="20dp"
+            app:keywords=""
+            app:number="2"
+            />
+
+        <com.leaves.app.shareme.ui.widget.dialpad.ninekeybutton.NineKeyButton
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="?android:attr/selectableItemBackground"
+            android:paddingBottom="20dp"
+            android:paddingTop="20dp"
+            app:keywords=""
+            app:number="3"
+            />
+    </TableRow>
+
+    <TableRow>
+
+        <com.leaves.app.shareme.ui.widget.dialpad.ninekeybutton.NineKeyButton
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="?android:attr/selectableItemBackground"
+            android:paddingBottom="20dp"
+            android:paddingTop="20dp"
+            app:keywords=""
+            app:number="4"
+            />
+
+        <com.leaves.app.shareme.ui.widget.dialpad.ninekeybutton.NineKeyButton
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="?android:attr/selectableItemBackground"
+            android:paddingBottom="20dp"
+            android:paddingTop="20dp"
+            app:keywords=""
+            app:number="5"
+            />
+
+        <com.leaves.app.shareme.ui.widget.dialpad.ninekeybutton.NineKeyButton
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="?android:attr/selectableItemBackground"
+            android:paddingBottom="20dp"
+            android:paddingTop="20dp"
+            app:keywords=""
+            app:number="6"
+            />
+    </TableRow>
+
+    <TableRow
         >
 
-    <TableRow>
+        <com.leaves.app.shareme.ui.widget.dialpad.ninekeybutton.NineKeyButton
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="?android:attr/selectableItemBackground"
+            android:paddingBottom="20dp"
+            android:paddingTop="20dp"
+            app:keywords=""
+            app:number="7"
+            />
 
         <com.leaves.app.shareme.ui.widget.dialpad.ninekeybutton.NineKeyButton
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:background="?android:attr/selectableItemBackground"
-                android:paddingTop="20dp"
-                android:paddingBottom="20dp"
-                app:keywords=""
-                app:number="1"
-                />
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="?android:attr/selectableItemBackground"
+            android:paddingBottom="20dp"
+            android:paddingTop="20dp"
+            app:keywords=""
+            app:number="8"
+            />
 
         <com.leaves.app.shareme.ui.widget.dialpad.ninekeybutton.NineKeyButton
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:background="?android:attr/selectableItemBackground"
-                android:paddingTop="20dp"
-                android:paddingBottom="20dp"
-                app:keywords=""
-                app:number="2"
-                />
-
-        <com.leaves.app.shareme.ui.widget.dialpad.ninekeybutton.NineKeyButton
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:background="?android:attr/selectableItemBackground"
-                android:paddingTop="20dp"
-                android:paddingBottom="20dp"
-                app:keywords=""
-                app:number="3"
-                />
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="?android:attr/selectableItemBackground"
+            android:paddingBottom="20dp"
+            android:paddingTop="20dp"
+            app:keywords=""
+            app:number="9"
+            />
     </TableRow>
 
     <TableRow>
 
         <com.leaves.app.shareme.ui.widget.dialpad.ninekeybutton.NineKeyButton
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:background="?android:attr/selectableItemBackground"
-                android:paddingTop="20dp"
-                android:paddingBottom="20dp"
-                app:keywords=""
-                app:number="4"
-                />
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="?android:attr/selectableItemBackground"
+            android:paddingBottom="20dp"
+            android:paddingTop="20dp"/>
 
         <com.leaves.app.shareme.ui.widget.dialpad.ninekeybutton.NineKeyButton
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:background="?android:attr/selectableItemBackground"
-                android:paddingTop="20dp"
-                android:paddingBottom="20dp"
-                app:keywords=""
-                app:number="5"
-                />
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="?android:attr/selectableItemBackground"
+            android:paddingBottom="20dp"
+            android:paddingTop="20dp"
+            app:keywords=""
+            app:number="0"
+            />
 
         <com.leaves.app.shareme.ui.widget.dialpad.ninekeybutton.NineKeyButton
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:background="?android:attr/selectableItemBackground"
-                android:paddingTop="20dp"
-                android:paddingBottom="20dp"
-                app:keywords=""
-                app:number="6"
-                />
-    </TableRow>
-
-    <TableRow
-            >
-
-        <com.leaves.app.shareme.ui.widget.dialpad.ninekeybutton.NineKeyButton
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:background="?android:attr/selectableItemBackground"
-                android:paddingTop="20dp"
-                android:paddingBottom="20dp"
-                app:keywords=""
-                app:number="7"
-                />
-
-        <com.leaves.app.shareme.ui.widget.dialpad.ninekeybutton.NineKeyButton
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:background="?android:attr/selectableItemBackground"
-                android:paddingTop="20dp"
-                android:paddingBottom="20dp"
-                app:keywords=""
-                app:number="8"
-                />
-
-        <com.leaves.app.shareme.ui.widget.dialpad.ninekeybutton.NineKeyButton
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:background="?android:attr/selectableItemBackground"
-                android:paddingTop="20dp"
-                android:paddingBottom="20dp"
-                app:keywords=""
-                app:number="9"
-                />
-    </TableRow>
-
-    <TableRow
-            >
-
-        <com.leaves.app.shareme.ui.widget.dialpad.ninekeybutton.NineKeyButton
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:background="?android:attr/selectableItemBackground"
-                android:paddingTop="20dp"
-                android:paddingBottom="20dp"/>
-
-        <com.leaves.app.shareme.ui.widget.dialpad.ninekeybutton.NineKeyButton
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:background="?android:attr/selectableItemBackground"
-                android:paddingTop="20dp"
-                android:paddingBottom="20dp"
-                app:keywords=""
-                app:number="0"
-                />
-
-        <com.leaves.app.shareme.ui.widget.dialpad.ninekeybutton.NineKeyButton
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:background="?android:attr/selectableItemBackground"
-                android:paddingTop="20dp"
-                android:paddingBottom="20dp"
-                />
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="?android:attr/selectableItemBackground"
+            android:paddingBottom="20dp"
+            android:paddingTop="20dp"
+            />
     </TableRow>
 </TableLayout>

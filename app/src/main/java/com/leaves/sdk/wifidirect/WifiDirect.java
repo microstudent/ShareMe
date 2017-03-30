@@ -67,10 +67,14 @@ public class WifiDirect implements IWifiDirect, WifiDirectReceiver.OnWifiDirectS
     private OnDeviceDetailChangeListener mOnDeviceDetailChangeListener;
 
     public WifiDirect(AppCompatActivity rootActivity, String instanceName, String serviceName) {
-        mContext = rootActivity.getApplicationContext();
+        this(rootActivity.getSupportFragmentManager(), rootActivity.getApplicationContext(), instanceName, serviceName);
+    }
+
+    public WifiDirect(FragmentManager manager, Context context, String instanceName, String serviceName) {
+        mContext = context.getApplicationContext();
         initWifiP2p();
         initReceiver();
-        setupShadowFragment(rootActivity);//绑定生命周期
+        setupShadowFragment(manager);//绑定生命周期
         mDisposables = new CompositeDisposable();
         mInstanceName = instanceName;
         mServiceName = serviceName;
@@ -282,6 +286,11 @@ public class WifiDirect implements IWifiDirect, WifiDirectReceiver.OnWifiDirectS
      */
     private void setupShadowFragment(AppCompatActivity activity) {
         FragmentManager manager = activity.getSupportFragmentManager();
+        ShadowFragment current = getShadowFragment(manager);
+        current.getLifecycle().addListener(this);
+    }
+
+    private void setupShadowFragment(FragmentManager manager) {
         ShadowFragment current = getShadowFragment(manager);
         current.getLifecycle().addListener(this);
     }

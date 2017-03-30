@@ -1,7 +1,6 @@
 package com.leaves.app.shareme.ui.activity;
 
 import android.graphics.Bitmap;
-import android.graphics.Color;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.BottomSheetBehavior;
@@ -11,7 +10,6 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.widget.ImageView;
-import android.widget.Toast;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -22,16 +20,14 @@ import com.bumptech.glide.request.RequestListener;
 import com.bumptech.glide.request.target.Target;
 import com.leaves.app.shareme.R;
 import com.leaves.app.shareme.contract.WifiDirectionContract;
-import com.leaves.app.shareme.presenter.WifiDirectionPresenter;
 import com.leaves.app.shareme.ui.behavior.DodgeBottomSheetBehavior;
 import com.leaves.app.shareme.ui.fragment.BottomSheetFragment;
 import com.leaves.app.shareme.ui.fragment.DialpadFragment;
-import com.leaves.app.shareme.ui.widget.PasswordTextView;
+import com.leaves.app.shareme.ui.fragment.MainFragment;
 import com.leaves.app.shareme.ui.widget.dialpad.listener.OnNumberClickListener;
 
 
-public class MainActivity extends AppCompatActivity implements WifiDirectionContract.View,
-        OnNumberClickListener, BottomSheetFragment.OnFragmentMeasureListener {
+public class MainActivity extends AppCompatActivity implements OnNumberClickListener, BottomSheetFragment.OnFragmentMeasureListener {
     private FragmentManager mFragmentManager;
 
     @BindView(R.id.iv_bg)
@@ -40,15 +36,11 @@ public class MainActivity extends AppCompatActivity implements WifiDirectionCont
     @BindView(R.id.activity_main)
     CoordinatorLayout mRootView;
 
-    @BindView(R.id.tv_key)
-    PasswordTextView mPasswordTextView;
-
     @BindView(R.id.toolbar)
     Toolbar mToolbar;
 
-    private WifiDirectionContract.Presenter mPresenter;
-
     private DodgeBottomSheetBehavior mBottomSheetBehavior;
+    private MainFragment mMainFragment;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -66,13 +58,10 @@ public class MainActivity extends AppCompatActivity implements WifiDirectionCont
         if (behavior instanceof DodgeBottomSheetBehavior) {
             mBottomSheetBehavior = (DodgeBottomSheetBehavior) behavior;
         }
-        mPresenter = new WifiDirectionPresenter(this, this);
     }
 
     private void setupView() {
-        mFragmentManager.beginTransaction().add(R.id.container_bottom, DialpadFragment.newInstance())
-                .commit();
-
+        setupFragment();
         mBottomSheetBehavior.setBottomSheetCallback(new BottomSheetBehavior.BottomSheetCallback() {
             @Override
             public void onStateChanged(@NonNull View bottomSheet, int newState) {
@@ -101,6 +90,13 @@ public class MainActivity extends AppCompatActivity implements WifiDirectionCont
         }).preload();
     }
 
+    private void setupFragment() {
+        mMainFragment = MainFragment.newInstance();
+        mFragmentManager.beginTransaction().add(R.id.container_bottom, DialpadFragment.newInstance())
+                .add(R.id.container_main, mMainFragment)
+                .commit();
+    }
+
     @Override
     public void onFragmentMeasure(int width, int height) {
         if (mBottomSheetBehavior != null) {
@@ -110,12 +106,9 @@ public class MainActivity extends AppCompatActivity implements WifiDirectionCont
 
     @Override
     public void onNumberClick(String number) {
-        mPresenter.appendPassword(number);
-        mPasswordTextView.append(number);
+        if (mMainFragment != null) {
+            mMainFragment.appendPassword(number);
+        }
     }
 
-    @Override
-    public void showToast(String msg) {
-        Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
-    }
 }

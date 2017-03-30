@@ -9,7 +9,9 @@ import com.leaves.app.shareme.BaseView;
 
 public interface WifiDirectionContract {
     interface View extends BaseView {
+        void onStartDiscover();
 
+        void onDeviceFound();
     }
 
     interface Presenter extends BasePresenter {
