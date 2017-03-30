@@ -59,6 +59,13 @@ public class WifiDirectionPresenter implements WifiDirectionContract.Presenter, 
         }
     }
 
+    @Override
+    public void cancelSearch() {
+        if (mWifiDirect != null) {
+            mWifiDirect.stopDiscover();
+        }
+    }
+
     private void startDiscovery() {
         Map<String, String> params = new HashMap<>();
         params.put(Constant.WifiDirect.KEY_PASSWORD, mPassword.toString());

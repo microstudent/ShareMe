@@ -16,5 +16,7 @@ public interface WifiDirectionContract {
 
     interface Presenter extends BasePresenter {
         void appendPassword(String number);
+
+        void cancelSearch();
     }
 }

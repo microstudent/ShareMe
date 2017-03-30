@@ -1,6 +1,9 @@
 <resources>
     <string name="app_name">ShareMe</string>
     <string name="title_share">开始分享你的媒体资源！</string>
-    <string name="password_hint">输入4位房间密码创建或进入房间</string>
+    <string name="hint_password">输入4位房间密码创建或进入房间</string>
     <string name="cancel">取消</string>
+    <string name="title_searching">正在搜索匹配的设备...</string>
+    <string name="hint_searching">通过ShareMe，你可以分享自己的音乐，\n使自己的手机和其他手机同时播放一个媒体！</string>
+
 </resources>

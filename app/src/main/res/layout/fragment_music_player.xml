@@ -1,0 +1,41 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+             xmlns:tools="http://schemas.android.com/tools"
+             android:layout_width="match_parent"
+             android:layout_height="match_parent"
+             tools:context="com.leaves.app.shareme.ui.fragment.MusicPlayerFragment">
+    <ImageView
+        android:id="@+id/iv_cover"
+        android:layout_centerVertical="true"
+        android:src="@color/gray"
+        android:layout_margin="@dimen/spacing_small"
+        android:layout_width="@dimen/image_large"
+        android:layout_height="@dimen/image_large"/>
+    <LinearLayout
+        android:layout_alignTop="@id/iv_cover"
+        android:layout_toRightOf="@id/iv_cover"
+        android:orientation="vertical"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content">
+        <TextView
+            android:id="@+id/tv_title"
+            android:layout_margin="@dimen/spacing_tiny"
+            android:textSize="@dimen/font_small"
+            android:textStyle="bold"
+            tools:text="Step Off"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
+        <TextView
+            android:id="@+id/tv_sub_title"
+            android:layout_margin="@dimen/spacing_tiny"
+            tools:text="Kacey Musgraves"
+            android:textSize="@dimen/font_more_small"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
+    </LinearLayout>
+    <Button
+        android:layout_alignParentRight="true"
+        android:layout_alignTop="@id/iv_cover"
+        tools:text="play"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"/>
+</RelativeLayout>

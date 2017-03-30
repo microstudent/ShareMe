@@ -24,10 +24,13 @@ import com.leaves.app.shareme.ui.behavior.DodgeBottomSheetBehavior;
 import com.leaves.app.shareme.ui.fragment.BottomSheetFragment;
 import com.leaves.app.shareme.ui.fragment.DialpadFragment;
 import com.leaves.app.shareme.ui.fragment.MainFragment;
+import com.leaves.app.shareme.ui.fragment.MusicPlayerFragment;
 import com.leaves.app.shareme.ui.widget.dialpad.listener.OnNumberClickListener;
 
 
-public class MainActivity extends AppCompatActivity implements OnNumberClickListener, BottomSheetFragment.OnFragmentMeasureListener {
+public class MainActivity extends AppCompatActivity implements
+        OnNumberClickListener, BottomSheetFragment.OnFragmentMeasureListener,
+        MainFragment.MainFragmentCallback {
     private FragmentManager mFragmentManager;
 
     @BindView(R.id.iv_bg)
@@ -111,4 +114,10 @@ public class MainActivity extends AppCompatActivity implements OnNumberClickList
         }
     }
 
+    @Override
+    public void onSearchingDevice() {
+        mFragmentManager.beginTransaction().replace(R.id.container_bottom, MusicPlayerFragment.newInstance())
+                .commit();
+
+    }
 }

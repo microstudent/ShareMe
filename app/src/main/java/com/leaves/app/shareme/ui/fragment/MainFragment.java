@@ -2,7 +2,9 @@ package com.leaves.app.shareme.ui.fragment;
 
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
+import android.content.Context;
 import android.os.Bundle;
+import android.support.annotation.IntDef;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -16,15 +18,27 @@ import com.leaves.app.shareme.presenter.WifiDirectionPresenter;
 import com.leaves.app.shareme.ui.widget.PasswordTextView;
 import com.leaves.app.shareme.ui.widget.dialpad.colorfulanimview.ColorfulAnimView;
 
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import butterknife.OnClick;
 
 public class MainFragment extends Fragment implements WifiDirectionContract.View{
     private static final long DEFAULT_ANIM_DURATION = 500;
-    private WifiDirectionPresenter mPresenter;
+    private WifiDirectionContract.Presenter mPresenter;
+    public static final int MODE_PASSWORD = 0;
+    public static final int MODE_SEARCHING = 1;
+    public static final int MODE_DEVICE_LIST = 2;
 
 
-    //    private OnFragmentInteractionListener mListener;
+    @IntDef({MODE_DEVICE_LIST, MODE_SEARCHING, MODE_PASSWORD})
+    @Retention(RetentionPolicy.SOURCE)
+    @interface Mode {}
+
+    private MainFragmentCallback mListener;
+
     @BindView(R.id.tv_key)
     PasswordTextView mPasswordTextView;
 
@@ -39,6 +53,9 @@ public class MainFragment extends Fragment implements WifiDirectionContract.View
 
     @BindView(R.id.tv_title)
     TextView mTitleView;
+
+    @BindView(R.id.layout_key)
+    ViewGroup mKeyLayout;
 
     public MainFragment() {
         // Required empty public constructor
@@ -83,21 +100,7 @@ public class MainFragment extends Fragment implements WifiDirectionContract.View
 
     @Override
     public void onStartDiscover() {
-        mProgressLayout.setVisibility(View.VISIBLE);
-        mProgressLayout.animate().alpha(1).setDuration(DEFAULT_ANIM_DURATION).start();
-        mColorfulAnimView.startAnim();
-        mPasswordTextView.animate().alpha(0).setDuration(DEFAULT_ANIM_DURATION).setListener(new AnimatorListenerAdapter() {
-            @Override
-            public void onAnimationEnd(Animator animation) {
-                mPasswordTextView.setVisibility(View.GONE);
-            }
-        }).start();
-        mHintView.animate().alpha(0).setDuration(DEFAULT_ANIM_DURATION).setListener(new AnimatorListenerAdapter() {
-            @Override
-            public void onAnimationEnd(Animator animation) {
-                mPasswordTextView.setVisibility(View.GONE);
-            }
-        }).start();
+        switchToMode(MODE_SEARCHING);
     }
 
     @Override
@@ -106,25 +109,73 @@ public class MainFragment extends Fragment implements WifiDirectionContract.View
         mColorfulAnimView.stopAnim();
     }
 
-//
-//    @Override
-//    public void onAttach(Context context) {
-//        super.onAttach(context);
-//        if (context instanceof OnFragmentInteractionListener) {
-//            mListener = (OnFragmentInteractionListener) context;
-//        } else {
-//            throw new RuntimeException(context.toString()
-//                    + " must implement OnFragmentInteractionListener");
-//        }
-//    }
-//
-//    @Override
-//    public void onDetach() {
-//        super.onDetach();
-//        mListener = null;
-//    }
-//
-//    public interface OnFragmentInteractionListener {
-//        void onFragmentInteraction(Uri uri);
-//    }
+    /**
+     * 这个方法只针对UI
+     */
+    private void switchToMode(@Mode int mode) {
+        switch (mode) {
+            case MODE_PASSWORD:
+                animate(mProgressLayout, false);
+                animate(mKeyLayout, true);
+                mColorfulAnimView.stopAnim();
+                mTitleView.setText(R.string.title_share);
+                break;
+            case MODE_SEARCHING:
+                animate(mProgressLayout, true);
+                animate(mKeyLayout, false);
+                mColorfulAnimView.startAnim();
+                mTitleView.setText(R.string.title_searching);
+                mListener.onSearchingDevice();
+                break;
+            case MODE_DEVICE_LIST:
+
+                break;
+            default:
+                break;
+        }
+    }
+
+    private void animate(final View view, boolean visibility) {
+        if (view != null) {
+            if (visibility) {
+                view.setVisibility(View.VISIBLE);
+                view.setAlpha(1);
+            } else {
+                view.animate().alpha(0).setDuration(DEFAULT_ANIM_DURATION).setListener(new AnimatorListenerAdapter() {
+                    @Override
+                    public void onAnimationEnd(Animator animation) {
+                        view.setVisibility(View.GONE);
+                    }
+                }).start();
+            }
+        }
+    }
+
+    @OnClick(R.id.bt_cancel)
+    public void cancelSearch() {
+        mPresenter.cancelSearch();
+        switchToMode(MODE_PASSWORD);
+    }
+
+
+    @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+        if (context instanceof MainFragmentCallback) {
+            mListener = (MainFragmentCallback) context;
+        } else {
+            throw new RuntimeException(context.toString()
+                    + " must implement MainFragmentCallback");
+        }
+    }
+
+    @Override
+    public void onDetach() {
+        super.onDetach();
+        mListener = null;
+    }
+
+    public interface MainFragmentCallback {
+        void onSearchingDevice();
+    }
 }
