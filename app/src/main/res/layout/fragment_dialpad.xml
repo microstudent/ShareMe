@@ -1,15 +1,11 @@
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-             xmlns:tools="http://schemas.android.com/tools"
-             android:layout_width="match_parent"
-             android:layout_height="wrap_content"
-             xmlns:app="http://schemas.android.com/apk/res-auto"
-             tools:context="com.leaves.app.shareme.ui.fragment.BottomSheetFragment">
-            <com.leaves.app.shareme.ui.widget.dialpad.NineKeyDialpad
-                android:id="@+id/dialpad"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                app:colorful="true"
-                app:divider_color="#11000000"
-                app:tint_color="@color/colorPrimary"
-                app:tint_color2="@color/colorAccent"/>
-</FrameLayout>
+<com.leaves.app.shareme.ui.widget.dialpad.NineKeyDialpad
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/dialpad"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    app:colorful="true"
+    app:divider_color="#11000000"
+    app:tint_color="@color/colorPrimary"
+    app:tint_color2="@color/colorAccent"/>

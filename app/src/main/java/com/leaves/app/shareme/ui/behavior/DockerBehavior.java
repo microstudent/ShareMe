@@ -3,8 +3,8 @@ package com.leaves.app.shareme.ui.behavior;
 import android.animation.AnimatorSet;
 import android.animation.FloatEvaluator;
 import android.animation.ObjectAnimator;
+import android.animation.ValueAnimator;
 import android.content.Context;
-import android.graphics.Rect;
 import android.support.design.widget.AppBarLayout;
 import android.support.design.widget.BottomSheetBehavior;
 import android.support.design.widget.CoordinatorLayout;
@@ -30,6 +30,8 @@ public class DockerBehavior extends CoordinatorLayout.Behavior<View> {
     private ObjectAnimator mChildScaleXAnimator;
     private ObjectAnimator mChildScaleYAnimator;
 
+    private ValueAnimator mExpandAnimator;
+    private int mLastMeasureHeight;
 
     public DockerBehavior(Context context, AttributeSet attrs) {
         super(context, attrs);
@@ -64,7 +66,6 @@ public class DockerBehavior extends CoordinatorLayout.Behavior<View> {
             }
         }
         return super.onDependentViewChanged(parent, child, dependency);
-
     }
 
     private void measureChildAsNeeded(CoordinatorLayout parent, View child, View dependency) {
@@ -77,8 +78,8 @@ public class DockerBehavior extends CoordinatorLayout.Behavior<View> {
 
     private void offsetChildAsNeeded(CoordinatorLayout parent, View child, View dependency) {
 
-            // Offset the child, pinning it to the bottom the header-dependency, maintaining
-            // any vertical gap and overlap
+        // Offset the child, pinning it to the bottom the header-dependency, maintaining
+        // any vertical gap and overlap
         if (isViewHasBottomSheetBehavior(dependency)) {
             if (mAnimatorSet == null) {
                 initChildAnim(child);
@@ -105,77 +106,66 @@ public class DockerBehavior extends CoordinatorLayout.Behavior<View> {
     @Override
     public boolean onMeasureChild(CoordinatorLayout parent, View child, int parentWidthMeasureSpec, int widthUsed, int parentHeightMeasureSpec, int heightUsed) {
         boolean handled = false;
-        int height = 0;
         int availableHeight = -1;
         final int childLpHeight = child.getLayoutParams().height;
-        if (childLpHeight == ViewGroup.LayoutParams.MATCH_PARENT
-                || childLpHeight == ViewGroup.LayoutParams.WRAP_CONTENT) {
-            // If the menu's height is set to match_parent/wrap_content then measure it
-            // with the maximum visible height
 
-            final List<View> dependencies = parent.getDependencies(child);
-            final View bottomSheet = findFirstBottomSheet(dependencies);
-            if (bottomSheet != null) {
-//                if (ViewCompat.getFitsSystemWindows(header)
-//                        && !ViewCompat.getFitsSystemWindows(child)) {
-//                    // If the header is fitting system windows then we need to also,
-//                    // otherwise we'll get CoL's compatible measuring
-//                    ViewCompat.setFitsSystemWindows(child, true);
-//
-//                    if (ViewCompat.getFitsSystemWindows(child)) {
-//                        // If the set succeeded, trigger a new layout and return true
-//                        child.requestLayout();
-//                        return true;
-//                    }
-//                }
-
-                availableHeight = View.MeasureSpec.getSize(parentHeightMeasureSpec);
-                if (availableHeight == 0) {
-                    // If the measure spec doesn't specify a size, use the current height
-                    availableHeight = parent.getHeight();
-                }
-                availableHeight -= (bottomSheet.getMeasuredHeight() - getScrollRange(bottomSheet));
+        final List<View> dependencies = parent.getDependencies(child);
+        final View bottomSheet = findFirstBottomSheet(dependencies);
+        if (bottomSheet != null) {
+            availableHeight = View.MeasureSpec.getSize(parentHeightMeasureSpec);
+            if (availableHeight == 0) {
+                // If the measure spec doesn't specify a size, use the current height
+                availableHeight = parent.getHeight();
             }
-
-//            -------------------
-
-//            final View header = findFirstHeader(dependencies);
-//            if (header != null) {
-//                if (ViewCompat.getFitsSystemWindows(header)
-//                        && !ViewCompat.getFitsSystemWindows(child)) {
-//                    // If the header is fitting system windows then we need to also,
-//                    // otherwise we'll get CoL's compatible measuring
-//                    ViewCompat.setFitsSystemWindows(child, true);
-//
-//                    if (ViewCompat.getFitsSystemWindows(child)) {
-//                        // If the set succeeded, trigger a new layout and return true
-//                        child.requestLayout();
-//                        return true;
-//                    }
-//                }
-//                if (availableHeight == -1) {
-//                    availableHeight = View.MeasureSpec.getSize(parentHeightMeasureSpec);
-//                    if (availableHeight == 0) {
-//                        // If the measure spec doesn't specify a size, use the current height
-//                        availableHeight = parent.getHeight();
-//                    }
-//                }
-//                availableHeight -= header.getMeasuredHeight();
-//            }
-
-            if (availableHeight >= 0) {
+            ViewGroup.LayoutParams params = child.getLayoutParams();
+            int marginV = 0;
+            if (params instanceof ViewGroup.MarginLayoutParams) {
+                marginV = ((ViewGroup.MarginLayoutParams) params).topMargin + ((ViewGroup.MarginLayoutParams) params).bottomMargin;
+            }
+            availableHeight -= (bottomSheet.getMeasuredHeight() - getScrollRange(bottomSheet));
+            int measureHeight = availableHeight - marginV;
+            if (availableHeight >= 0/* && !handleByAnim(child, measureHeight)*/) {
                 final int heightMeasureSpec = View.MeasureSpec.makeMeasureSpec(availableHeight,
                         childLpHeight == ViewGroup.LayoutParams.MATCH_PARENT
                                 ? View.MeasureSpec.EXACTLY
                                 : View.MeasureSpec.AT_MOST);
 
-                // Now measure the scrolling view with the correct height
+//                    Now measure the scrolling view with the correct height
                 parent.onMeasureChild(child, parentWidthMeasureSpec,
                         widthUsed, heightMeasureSpec, heightUsed);
-                handled = true;
             }
+            mLastMeasureHeight = measureHeight;
+            handled = true;
         }
         return handled;
+    }
+
+    private boolean handleByAnim(View child, int measureHeight) {
+        if (mLastMeasureHeight > 0) {
+            //do anim
+            initExpandAnim(child, mLastMeasureHeight, measureHeight);
+            mExpandAnimator.start();
+            return true;
+        }
+        return false;
+    }
+
+    private void initExpandAnim(final View child, int from, int to) {
+        if (mExpandAnimator != null) {
+            mExpandAnimator.cancel();
+            mExpandAnimator.removeAllUpdateListeners();
+        }
+        mExpandAnimator = ValueAnimator.ofInt(from, to);
+        mExpandAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+            @Override
+            public void onAnimationUpdate(ValueAnimator animation) {
+                ViewGroup.LayoutParams params = child.getLayoutParams();
+                if (params != null) {
+                    params.height = (int) animation.getAnimatedValue();
+                    child.setLayoutParams(params);
+                }
+            }
+        });
     }
 
     private int getScrollRange(View bottomSheet) {

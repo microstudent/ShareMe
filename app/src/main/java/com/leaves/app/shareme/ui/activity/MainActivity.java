@@ -118,6 +118,5 @@ public class MainActivity extends AppCompatActivity implements
     public void onSearchingDevice() {
         mFragmentManager.beginTransaction().replace(R.id.container_bottom, MusicPlayerFragment.newInstance())
                 .commit();
-
     }
 }

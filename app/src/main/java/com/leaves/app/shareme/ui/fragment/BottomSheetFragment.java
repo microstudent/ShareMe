@@ -2,11 +2,14 @@ package com.leaves.app.shareme.ui.fragment;
 
 import android.content.Context;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
+import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
 
 import com.leaves.app.shareme.R;
 
@@ -20,6 +23,12 @@ import com.leaves.app.shareme.R;
  */
 public abstract class BottomSheetFragment extends Fragment {
     private OnFragmentMeasureListener mListener;
+    private ViewTreeObserver.OnGlobalLayoutListener mMeasureNotifyer = new ViewTreeObserver.OnGlobalLayoutListener() {
+        @Override
+        public void onGlobalLayout() {
+
+        }
+    };
 
     public BottomSheetFragment() {
         // Required empty public constructor
@@ -36,20 +45,32 @@ public abstract class BottomSheetFragment extends Fragment {
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
 
-        View view = inflater.inflate(getLayoutId(), container, false);
+        final View view = inflater.inflate(getLayoutId(), container, false);
+        view.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+            @Override
+            public void onGlobalLayout() {
+                // you have to reset the ViewTreeObserver each time to ensure the reuse of the OnGlobalLayoutListener
+                ViewTreeObserver obs = view.getViewTreeObserver();
+                if (mListener != null) {
+                    mListener.onFragmentMeasure(view.getMeasuredWidth(), view.getMeasuredHeight());
+                }
+                obs.removeOnGlobalLayoutListener(this);
+            }
+        });
         return view;
     }
 
+
+
     protected abstract int getLayoutId();
+
+
 
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
         if (context instanceof OnFragmentMeasureListener) {
             mListener = (OnFragmentMeasureListener) context;
-            if (getView() != null) {
-                mListener.onFragmentMeasure(getView().getMeasuredWidth(), getView().getMeasuredHeight());
-            }
         } else {
             throw new RuntimeException(context.toString()
                     + " must implement OnFragmentMeasureListener");

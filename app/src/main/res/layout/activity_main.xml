@@ -32,7 +32,6 @@
         android:layout_height="match_parent"
         android:layout_marginTop="80dp"
         app:cardCornerRadius="10dp"
-        android:layout_marginBottom="@dimen/spacing_more_small"
         android:layout_marginLeft="@dimen/spacing_more_small"
         android:layout_marginRight="@dimen/spacing_more_small"
         app:layout_behavior="com.leaves.app.shareme.ui.behavior.DockerBehavior">
@@ -46,16 +45,13 @@
         android:id="@+id/bottom_sheet"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:layout_marginBottom="-10dp"
+        android:layout_marginTop="@dimen/spacing_more_small"
         android:layout_marginLeft="@dimen/spacing_more_small"
         android:layout_marginRight="@dimen/spacing_more_small"
-        android:layout_marginTop="@dimen/spacing_more_small"
-        app:cardCornerRadius="10dp"
-        app:contentPaddingBottom="10dp"
         app:behavior_hideable="false"
-        app:behavior_peekHeight="280dp"
-        app:layout_behavior="com.leaves.app.shareme.ui.behavior.DodgeBottomSheetBehavior">
+        app:layout_behavior="com.leaves.app.shareme.ui.behavior.DodgeBottomSheetBehavior"
+        app:cardPreventCornerOverlap="false"
+        app:cardCornerRadius="10dp">
         <FrameLayout
             android:id="@+id/container_bottom"
             android:layout_width="match_parent"
