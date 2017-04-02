@@ -1,5 +1,7 @@
 package com.leaves.app.shareme.contract;
 
+import android.net.wifi.p2p.WifiP2pDevice;
+
 import com.leaves.app.shareme.BasePresenter;
 import com.leaves.app.shareme.BaseView;
 
@@ -11,7 +13,11 @@ public interface WifiDirectionContract {
     interface View extends BaseView {
         void onStartDiscover();
 
-        void onDeviceFound();
+        void onDeviceFound(WifiP2pDevice wifiP2pDevice);
+
+        void startServer();
+
+        void setServerIp();
     }
 
     interface Presenter extends BasePresenter {

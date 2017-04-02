@@ -137,11 +137,11 @@ public abstract class MediaStream implements Stream {
 	 */
 	public void setDestinationPorts(int dport) {
 		if (dport % 2 == 1) {
-			mRtpPort = dport-1;
+			mRtpPort = dport - 1;
 			mRtcpPort = dport;
 		} else {
 			mRtpPort = dport;
-			mRtcpPort = dport+1;
+			mRtcpPort = dport + 1;
 		}
 	}
 

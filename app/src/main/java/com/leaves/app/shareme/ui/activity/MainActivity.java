@@ -44,6 +44,7 @@ public class MainActivity extends AppCompatActivity implements
 
     private DodgeBottomSheetBehavior mBottomSheetBehavior;
     private MainFragment mMainFragment;
+    private MusicPlayerFragment mMusicPlayerFragment;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -116,7 +117,13 @@ public class MainActivity extends AppCompatActivity implements
 
     @Override
     public void onSearchingDevice() {
-        mFragmentManager.beginTransaction().replace(R.id.container_bottom, MusicPlayerFragment.newInstance())
+        mMusicPlayerFragment = MusicPlayerFragment.newInstance();
+        mFragmentManager.beginTransaction().replace(R.id.container_bottom, mMusicPlayerFragment)
                 .commit();
+        mBottomSheetBehavior.setScrollable(true);
+    }
+
+    public void connectToServer(View view) {
+        onSearchingDevice();
     }
 }

@@ -9,6 +9,7 @@ import android.net.wifi.p2p.*;
 import android.net.wifi.p2p.nsd.WifiP2pDnsSdServiceInfo;
 import android.net.wifi.p2p.nsd.WifiP2pDnsSdServiceRequest;
 import android.os.Build;
+import android.support.annotation.IntRange;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
@@ -53,9 +54,6 @@ public class WifiDirect implements IWifiDirect, WifiDirectReceiver.OnWifiDirectS
 
 
     private boolean isServiceDiscovered = false;
-
-    private String mTimeStamp;
-    private String mKey;
 
     private OnServiceFoundListener mOnServiceFoundListener;
     private DnsSdServiceResponseHandler mDnsSdServiceResponseHandler;
@@ -172,7 +170,7 @@ public class WifiDirect implements IWifiDirect, WifiDirectReceiver.OnWifiDirectS
     }
 
     @Override
-    public void connectTo(WifiP2pDevice device, int groupOwnerIntent) {
+    public void connectTo(WifiP2pDevice device, @IntRange(from = 0, to = 15) int groupOwnerIntent) {
         if (device != null) {
             if (mChannel == null) {
                 throw new IllegalStateException("you must call setupSign first!");
@@ -182,7 +180,10 @@ public class WifiDirect implements IWifiDirect, WifiDirectReceiver.OnWifiDirectS
             config.groupOwnerIntent = groupOwnerIntent;
             mWifiP2pManager.connect(mChannel, config, new WifiP2pManager.ActionListener() {
                 @Override
-                public void onSuccess() {}
+                public void onSuccess() {
+
+                }
+
                 @Override
                 public void onFailure(int reason) {
 //                    showToast("onConnectFail,reason:" + reason);

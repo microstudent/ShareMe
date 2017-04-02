@@ -8,6 +8,7 @@ import android.support.v7.app.AppCompatActivity;
 
 import com.leaves.app.shareme.Constant;
 import com.leaves.app.shareme.contract.WifiDirectionContract;
+import com.leaves.app.shareme.ui.fragment.MusicPlayerFragment;
 import com.leaves.sdk.wifidirect.WifiDirect;
 import com.leaves.sdk.wifidirect.listener.OnConnectionChangeListener;
 import com.leaves.sdk.wifidirect.listener.OnDeviceDetailChangeListener;
@@ -29,6 +30,7 @@ public class WifiDirectionPresenter implements WifiDirectionContract.Presenter, 
     private WifiDirect mWifiDirect;
 
     private StringBuilder mPassword;
+    private long mLocalTimeStamp;
 
     public WifiDirectionPresenter(WifiDirectionContract.View view, AppCompatActivity rootActivity) {
         this(view, rootActivity.getSupportFragmentManager(), rootActivity.getApplicationContext());
@@ -69,14 +71,21 @@ public class WifiDirectionPresenter implements WifiDirectionContract.Presenter, 
     private void startDiscovery() {
         Map<String, String> params = new HashMap<>();
         params.put(Constant.WifiDirect.KEY_PASSWORD, mPassword.toString());
-        params.put(Constant.WifiDirect.KEY_TIMESTAMP, String.valueOf(System.currentTimeMillis()));
+        mLocalTimeStamp = System.currentTimeMillis();
+        params.put(Constant.WifiDirect.KEY_TIMESTAMP, String.valueOf(mLocalTimeStamp));
         mWifiDirect.setupSignAndScan(params);
         mView.onStartDiscover();
     }
 
     @Override
     public void onConnectionChange(WifiP2pDeviceList deviceList) {
-
+        if (mWifiDirect.isGroupOwner()) {
+            mView.showToast("I am group owner");
+            mView.startServer();
+        } else {
+            mView.setServerIp();
+            MusicPlayerFragment.mServerIp = mWifiDirect.getGroupOwnerIp();
+        }
     }
 
     @Override
@@ -87,8 +96,18 @@ public class WifiDirectionPresenter implements WifiDirectionContract.Presenter, 
     @Override
     public void onServiceFound(WifiP2pDevice device, WifiDirect.ServiceResponse response) {
         if (isPasswordCorrect(response)) {
-            mView.onDeviceFound();
-            mView.showToast(response.wifiP2pDevice.deviceName);
+            mView.onDeviceFound(response.wifiP2pDevice);
+            mWifiDirect.connectTo(device, getGroupIntent(response.txtRecordMap.get(Constant.WifiDirect.KEY_TIMESTAMP)));
+        }
+    }
+
+    private int getGroupIntent(String timeStamp) {
+        long deviceTimeStamp = Long.parseLong(timeStamp);
+        if (mLocalTimeStamp > deviceTimeStamp) {
+            //本地的比找到的这台手机慢
+            return 6;
+        } else {
+            return 8;
         }
     }
 

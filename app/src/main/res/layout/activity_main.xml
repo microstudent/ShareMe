@@ -24,6 +24,7 @@
         android:layout_height="?attr/actionBarSize"
         android:layout_marginTop="@dimen/status_bar_height"
         app:layout_insetEdge="top"
+        android:onClick="connectToServer"
         app:title="ShareMe"
         app:titleTextColor="@color/colorAccent"/>
 

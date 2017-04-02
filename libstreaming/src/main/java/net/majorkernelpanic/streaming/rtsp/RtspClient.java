@@ -308,9 +308,10 @@ public class RtspClient {
 		mOutputStream = new BufferedOutputStream(mSocket.getOutputStream());
 		sendRequestAnnounce();
 		sendRequestSetup();
-		sendRequestRecord();
+//		sendRequestRecord();
+		sendRequestPlay();
 	}
-	
+
 	/**
 	 * Forges and sends the ANNOUNCE request 
 	 */
@@ -446,6 +447,17 @@ public class RtspClient {
 		mOutputStream.flush();
 		Response.parseResponse(mBufferedReader);
 	}
+
+	private void sendRequestPlay()  throws IllegalStateException, SocketException, IOException {
+		String request = "PLAY rtsp://" + mParameters.host + ":" + mParameters.port + mParameters.path + " RTSP/1.0\r\n" +
+				"Range: npt=0.000-\r\n" +
+				addHeaders();
+		Log.i(TAG,request.substring(0, request.indexOf("\r\n")));
+		mOutputStream.write(request.getBytes("UTF-8"));
+		mOutputStream.flush();
+		Response.parseResponse(mBufferedReader);
+	}
+
 
 	/**
 	 * Forges and sends the TEARDOWN request 

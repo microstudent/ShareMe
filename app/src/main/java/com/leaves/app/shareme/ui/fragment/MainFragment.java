@@ -3,9 +3,17 @@ package com.leaves.app.shareme.ui.fragment;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.content.Context;
+import android.content.Intent;
+import android.content.SharedPreferences;
+import android.net.wifi.p2p.WifiP2pDevice;
 import android.os.Bundle;
+import android.os.Environment;
+import android.preference.PreferenceManager;
 import android.support.annotation.IntDef;
 import android.support.v4.app.Fragment;
+import android.support.v7.widget.GridLayoutManager;
+import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -15,8 +23,12 @@ import android.widget.Toast;
 import com.leaves.app.shareme.R;
 import com.leaves.app.shareme.contract.WifiDirectionContract;
 import com.leaves.app.shareme.presenter.WifiDirectionPresenter;
+import com.leaves.app.shareme.ui.adapter.DeviceListAdapter;
 import com.leaves.app.shareme.ui.widget.PasswordTextView;
 import com.leaves.app.shareme.ui.widget.dialpad.colorfulanimview.ColorfulAnimView;
+
+import net.majorkernelpanic.streaming.SessionBuilder;
+import net.majorkernelpanic.streaming.rtsp.RtspServer;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -31,6 +43,7 @@ public class MainFragment extends Fragment implements WifiDirectionContract.View
     public static final int MODE_PASSWORD = 0;
     public static final int MODE_SEARCHING = 1;
     public static final int MODE_DEVICE_LIST = 2;
+    private DeviceListAdapter mDeviceAdapter;
 
 
     @IntDef({MODE_DEVICE_LIST, MODE_SEARCHING, MODE_PASSWORD})
@@ -56,6 +69,10 @@ public class MainFragment extends Fragment implements WifiDirectionContract.View
 
     @BindView(R.id.layout_key)
     ViewGroup mKeyLayout;
+
+
+    @BindView(R.id.rv)
+    RecyclerView mRecyclerView;
 
     public MainFragment() {
         // Required empty public constructor
@@ -104,9 +121,40 @@ public class MainFragment extends Fragment implements WifiDirectionContract.View
     }
 
     @Override
-    public void onDeviceFound() {
-        mColorfulAnimView.setVisibility(View.GONE);
-        mColorfulAnimView.stopAnim();
+    public void onDeviceFound(WifiP2pDevice wifiP2pDevice) {
+        switchToMode(MODE_DEVICE_LIST);
+        if (mDeviceAdapter == null) {
+            initDeviceListView();
+        }
+        mDeviceAdapter.addNewDevice(wifiP2pDevice);
+    }
+
+    @Override
+    public void startServer() {
+        // Sets the port of the RTSP server to 1234
+        SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(getContext()).edit();
+        editor.putString(RtspServer.KEY_PORT, String.valueOf(7236));
+        editor.apply();
+        String path = Environment.getExternalStorageDirectory().getAbsolutePath();
+        SessionBuilder.getInstance()
+                .setContext(getContext())
+                .setVideoEncoder(SessionBuilder.VIDEO_NONE)
+                .setMp3Path(path + "/a.mp3")
+                .setAudioEncoder(SessionBuilder.AUDIO_MP3);
+
+        // Starts the RTSP server
+        getActivity().startService(new Intent(getContext(), RtspServer.class));
+    }
+
+    @Override
+    public void setServerIp() {
+
+    }
+
+    private void initDeviceListView() {
+        mDeviceAdapter = new DeviceListAdapter(getContext());
+        mRecyclerView.setAdapter(mDeviceAdapter);
+        mRecyclerView.setLayoutManager(new GridLayoutManager(getContext(), 4));
     }
 
     /**
@@ -128,7 +176,7 @@ public class MainFragment extends Fragment implements WifiDirectionContract.View
                 mListener.onSearchingDevice();
                 break;
             case MODE_DEVICE_LIST:
-
+                mRecyclerView.setVisibility(View.VISIBLE);
                 break;
             default:
                 break;
