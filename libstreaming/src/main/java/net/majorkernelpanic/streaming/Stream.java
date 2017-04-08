@@ -18,6 +18,8 @@
 
 package net.majorkernelpanic.streaming;
 
+import net.majorkernelpanic.streaming.rtp.packetizer.RtpSocket;
+
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.InetAddress;
@@ -95,7 +97,7 @@ public interface Stream {
 	
 
 	/**
-	 * Returns the SSRC of the underlying {@link net.majorkernelpanic.streaming.rtp.RtpSocket}.
+	 * Returns the SSRC of the underlying {@link RtpSocket}.
 	 * @return the SSRC of the stream.
 	 */
 	public int getSSRC();

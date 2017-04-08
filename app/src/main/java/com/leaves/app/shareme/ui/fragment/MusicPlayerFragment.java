@@ -103,7 +103,7 @@ public class MusicPlayerFragment extends Fragment implements RtspClient.Callback
             port = "7236";
             path = "";
             mClient.setServerAddress(ip, Integer.parseInt(port));
-            mClient.setStreamPath("/"+path);
+            mClient.setStreamPath(path);
             mClient.startStream();
 
         } else {

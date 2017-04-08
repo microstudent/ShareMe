@@ -21,7 +21,7 @@ package net.majorkernelpanic.streaming.audio;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import net.majorkernelpanic.streaming.SessionBuilder;
-import net.majorkernelpanic.streaming.rtp.AMRNBPacketizer;
+import net.majorkernelpanic.streaming.rtp.packetizer.AMRNBPacketizer;
 import android.media.MediaRecorder;
 import android.service.textservice.SpellCheckerService.Session;
 

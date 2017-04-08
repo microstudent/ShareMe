@@ -16,11 +16,14 @@
  * limitations under the License.
  */
 
-package net.majorkernelpanic.streaming.rtp;
+package net.majorkernelpanic.streaming.rtp.packetizer;
 
 import java.io.IOException;
 import android.annotation.SuppressLint;
 import android.util.Log;
+
+import net.majorkernelpanic.streaming.rtp.MediaCodecInputStream;
+import net.majorkernelpanic.streaming.rtp.packetizer.AbstractPacketizer;
 
 /**
  * 

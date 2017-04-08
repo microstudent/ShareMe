@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package net.majorkernelpanic.streaming.rtp;
+package net.majorkernelpanic.streaming.rtp.packetizer;
 
 import java.io.IOException;
 import java.io.OutputStream;

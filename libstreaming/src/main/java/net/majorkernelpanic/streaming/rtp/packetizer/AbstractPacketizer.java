@@ -16,14 +16,12 @@
  * limitations under the License.
  */
 
-package net.majorkernelpanic.streaming.rtp;
+package net.majorkernelpanic.streaming.rtp.packetizer;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.net.InetAddress;
 import java.util.Random;
-import net.majorkernelpanic.streaming.rtcp.SenderReport;
 
 /**
  * 

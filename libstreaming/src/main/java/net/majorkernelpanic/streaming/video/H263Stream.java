@@ -20,7 +20,7 @@ package net.majorkernelpanic.streaming.video;
 
 import java.io.IOException;
 import net.majorkernelpanic.streaming.SessionBuilder;
-import net.majorkernelpanic.streaming.rtp.H263Packetizer;
+import net.majorkernelpanic.streaming.rtp.packetizer.H263Packetizer;
 import android.graphics.ImageFormat;
 import android.hardware.Camera.CameraInfo;
 import android.media.MediaRecorder;

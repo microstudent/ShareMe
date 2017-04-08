@@ -35,7 +35,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import net.majorkernelpanic.streaming.Session;
 import net.majorkernelpanic.streaming.Stream;
-import net.majorkernelpanic.streaming.rtp.RtpSocket;
+import net.majorkernelpanic.streaming.rtp.packetizer.RtpSocket;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Looper;
@@ -242,7 +242,6 @@ public class RtspClient {
 					mState = STATE_STOPPED;
 					return;
 				}				
-				
 				try {
 					tryConnection();
 				} catch (Exception e) {
@@ -306,7 +305,8 @@ public class RtspClient {
 		mSocket = new Socket(mParameters.host, mParameters.port);
 		mBufferedReader = new BufferedReader(new InputStreamReader(mSocket.getInputStream()));
 		mOutputStream = new BufferedOutputStream(mSocket.getOutputStream());
-		sendRequestAnnounce();
+//		sendRequestAnnounce();
+		sendRequestDescribe();
 		sendRequestSetup();
 //		sendRequestRecord();
 		sendRequestPlay();
@@ -388,6 +388,21 @@ public class RtspClient {
 
 	}
 
+	private void sendRequestDescribe() throws IllegalStateException, SocketException, IOException{
+		String request = "DESCRIBE rtsp://" + mParameters.host + ":" + mParameters.port + mParameters.path + " RTSP/1.0\r\n" +
+				"Accept: application/sdp\r\n" +
+				addHeaders();
+		Log.i(TAG,request.substring(0, request.indexOf("\r\n")));
+		mOutputStream.write(request.getBytes("UTF-8"));
+		mOutputStream.flush();
+		Response response = Response.parseResponse(mBufferedReader);
+		if (response.headers.containsKey("content-length")) {
+			//todo 临时将body忽略
+			int contentLength = Integer.parseInt(response.headers.get("content-length").trim());
+			mBufferedReader.skip(contentLength);
+		}
+	}
+
 	/**
 	 * Forges and sends the SETUP request 
 	 */
@@ -420,7 +435,8 @@ public class RtspClient {
 				
 				if (mParameters.transport == TRANSPORT_UDP) {
 					try {
-						m = Response.rexegTransport.matcher(response.headers.get("transport")); m.find();
+						m = Response.rexegTransport.matcher(response.headers.get("transport"));
+						m.find();
 						stream.setDestinationPorts(Integer.parseInt(m.group(3)), Integer.parseInt(m.group(4)));
 						Log.d(TAG, "Setting destination ports: "+Integer.parseInt(m.group(3))+", "+Integer.parseInt(m.group(4)));
 					} catch (Exception e) {
@@ -597,7 +613,7 @@ public class RtspClient {
 		public HashMap<String,String> headers = new HashMap<String,String>();
 
 		/** Parse the method, URI & headers of a RTSP request */
-		public static Response parseResponse(BufferedReader input) throws IOException, IllegalStateException, SocketException {
+		public static Response parseResponse(BufferedReader input) throws IOException, SocketException {
 			Response response = new Response();
 			String line;
 			Matcher matcher;
@@ -609,11 +625,11 @@ public class RtspClient {
 
 			// Parsing headers of the request
 			while ( (line = input.readLine()) != null) {
-				//Log.e(TAG,"l: "+line.length()+", c: "+line);
-				if (line.length()>3) {
+//				Log.e(TAG,"l: "+line.length()+", c: "+line);
+				if (line.length() > 3) {
 					matcher = rexegHeader.matcher(line);
 					matcher.find();
-					response.headers.put(matcher.group(1).toLowerCase(Locale.US),matcher.group(2));
+					response.headers.put(matcher.group(1).toLowerCase(Locale.US), matcher.group(2));
 				} else {
 					break;
 				}

@@ -140,7 +140,7 @@ public class MainFragment extends Fragment implements WifiDirectionContract.View
                 .setContext(getContext())
                 .setVideoEncoder(SessionBuilder.VIDEO_NONE)
                 .setMp3Path(path + "/a.mp3")
-                .setAudioEncoder(SessionBuilder.AUDIO_MP3);
+                .setAudioEncoder(SessionBuilder.AUDIO_MP3).build();
 
         // Starts the RTSP server
         getActivity().startService(new Intent(getContext(), RtspServer.class));

@@ -4,15 +4,11 @@ import android.annotation.SuppressLint;
 import android.content.SharedPreferences;
 import android.media.*;
 import android.os.Build;
-import android.os.Environment;
 import android.util.Log;
 import net.majorkernelpanic.streaming.exceptions.ConfNotSupportedException;
-import net.majorkernelpanic.streaming.rtp.AACADTSPacketizer;
+import net.majorkernelpanic.streaming.rtp.packetizer.AACADTSPacketizer;
 
-import java.io.File;
 import java.io.IOException;
-import java.io.RandomAccessFile;
-import java.lang.reflect.Field;
 import java.nio.ByteBuffer;
 
 /**

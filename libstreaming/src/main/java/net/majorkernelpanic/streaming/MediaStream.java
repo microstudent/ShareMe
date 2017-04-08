@@ -23,7 +23,8 @@ import java.io.OutputStream;
 import java.net.InetAddress;
 import java.util.Random;
 import net.majorkernelpanic.streaming.audio.AudioStream;
-import net.majorkernelpanic.streaming.rtp.AbstractPacketizer;
+import net.majorkernelpanic.streaming.rtp.packetizer.AbstractPacketizer;
+import net.majorkernelpanic.streaming.rtp.packetizer.RtpSocket;
 import net.majorkernelpanic.streaming.video.VideoStream;
 import android.annotation.SuppressLint;
 import android.media.MediaCodec;
@@ -315,7 +316,7 @@ public abstract class MediaStream implements Stream {
 	public abstract String getSessionDescription();
 	
 	/**
-	 * Returns the SSRC of the underlying {@link net.majorkernelpanic.streaming.rtp.RtpSocket}.
+	 * Returns the SSRC of the underlying {@link RtpSocket}.
 	 * @return the SSRC of the stream
 	 */
 	public int getSSRC() {

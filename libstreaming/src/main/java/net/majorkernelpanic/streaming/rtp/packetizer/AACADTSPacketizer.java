@@ -16,10 +16,12 @@
  * limitations under the License.
  */
 
-package net.majorkernelpanic.streaming.rtp;
+package net.majorkernelpanic.streaming.rtp.packetizer;
 
 import java.io.IOException;
 import net.majorkernelpanic.streaming.audio.AACStream;
+import net.majorkernelpanic.streaming.rtp.packetizer.AbstractPacketizer;
+
 import android.os.SystemClock;
 import android.util.Log;
 

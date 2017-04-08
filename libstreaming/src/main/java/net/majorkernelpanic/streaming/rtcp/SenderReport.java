@@ -18,16 +18,15 @@
 
 package net.majorkernelpanic.streaming.rtcp;
 
-import static net.majorkernelpanic.streaming.rtp.RtpSocket.TRANSPORT_TCP;
-import static net.majorkernelpanic.streaming.rtp.RtpSocket.TRANSPORT_UDP;
+import static net.majorkernelpanic.streaming.rtp.packetizer.RtpSocket.TRANSPORT_TCP;
+import static net.majorkernelpanic.streaming.rtp.packetizer.RtpSocket.TRANSPORT_UDP;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
-import java.nio.channels.IllegalSelectorException;
+
 import android.os.SystemClock;
-import android.util.Log;
 
 /**
  * Implementation of Sender Report RTCP packets.
