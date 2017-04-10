@@ -73,6 +73,7 @@ public class SessionBuilder {
      */
     public static final int AUDIO_MP3 = 7;
 
+
     // Default configuration
     private VideoQuality mVideoQuality = VideoQuality.DEFAULT_VIDEO_QUALITY;
     private AudioQuality mAudioQuality = AudioQuality.DEFAULT_AUDIO_QUALITY;
