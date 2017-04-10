@@ -16,6 +16,7 @@ import com.bumptech.glide.Glide;
 import com.leaves.app.shareme.R;
 import com.leaves.app.shareme.ui.activity.MainActivity;
 
+import net.majorkernelpanic.streaming.ReceiveSession;
 import net.majorkernelpanic.streaming.Session;
 import net.majorkernelpanic.streaming.SessionBuilder;
 import net.majorkernelpanic.streaming.audio.AudioQuality;
@@ -28,7 +29,7 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 
-public class MusicPlayerFragment extends Fragment implements RtspClient.Callback, Session.Callback {
+public class MusicPlayerFragment extends Fragment implements RtspClient.Callback, ReceiveSession.Callback {
 
     @BindView(R.id.iv_cover)
     ImageView mCoverView;
@@ -39,7 +40,7 @@ public class MusicPlayerFragment extends Fragment implements RtspClient.Callback
     @BindView(R.id.tv_sub_title)
     TextView mSubTextView;
     private RtspClient mClient;
-    private Session mSession;
+    private ReceiveSession mSession;
     public static String mServerIp;
 
 //    private OnFragmentInteractionListener mListener;
@@ -74,11 +75,9 @@ public class MusicPlayerFragment extends Fragment implements RtspClient.Callback
     @OnClick(R.id.bt_play)
     public void connectionToServer() {
         // Configures the SessionBuilder
-        mSession = SessionBuilder.getInstance()
-                .setContext(getContext().getApplicationContext())
-                .setAudioEncoder(SessionBuilder.AUDIO_AAC)
-                .setAudioQuality(new AudioQuality(8000,16000))
-                .setVideoEncoder(SessionBuilder.VIDEO_NONE)
+        mSession = new ReceiveSession.Builder()
+                .setAudioDecoder(ReceiveSession.Builder.AUDIO_AAC)
+                .setVideoDecoder(ReceiveSession.Builder.VIDEO_NONE)
                 .setCallback(this)
                 .build();
         mClient = new RtspClient();
@@ -93,7 +92,7 @@ public class MusicPlayerFragment extends Fragment implements RtspClient.Callback
             String ip,port,path;
 
             // We parse the URI written in the Editext
-            Pattern uri = Pattern.compile("rtsp://(.+):(\\d*)/(.+)");
+//            Pattern uri = Pattern.compile("rtsp://(.+):(\\d*)/(.+)");
 //            Matcher m = uri.matcher("rtsp://" + mServerIp + ":7236/");
 //            m.find();
 //            ip = m.group(1);
@@ -117,27 +116,12 @@ public class MusicPlayerFragment extends Fragment implements RtspClient.Callback
     }
 
     @Override
-    public void onRtspUpdate(int message, Exception exception) {
-
-    }
-
-    @Override
     public void onBitrateUpdate(long bitrate) {
 
     }
 
     @Override
     public void onSessionError(int reason, int streamType, Exception e) {
-
-    }
-
-    @Override
-    public void onPreviewStarted() {
-
-    }
-
-    @Override
-    public void onSessionConfigured() {
 
     }
 
@@ -150,6 +134,22 @@ public class MusicPlayerFragment extends Fragment implements RtspClient.Callback
     public void onSessionStopped() {
 
     }
+
+    @Override
+    public void onAudioAvailable(byte[] data, int relatedTime) {
+
+    }
+
+    @Override
+    public void onCurrentTimeUpdate(int currentTime) {
+
+    }
+
+    @Override
+    public void onRtspUpdate(int message, Exception exception) {
+
+    }
+
 
 //
 //    @Override

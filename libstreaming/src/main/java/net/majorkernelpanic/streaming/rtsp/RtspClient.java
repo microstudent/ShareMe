@@ -33,6 +33,9 @@ import java.util.Locale;
 import java.util.concurrent.Semaphore;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import net.majorkernelpanic.streaming.InputStream;
+import net.majorkernelpanic.streaming.ReceiveSession;
 import net.majorkernelpanic.streaming.Session;
 import net.majorkernelpanic.streaming.Stream;
 import net.majorkernelpanic.streaming.rtp.packetizer.RtpSocket;
@@ -89,7 +92,7 @@ public class RtspClient {
 		public String username;
 		public String password;
 		public String path;
-		public Session session;
+		public ReceiveSession session;
 		public int port;
 		public int transport;
 		
@@ -164,11 +167,11 @@ public class RtspClient {
 	 * The {@link Session} that will be used to stream to the server.
 	 * If not called before {@link #startStream()}, a it will be created.
 	 */
-	public void setSession(Session session) {
+	public void setSession(ReceiveSession session) {
 		mTmpParameters.session = session;
 	}
 
-	public Session getSession() {
+	public ReceiveSession getSession() {
 		return mTmpParameters.session;
 	}	
 
@@ -214,12 +217,6 @@ public class RtspClient {
 		return mState==STATE_STARTED||mState==STATE_STARTING;
 	}
 
-	/**
-	 * Connects to the RTSP server to publish the stream, and the effectively starts streaming.
-	 * You need to call {@link #setServerAddress(String, int)} and optionally {@link #setSession(Session)} 
-	 * and {@link #setCredentials(String, String)} before calling this.
-	 * Should be called of the main thread !
-	 */
 	public void startStream() {
 		if (mTmpParameters.host == null) throw new IllegalStateException("setServerAddress(String,int) has not been called !");
 		if (mTmpParameters.session == null) throw new IllegalStateException("setSession() has not been called !");
@@ -233,15 +230,8 @@ public class RtspClient {
 				
 				// If the user calls some methods to configure the client, it won't modify its behavior until the stream is restarted
 				mParameters = mTmpParameters.clone();
-				mParameters.session.setDestination(mTmpParameters.host);
+//				mParameters.session.setDestination(mTmpParameters.host);
 				
-				try {
-					mParameters.session.syncConfigure();
-				} catch (Exception e) {
-					mParameters.session = null;
-					mState = STATE_STOPPED;
-					return;
-				}				
 				try {
 					tryConnection();
 				} catch (Exception e) {
@@ -317,7 +307,7 @@ public class RtspClient {
 	 */
 	private void sendRequestAnnounce() throws IllegalStateException, SocketException, IOException {
 
-		String body = mParameters.session.getSessionDescription();
+		String body = null;/** mParameters.session.getSessionDescription();**/
 		String request = "ANNOUNCE rtsp://"+mParameters.host+":"+mParameters.port+mParameters.path+" RTSP/1.0\r\n" +
 				"CSeq: " + (++mCSeq) + "\r\n" +
 				"Content-Length: " + body.length() + "\r\n" +
@@ -408,7 +398,7 @@ public class RtspClient {
 	 */
 	private void sendRequestSetup() throws IllegalStateException, SocketException, IOException {
 		for (int i=0;i<2;i++) {
-			Stream stream = mParameters.session.getTrack(i);
+			InputStream stream = mParameters.session.getTrack(i);
 			if (stream != null) {
 				String params = mParameters.transport==TRANSPORT_TCP ? 
 						("TCP;interleaved="+2*i+"-"+(2*i+1)) : ("UDP;unicast;client_port="+(5000+2*i)+"-"+(5000+2*i+1)+";mode=receive");
@@ -437,12 +427,12 @@ public class RtspClient {
 					try {
 						m = Response.rexegTransport.matcher(response.headers.get("transport"));
 						m.find();
-						stream.setDestinationPorts(Integer.parseInt(m.group(3)), Integer.parseInt(m.group(4)));
+						stream.setListeningPorts(Integer.parseInt(m.group(3)), Integer.parseInt(m.group(4)));
 						Log.d(TAG, "Setting destination ports: "+Integer.parseInt(m.group(3))+", "+Integer.parseInt(m.group(4)));
 					} catch (Exception e) {
 						e.printStackTrace();
-						int[] ports = stream.getDestinationPorts();
-						Log.d(TAG,"Server did not specify ports, using default ports: "+ports[0]+"-"+ports[1]);
+//						int[] ports = stream.getDestinationPorts();
+//						Log.d(TAG,"Server did not specify ports, using default ports: "+ports[0]+"-"+ports[1]);
 					}
 				} else {
 					stream.setOutputStream(mOutputStream, (byte)(2*i));
