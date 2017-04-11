@@ -166,7 +166,7 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
             @Override
             public Long call() throws Exception {
                 if (mMediaPlayer != null) {
-                    return (long) mMediaPlayer.getCurrentPosition();
+                    return (long) mMediaPlayer.getCurrentPosition() * 1000L;
                 }
                 return 0L;
             }

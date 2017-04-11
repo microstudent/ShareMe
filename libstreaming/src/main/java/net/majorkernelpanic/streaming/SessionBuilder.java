@@ -288,6 +288,11 @@ public class SessionBuilder {
         return mContext;
     }
 
+    public SessionBuilder setPlaytimeProvider(PlaytimeProvider playtimeProvider) {
+        mPlaytimeProvider = playtimeProvider;
+        return this;
+    }
+
     /**
      * Returns the destination ip address set with {@link #setDestination(String)}.
      */

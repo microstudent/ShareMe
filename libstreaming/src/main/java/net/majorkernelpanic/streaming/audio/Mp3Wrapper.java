@@ -164,9 +164,9 @@ public class Mp3Wrapper {
                     mDecodeOutputBuffers[mOutputBufferIndex].mark();
                     mDecodeOutputBuffers[mOutputBufferIndex].get(chunk);
                     mDecodeOutputBuffers[mOutputBufferIndex].reset();
-                    if (chunk.length > 0) {
-                        mAudioTrack.write(chunk, 0, chunk.length);
-                    }
+//                    if (chunk.length > 0) {
+//                        mAudioTrack.write(chunk, 0, chunk.length);
+//                    }
                     audioBuffer.put(mDecodeOutputBuffers[mOutputBufferIndex]);
                     // Release the buffer so MediaCodec can use it again.
                     // The data should stay there until the next time we are called.

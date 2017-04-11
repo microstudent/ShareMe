@@ -316,8 +316,6 @@ public class RtpSocket implements Runnable {
 
 	private long getCurrentTimeStamp() {
 		if (mCurrentTime != -1) {
-			Log.d(TAG, "mCurrentTime" + mCurrentTime);
-			Log.d(TAG, "(mTimestamps[mBufferOut]" + mTimestamps[mBufferOut]);
 			return (mCurrentTime / 100L) * (mClock / 1000L) / 10000L;
 		}
 		return (mTimestamps[mBufferOut] / 100L) * (mClock / 1000L) / 10000L;

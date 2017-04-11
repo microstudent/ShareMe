@@ -19,14 +19,17 @@ import com.leaves.app.shareme.R;
 import com.leaves.app.shareme.bean.Media;
 import com.leaves.app.shareme.eventbus.MediaEvent;
 import com.leaves.app.shareme.eventbus.RxBus;
+import com.leaves.app.shareme.eventbus.TimeSeekEvent;
 import com.leaves.app.shareme.service.MusicService;
 import com.leaves.app.shareme.ui.activity.MainActivity;
 
+import net.majorkernelpanic.streaming.PlaytimeProvider;
 import net.majorkernelpanic.streaming.ReceiveSession;
 import net.majorkernelpanic.streaming.Session;
 import net.majorkernelpanic.streaming.SessionBuilder;
 import net.majorkernelpanic.streaming.audio.AudioQuality;
 import net.majorkernelpanic.streaming.rtsp.RtspClient;
+import net.majorkernelpanic.streaming.rtsp.RtspServer;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -34,8 +37,9 @@ import java.util.regex.Pattern;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
+import io.reactivex.functions.Consumer;
 
-public class MusicPlayerFragment extends BottomSheetFragment implements RtspClient.Callback, ReceiveSession.Callback {
+public class MusicPlayerFragment extends BottomSheetFragment implements RtspClient.Callback, ReceiveSession.Callback, PlaytimeProvider {
 
     @BindView(R.id.iv_cover)
     ImageView mCoverView;
@@ -49,6 +53,7 @@ public class MusicPlayerFragment extends BottomSheetFragment implements RtspClie
     private ReceiveSession mSession;
     public static String mServerIp;
     private Media mPlayingAudio;
+    private long mCurrentPlayTime;
 
 //    private OnFragmentInteractionListener mListener;
 
@@ -66,6 +71,18 @@ public class MusicPlayerFragment extends BottomSheetFragment implements RtspClie
         super.onCreate(savedInstanceState);
         Intent intent = new Intent(getContext(), MusicService.class);
         getActivity().startService(intent);
+
+        SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(getContext()).edit();
+        editor.putString(RtspServer.KEY_PORT, String.valueOf(7236));
+        editor.apply();
+
+        RxBus.getDefault().toFlowable(TimeSeekEvent.class)
+                .subscribe(new Consumer<TimeSeekEvent>() {
+                    @Override
+                    public void accept(TimeSeekEvent timeSeekEvent) throws Exception {
+                        mCurrentPlayTime = timeSeekEvent.getCurrentTime();
+                    }
+                });
     }
 
     @Override
@@ -169,7 +186,22 @@ public class MusicPlayerFragment extends BottomSheetFragment implements RtspClie
             mPlayingAudio = media;
             MediaEvent event = new MediaEvent(MusicService.ACTION_PLAY, media);
             RxBus.getDefault().post(event);
+            // Configures the SessionBuilder
+            SessionBuilder.getInstance()
+                    .setContext(getContext().getApplicationContext())
+                    .setVideoEncoder(SessionBuilder.VIDEO_NONE)
+                    .setMp3Path(media.getSrc())
+                    .setPlaytimeProvider(this)
+                    .setAudioEncoder(SessionBuilder.AUDIO_MP3);
+
+            // Starts the RTSP server
+            getActivity().startService(new Intent(getContext(), RtspServer.class));
         }
+    }
+
+    @Override
+    public long getCurrentPlayTime() {
+        return mCurrentPlayTime;
     }
 
 
