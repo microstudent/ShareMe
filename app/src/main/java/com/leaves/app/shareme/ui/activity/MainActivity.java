@@ -194,5 +194,6 @@ public class MainActivity extends AppCompatActivity implements
     @Override
     public void onAudioClick(Media media) {
         mBottomSheetBehavior.setState(STATE_COLLAPSED);
+        mMusicPlayerFragment.play(media);
     }
 }

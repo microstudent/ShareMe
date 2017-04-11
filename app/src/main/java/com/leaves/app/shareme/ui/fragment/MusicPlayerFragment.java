@@ -14,6 +14,7 @@ import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
 import com.leaves.app.shareme.R;
+import com.leaves.app.shareme.bean.Media;
 import com.leaves.app.shareme.ui.activity.MainActivity;
 
 import net.majorkernelpanic.streaming.ReceiveSession;
@@ -65,10 +66,6 @@ public class MusicPlayerFragment extends BottomSheetFragment implements RtspClie
         // Inflate the layout for this fragment
         View view = super.onCreateView(inflater, container, savedInstanceState);
         ButterKnife.bind(this, view);
-        Glide.with(this).load("http://musicdata.baidu.com/data2/music/739710D92506FCA2D56B681DEE5A34ED/254746429/254746429.jpg@s_0,w_150")
-                .asBitmap().into(mCoverView);
-        mTitleView.setText("Step Off");
-        mSubTextView.setText("Kacey Musgraves");
         return view;
     }
 
@@ -153,6 +150,13 @@ public class MusicPlayerFragment extends BottomSheetFragment implements RtspClie
     @Override
     public void onRtspUpdate(int message, Exception exception) {
 
+    }
+
+    public void play(Media media) {
+        Glide.with(this).load(media.getImage())
+                .asBitmap().into(mCoverView);
+        mTitleView.setText(media.getTitle());
+        mSubTextView.setText(media.getArtist());
     }
 
 
