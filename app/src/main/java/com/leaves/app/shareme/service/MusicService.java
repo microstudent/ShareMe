@@ -143,7 +143,7 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
             Notification notification = new NotificationCompat.Builder(this)
                     .setContentIntent(pi)
                     .setLargeIcon(BitmapFactory.decodeFile(media.getImage()))
-                    .setSmallIcon(R.mipmap.ic_launcher)
+                    .setSmallIcon(R.drawable.ic_notification)
                     .setContentText(media.getTitle())
                     .setSubText(media.getArtist())
                     .build();
