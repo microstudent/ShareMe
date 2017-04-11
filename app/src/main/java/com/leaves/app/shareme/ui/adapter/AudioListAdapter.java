@@ -8,6 +8,7 @@ import android.widget.ImageView;
 import com.bumptech.glide.Glide;
 import com.leaves.app.shareme.R;
 import com.leaves.app.shareme.bean.Media;
+import com.leaves.app.shareme.ui.fragment.AudioListFragment;
 
 import hugo.weaving.DebugLog;
 
@@ -16,8 +17,13 @@ import hugo.weaving.DebugLog;
  */
 
 public class AudioListAdapter extends BaseAdapter<Media> implements BaseViewHolder.OnItemClickListener {
+    private AudioListFragment.OnAudioClickListener mOnAudioClickListener;
     public AudioListAdapter() {
         super(R.layout.item_audio);
+    }
+
+    public void setOnAudioClickListener(AudioListFragment.OnAudioClickListener onAudioClickListener) {
+        mOnAudioClickListener = onAudioClickListener;
     }
 
     @Override
@@ -43,6 +49,8 @@ public class AudioListAdapter extends BaseAdapter<Media> implements BaseViewHold
 
     @Override
     public void OnItemClick(View view, int position) {
-
+        if (mOnAudioClickListener != null) {
+            mOnAudioClickListener.onAudioClick(mData.get(position));
+        }
     }
 }

@@ -1,5 +1,6 @@
 package com.leaves.app.shareme.ui.fragment;
 
+import android.content.Context;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
@@ -26,7 +27,7 @@ import butterknife.ButterKnife;
  * create an instance of this fragment.
  */
 public class AudioListFragment extends Fragment implements AudioListContract.View{
-    //    private OnFragmentInteractionListener mListener;
+    private OnAudioClickListener mListener;
     private AudioListAdapter mAdapter;
 
     @BindView(R.id.rv)
@@ -52,6 +53,7 @@ public class AudioListFragment extends Fragment implements AudioListContract.Vie
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mAdapter = new AudioListAdapter();
+        mAdapter.setOnAudioClickListener(mListener);
         mPresenter = new AudioListPresenter(this, getContext().getApplicationContext());
         mPresenter.start();
     }
@@ -76,35 +78,25 @@ public class AudioListFragment extends Fragment implements AudioListContract.Vie
     public void setData(List<Media> medias) {
         mAdapter.setData(medias);
     }
-//
-//    @Override
-//    public void onAttach(Context context) {
-//        super.onAttach(context);
-//        if (context instanceof OnFragmentInteractionListener) {
-//            mListener = (OnFragmentInteractionListener) context;
-//        } else {
-//            throw new RuntimeException(context.toString()
-//                    + " must implement OnFragmentInteractionListener");
-//        }
-//    }
-//
-//    @Override
-//    public void onDetach() {
-//        super.onDetach();
-//        mListener = null;
-//    }
-//
-//    /**
-//     * This interface must be implemented by activities that contain this
-//     * fragment to allow an interaction in this fragment to be communicated
-//     * to the activity and potentially other fragments contained in that
-//     * activity.
-//     * <p>
-//     * See the Android Training lesson <a href=
-//     * "http://developer.android.com/training/basics/fragments/communicating.html"
-//     * >Communicating with Other Fragments</a> for more information.
-//     */
-//    public interface OnFragmentInteractionListener {
-//        void onFragmentInteraction(Uri uri);
-//    }
+
+    @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+        if (context instanceof OnAudioClickListener) {
+            mListener = (OnAudioClickListener) context;
+        } else {
+            throw new RuntimeException(context.toString()
+                    + " must implement OnFragmentInteractionListener");
+        }
+    }
+
+    @Override
+    public void onDetach() {
+        super.onDetach();
+        mListener = null;
+    }
+
+    public interface OnAudioClickListener {
+        void onAudioClick(Media media);
+    }
 }
