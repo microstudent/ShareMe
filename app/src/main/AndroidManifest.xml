@@ -35,6 +35,7 @@
         <activity android:name=".RTSPActivity">
         </activity>
 
+        <service android:name=".service.MusicService"/>
         <service android:name="net.majorkernelpanic.streaming.rtsp.RtspServer"/>
     </application>
 

@@ -1,6 +1,7 @@
 package com.leaves.app.shareme.ui.fragment;
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
@@ -13,8 +14,12 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
+import com.leaves.app.shareme.Constant;
 import com.leaves.app.shareme.R;
 import com.leaves.app.shareme.bean.Media;
+import com.leaves.app.shareme.eventbus.MediaEvent;
+import com.leaves.app.shareme.eventbus.RxBus;
+import com.leaves.app.shareme.service.MusicService;
 import com.leaves.app.shareme.ui.activity.MainActivity;
 
 import net.majorkernelpanic.streaming.ReceiveSession;
@@ -43,6 +48,7 @@ public class MusicPlayerFragment extends BottomSheetFragment implements RtspClie
     private RtspClient mClient;
     private ReceiveSession mSession;
     public static String mServerIp;
+    private Media mPlayingAudio;
 
 //    private OnFragmentInteractionListener mListener;
 
@@ -58,6 +64,8 @@ public class MusicPlayerFragment extends BottomSheetFragment implements RtspClie
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Intent intent = new Intent(getContext(), MusicService.class);
+        getActivity().startService(intent);
     }
 
     @Override
@@ -153,10 +161,15 @@ public class MusicPlayerFragment extends BottomSheetFragment implements RtspClie
     }
 
     public void play(Media media) {
-        Glide.with(this).load(media.getImage())
-                .asBitmap().into(mCoverView);
-        mTitleView.setText(media.getTitle());
-        mSubTextView.setText(media.getArtist());
+        if (media != null) {
+            Glide.with(this).load(media.getImage())
+                    .asBitmap().into(mCoverView);
+            mTitleView.setText(media.getTitle());
+            mSubTextView.setText(media.getArtist());
+            mPlayingAudio = media;
+            MediaEvent event = new MediaEvent(MusicService.ACTION_PLAY, media);
+            RxBus.getDefault().post(event);
+        }
     }
 
 
