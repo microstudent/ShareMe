@@ -29,7 +29,7 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 
-public class MusicPlayerFragment extends Fragment implements RtspClient.Callback, ReceiveSession.Callback {
+public class MusicPlayerFragment extends BottomSheetFragment implements RtspClient.Callback, ReceiveSession.Callback {
 
     @BindView(R.id.iv_cover)
     ImageView mCoverView;
@@ -63,13 +63,18 @@ public class MusicPlayerFragment extends Fragment implements RtspClient.Callback
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        View view = inflater.inflate(R.layout.fragment_music_player, container, false);
+        View view = super.onCreateView(inflater, container, savedInstanceState);
         ButterKnife.bind(this, view);
         Glide.with(this).load("http://musicdata.baidu.com/data2/music/739710D92506FCA2D56B681DEE5A34ED/254746429/254746429.jpg@s_0,w_150")
                 .asBitmap().into(mCoverView);
         mTitleView.setText("Step Off");
         mSubTextView.setText("Kacey Musgraves");
         return view;
+    }
+
+    @Override
+    protected int getLayoutId() {
+        return R.layout.fragment_music_player;
     }
 
     @OnClick(R.id.bt_play)

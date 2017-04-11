@@ -21,7 +21,7 @@ package net.majorkernelpanic.streaming;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.util.concurrent.CountDownLatch;
+
 import net.majorkernelpanic.streaming.audio.AudioQuality;
 import net.majorkernelpanic.streaming.audio.AudioStream;
 import net.majorkernelpanic.streaming.exceptions.CameraInUseException;

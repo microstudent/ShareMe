@@ -6,7 +6,6 @@ import android.os.Environment;
 import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.Log;
 
 import net.majorkernelpanic.streaming.SessionBuilder;
 import net.majorkernelpanic.streaming.gl.SurfaceView;

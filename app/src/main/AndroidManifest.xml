@@ -25,19 +25,16 @@
         android:supportsRtl="true"
         android:theme="@style/TranslucentTheme">
         <activity android:name=".ui.activity.MainActivity">
-
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
         </activity>
         <activity android:name=".ClientActivity"/>
         <activity android:name=".ServerActivity"/>
         <activity android:name=".RTSPActivity">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN"/>
+        </activity>
 
-                <category android:name="android.intent.category.LAUNCHER"/>
-            </intent-filter>
-        </activity>
-        <activity android:name=".TestActivity">
-        </activity>
         <service android:name="net.majorkernelpanic.streaming.rtsp.RtspServer"/>
     </application>
 

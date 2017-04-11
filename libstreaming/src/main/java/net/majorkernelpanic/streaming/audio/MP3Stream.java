@@ -5,6 +5,8 @@ import android.content.SharedPreferences;
 import android.media.*;
 import android.os.Build;
 import android.util.Log;
+
+import net.majorkernelpanic.streaming.PlaytimeProvider;
 import net.majorkernelpanic.streaming.exceptions.ConfNotSupportedException;
 import net.majorkernelpanic.streaming.rtp.packetizer.AACADTSPacketizer;
 
@@ -20,6 +22,7 @@ public class MP3Stream extends AudioStream {
 
     private String mMp3Path;
     private Mp3Wrapper mMp3Wrapper;
+    private PlaytimeProvider mPlaytimeProvider;
 
     public MP3Stream(String mp3Path) {
         mMp3Path = mp3Path;
@@ -200,8 +203,11 @@ public class MP3Stream extends AudioStream {
                                 Log.e(TAG, "END OF STEAM");
                                 break;
                             } else {
-                                Log.v(TAG, "Pushing raw audio to the decoder: len=" + len + " bs: " + inputBuffers[bufferIndex].capacity());
-                                mMediaCodec.queueInputBuffer(bufferIndex, 0, len, System.nanoTime() / 1000, 0);
+//                                Log.v(TAG, "Pushing raw audio to the decoder: len=" + len + " bs: " + inputBuffers[bufferIndex].capacity());
+                                mMediaCodec.queueInputBuffer(bufferIndex, 0, len, mMp3Wrapper.getCurrentTime(), 0);
+                                if (mPlaytimeProvider != null) {
+                                    ((AACADTSPacketizer) mPacketizer).setCurrentPlayTime(mPlaytimeProvider.getCurrentPlayTime());
+                                }
                             }
                         } else if (bufferIndex == MediaCodec.INFO_OUTPUT_BUFFERS_CHANGED) {
                             inputBuffers = mMediaCodec.getOutputBuffers();
@@ -249,6 +255,10 @@ public class MP3Stream extends AudioStream {
     public String getSessionDescription() throws IllegalStateException {
         if (mSessionDescription == null) throw new IllegalStateException("You need to call configure() first !");
         return mSessionDescription;
+    }
+
+    public void setPlaytimeProvider(PlaytimeProvider playtimeProvider) {
+        mPlaytimeProvider = playtimeProvider;
     }
 
 //    /**

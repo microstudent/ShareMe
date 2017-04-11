@@ -52,6 +52,7 @@ public class RtpSocket implements Runnable {
 	private DatagramPacket[] mPackets;
 	private byte[][] mBuffers;
 	private long[] mTimestamps;
+	private long mCurrentTime = -1;
 
 	private SenderReport mReport;
 	
@@ -294,7 +295,7 @@ public class RtpSocket implements Runnable {
 						delta = 0;
 					}
 				}
-				mReport.update(mPackets[mBufferOut].getLength(), (mTimestamps[mBufferOut]/100L)*(mClock/1000L)/10000L);
+				mReport.update(mPackets[mBufferOut].getLength(), getCurrentTimeStamp());
 				mOldTimestamp = mTimestamps[mBufferOut];
 				if (mCount++>30) {
 					if (mTransport == TRANSPORT_UDP) {
@@ -311,6 +312,15 @@ public class RtpSocket implements Runnable {
 		}
 		mThread = null;
 		resetFifo();
+	}
+
+	private long getCurrentTimeStamp() {
+		if (mCurrentTime != -1) {
+			Log.d(TAG, "mCurrentTime" + mCurrentTime);
+			Log.d(TAG, "(mTimestamps[mBufferOut]" + mTimestamps[mBufferOut]);
+			return (mCurrentTime / 100L) * (mClock / 1000L) / 10000L;
+		}
+		return (mTimestamps[mBufferOut] / 100L) * (mClock / 1000L) / 10000L;
 	}
 
 	private void sendTCP() {
@@ -395,7 +405,12 @@ public class RtpSocket implements Runnable {
 		}
 		
 	}
-	
+
+	public void setCurrentTime(long currentTime) {
+		this.mCurrentTime = currentTime;
+	}
+
+
 	/** Computes the proper rate at which packets are sent. */
 	protected static class Statistics {
 

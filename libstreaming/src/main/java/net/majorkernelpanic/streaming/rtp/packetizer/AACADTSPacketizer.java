@@ -172,6 +172,10 @@ public class AACADTSPacketizer extends AbstractPacketizer implements Runnable {
 
 	}
 
+	public void setCurrentPlayTime(long currentPlayTimeInMs) {
+		socket.setCurrentTime(initTs + currentPlayTimeInMs * 1024);
+	}
+
 	private int fill(byte[] buffer, int offset,int length) throws IOException {
 		int sum = 0, len;
 		while (sum<length) {

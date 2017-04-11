@@ -24,7 +24,7 @@ import java.util.List;
 
 public class DockerBehavior extends CoordinatorLayout.Behavior<View> {
 
-    private int mBottomSheetTop = 0;
+    private int mLastBottomSheetTop = 0;
     private AnimatorSet mAnimatorSet;
     private ObjectAnimator mChildAlphaAnimator;
     private ObjectAnimator mChildScaleXAnimator;
@@ -32,6 +32,7 @@ public class DockerBehavior extends CoordinatorLayout.Behavior<View> {
 
     private ValueAnimator mExpandAnimator;
     private int mLastMeasureHeight;
+    private boolean needMeasure = true;
 
     public DockerBehavior(Context context, AttributeSet attrs) {
         super(context, attrs);
@@ -76,6 +77,24 @@ public class DockerBehavior extends CoordinatorLayout.Behavior<View> {
         return BottomSheetBehavior.from(dependency);
     }
 
+    public static <V extends View> DockerBehavior from(V view) {
+        ViewGroup.LayoutParams params = view.getLayoutParams();
+        if (!(params instanceof CoordinatorLayout.LayoutParams)) {
+            throw new IllegalArgumentException("The view is not a child of CoordinatorLayout");
+        }
+        CoordinatorLayout.Behavior behavior = ((CoordinatorLayout.LayoutParams) params)
+                .getBehavior();
+        if (!(behavior instanceof DockerBehavior)) {
+            throw new IllegalArgumentException(
+                    "The view is not associated with DockerBehavior");
+        }
+        return (DockerBehavior) behavior;
+    }
+
+    public void setNeedMeasure(boolean needMeasure) {
+        this.needMeasure = needMeasure;
+    }
+
     private void offsetChildAsNeeded(CoordinatorLayout parent, View child, View dependency) {
 
         // Offset the child, pinning it to the bottom the header-dependency, maintaining
@@ -84,12 +103,12 @@ public class DockerBehavior extends CoordinatorLayout.Behavior<View> {
             if (mAnimatorSet == null) {
                 initChildAnim(child);
             }
-            if (mBottomSheetTop == 0) {
-                mBottomSheetTop = dependency.getTop();
+            if (mLastBottomSheetTop == 0) {
+                mLastBottomSheetTop = dependency.getTop();
             }
-            mChildAlphaAnimator.setCurrentPlayTime(mBottomSheetTop - dependency.getTop());
-            mChildScaleXAnimator.setCurrentPlayTime(mBottomSheetTop - dependency.getTop());
-            mChildScaleYAnimator.setCurrentPlayTime(mBottomSheetTop - dependency.getTop());
+            mChildAlphaAnimator.setCurrentPlayTime(mLastBottomSheetTop - dependency.getTop());
+            mChildScaleXAnimator.setCurrentPlayTime(mLastBottomSheetTop - dependency.getTop());
+            mChildScaleYAnimator.setCurrentPlayTime(mLastBottomSheetTop - dependency.getTop());
 
 //            ViewCompat.offsetTopAndBottom(child, (dependency.getTop() - child.getBottom()));
         }
@@ -105,6 +124,9 @@ public class DockerBehavior extends CoordinatorLayout.Behavior<View> {
 
     @Override
     public boolean onMeasureChild(CoordinatorLayout parent, View child, int parentWidthMeasureSpec, int widthUsed, int parentHeightMeasureSpec, int heightUsed) {
+        if (!needMeasure) {
+            return true;
+        }
         boolean handled = false;
         int availableHeight = -1;
         final int childLpHeight = child.getLayoutParams().height;
@@ -122,7 +144,7 @@ public class DockerBehavior extends CoordinatorLayout.Behavior<View> {
             if (params instanceof ViewGroup.MarginLayoutParams) {
                 marginV = ((ViewGroup.MarginLayoutParams) params).topMargin + ((ViewGroup.MarginLayoutParams) params).bottomMargin;
             }
-            availableHeight -= (bottomSheet.getMeasuredHeight() - getScrollRange(bottomSheet));
+            availableHeight -= (bottomSheet.getMeasuredHeight()/* - getScrollRange(bottomSheet)*/);
             int measureHeight = availableHeight - marginV;
             if (availableHeight >= 0/* && !handleByAnim(child, measureHeight)*/) {
                 final int heightMeasureSpec = View.MeasureSpec.makeMeasureSpec(availableHeight,
@@ -169,11 +191,11 @@ public class DockerBehavior extends CoordinatorLayout.Behavior<View> {
     }
 
     private int getScrollRange(View bottomSheet) {
-        if (mBottomSheetTop == 0) {
-            mBottomSheetTop = bottomSheet.getTop();
+        if (mLastBottomSheetTop == 0) {
+            mLastBottomSheetTop = bottomSheet.getTop();
         }
         BottomSheetBehavior behavior = getBottomSheetBehavior(bottomSheet);
-        return bottomSheet.getMeasuredHeight() - behavior.getPeekHeight() + (bottomSheet.getTop() - mBottomSheetTop);
+        return bottomSheet.getMeasuredHeight() - behavior.getPeekHeight() + (bottomSheet.getTop() - mLastBottomSheetTop);
     }
 
 //

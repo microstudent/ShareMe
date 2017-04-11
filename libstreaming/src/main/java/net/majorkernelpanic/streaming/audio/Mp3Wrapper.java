@@ -90,6 +90,10 @@ public class Mp3Wrapper {
     }
 
 
+    public long getCurrentTime() {
+        return mMediaExtractor.getSampleTime();
+    }
+
     /**
      * If this buffer is not a direct buffer, this method will always return 0.
      * Note that the value returned by {@link java.nio.Buffer#position()} on this buffer is
@@ -129,9 +133,7 @@ public class Mp3Wrapper {
                         // End Of File
                         mMediaDecode.queueInputBuffer(inputBufferIndex, 0, 0, 0, MediaCodec.BUFFER_FLAG_END_OF_STREAM);
                         isEndOfInputFile = true;
-                        Log.d(TAG, "end of file");
                     } else {
-                        Log.d(TAG, "getting sample");
                         mMediaDecode.queueInputBuffer(inputBufferIndex, 0, size, mMediaExtractor.getSampleTime(), 0);
                         mMediaExtractor.advance();
                     }

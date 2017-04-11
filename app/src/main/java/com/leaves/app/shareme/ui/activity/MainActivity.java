@@ -10,9 +10,11 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.widget.ImageView;
+import android.widget.Toast;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import io.reactivex.functions.Consumer;
 import jp.wasabeef.blurry.Blurry;
 
 import com.bumptech.glide.Glide;
@@ -20,12 +22,17 @@ import com.bumptech.glide.request.RequestListener;
 import com.bumptech.glide.request.target.Target;
 import com.leaves.app.shareme.R;
 import com.leaves.app.shareme.contract.WifiDirectionContract;
+import com.leaves.app.shareme.ui.behavior.DockerBehavior;
 import com.leaves.app.shareme.ui.behavior.DodgeBottomSheetBehavior;
+import com.leaves.app.shareme.ui.fragment.AudioListFragment;
 import com.leaves.app.shareme.ui.fragment.BottomSheetFragment;
 import com.leaves.app.shareme.ui.fragment.DialpadFragment;
 import com.leaves.app.shareme.ui.fragment.MainFragment;
 import com.leaves.app.shareme.ui.fragment.MusicPlayerFragment;
 import com.leaves.app.shareme.ui.widget.dialpad.listener.OnNumberClickListener;
+import com.tbruyelle.rxpermissions2.RxPermissions;
+
+import static android.support.design.widget.BottomSheetBehavior.STATE_EXPANDED;
 
 
 public class MainActivity extends AppCompatActivity implements
@@ -39,18 +46,37 @@ public class MainActivity extends AppCompatActivity implements
     @BindView(R.id.activity_main)
     CoordinatorLayout mRootView;
 
+    @BindView(R.id.view_content)
+    View mContentView;
+
     @BindView(R.id.toolbar)
     Toolbar mToolbar;
 
     private DodgeBottomSheetBehavior mBottomSheetBehavior;
+    private DockerBehavior mDockerBehavior;
     private MainFragment mMainFragment;
     private MusicPlayerFragment mMusicPlayerFragment;
+    private AudioListFragment mAudioListFragment;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
+        RxPermissions rxPermissions = new RxPermissions(this);
+
+       rxPermissions.request(android.Manifest.permission.READ_EXTERNAL_STORAGE)
+                .subscribe(new Consumer<Boolean>() {
+                    @Override
+                    public void accept(Boolean aBoolean) throws Exception {
+                        if (!aBoolean) {
+                            Toast.makeText(getApplicationContext(), "必须赋予存储权限才可以使用", Toast.LENGTH_SHORT).show();
+                            finish();
+                        } else {
+                            initView();
+                        }
+                    }
+                });
         initView();
         setupView();
     }
@@ -62,6 +88,7 @@ public class MainActivity extends AppCompatActivity implements
         if (behavior instanceof DodgeBottomSheetBehavior) {
             mBottomSheetBehavior = (DodgeBottomSheetBehavior) behavior;
         }
+        mDockerBehavior = DockerBehavior.from(mContentView);
     }
 
     private void setupView() {
@@ -69,7 +96,13 @@ public class MainActivity extends AppCompatActivity implements
         mBottomSheetBehavior.setBottomSheetCallback(new BottomSheetBehavior.BottomSheetCallback() {
             @Override
             public void onStateChanged(@NonNull View bottomSheet, int newState) {
-
+                if (newState == STATE_EXPANDED && mAudioListFragment == null) {
+                    mDockerBehavior.setNeedMeasure(false);
+                    mAudioListFragment = AudioListFragment.newInstance();
+                    mFragmentManager.beginTransaction().replace(R.id.container_bottom, mAudioListFragment)
+                            .commit();
+                    mBottomSheetBehavior.setScrollable(true);
+                }
             }
 
             @Override
