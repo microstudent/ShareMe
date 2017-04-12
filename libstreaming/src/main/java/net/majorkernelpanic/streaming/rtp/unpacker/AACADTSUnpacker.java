@@ -16,8 +16,13 @@ public class AACADTSUnpacker extends AbstractUnpacker {
     @Override
     public void start() {
         while (isRunning) {
-            byte[] result = mSocket.consumeData();
-            Log.d("AACADTSUnpacker", "result:" + Arrays.toString(result));
+            byte[] result;
+            try {
+                result = mSocket.consumeData();
+                Log.d("AACADTSUnpacker", "result:" + Arrays.toString(result));
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         }
     }
 

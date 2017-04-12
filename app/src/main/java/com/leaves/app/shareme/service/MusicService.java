@@ -170,7 +170,7 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
                 }
                 return 0L;
             }
-        }).observeOn(Schedulers.newThread()).delay(1, TimeUnit.SECONDS).repeat().observeOn(AndroidSchedulers.mainThread());
+        }).observeOn(Schedulers.newThread()).repeat().observeOn(AndroidSchedulers.mainThread());
         isPrepared = false;
     }
 

@@ -148,7 +148,9 @@ public class MP3Stream extends AudioStream {
         mConfig = (mProfile & 0x1F) << 11 | (mSamplingRateIndex & 0x0F) << 7 | (mChannel & 0x0F) << 3;
 
         mSessionDescription = "m=audio " + String.valueOf(getDestinationPorts()[0]) + " RTP/AVP 96\r\n" +
-                "a=rtpmap:96 mpeg4-generic/" + mQuality.samplingRate + "\r\n" +
+                "a=rtpmap:96 mpeg4-generic/" + format.getInteger(MediaFormat.KEY_SAMPLE_RATE) + "\r\n" +
+//                "a=range:npt=0- " + format.getLong(MediaFormat.KEY_DURATION) / 1000000L +
+//                "a=length:npt=" + format.getLong(MediaFormat.KEY_DURATION) / 1000000L +
                 "a=fmtp:96 streamtype=5; profile-level-id=15; mode=AAC-hbr; config=" + Integer.toHexString(mConfig) + "; SizeLength=13; IndexLength=3; IndexDeltaLength=3;\r\n";
 //        testADTS();
     }

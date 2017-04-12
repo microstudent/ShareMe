@@ -400,8 +400,9 @@ public class RtspClient {
 		for (int i=0;i<2;i++) {
 			InputStream stream = mParameters.session.getTrack(i);
 			if (stream != null) {
-				String params = mParameters.transport==TRANSPORT_TCP ? 
-						("TCP;interleaved="+2*i+"-"+(2*i+1)) : ("UDP;unicast;client_port="+(5000+2*i)+"-"+(5000+2*i+1)+";mode=receive");
+				int rtpPort = (5000 + 2 * i);
+				int rtcpPort = (5000 + 2 * i + 1);
+				String params = "UDP;unicast;client_port=" + rtpPort + "-" + rtcpPort;
 				String request = "SETUP rtsp://"+mParameters.host+":"+mParameters.port+mParameters.path+"/trackID="+i+" RTSP/1.0\r\n" +
 						"Transport: RTP/AVP/"+params+"\r\n" +
 						addHeaders();
@@ -425,17 +426,17 @@ public class RtspClient {
 				
 				if (mParameters.transport == TRANSPORT_UDP) {
 					try {
-						m = Response.rexegTransport.matcher(response.headers.get("transport"));
-						m.find();
-						stream.setListeningPorts(Integer.parseInt(m.group(3)), Integer.parseInt(m.group(4)));
-						Log.d(TAG, "Setting destination ports: "+Integer.parseInt(m.group(3))+", "+Integer.parseInt(m.group(4)));
+//						m = Response.rexegTransport.matcher(response.headers.get("transport"));
+//						m.find();
+						stream.setListeningPorts(rtpPort, rtcpPort);
+						Log.d(TAG, "Setting destination ports: " + rtpPort + ", " + rtcpPort);
 					} catch (Exception e) {
 						e.printStackTrace();
 //						int[] ports = stream.getDestinationPorts();
 //						Log.d(TAG,"Server did not specify ports, using default ports: "+ports[0]+"-"+ports[1]);
 					}
 				} else {
-					stream.setOutputStream(mOutputStream, (byte)(2*i));
+					stream.setOutputStream(mOutputStream, (byte) (2 * i));
 				}
 			}
 		}

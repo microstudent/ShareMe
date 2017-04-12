@@ -1,5 +1,7 @@
 package net.majorkernelpanic.streaming.rtp.unpacker;
 
+import android.util.Log;
+
 import net.majorkernelpanic.streaming.rtcp.SenderReport;
 
 import java.io.IOException;
@@ -38,7 +40,7 @@ public class RtpReceiveSocket implements Runnable{
     private DatagramPacket[] mPackets;
     private long[] mTimestamps;
     private DatagramSocket mSocket;
-    private Semaphore mBufferRequested;
+    private Semaphore mBufferRequested, mBufferReceived;
     private Thread mThread;
 
     public RtpReceiveSocket() {
@@ -53,7 +55,7 @@ public class RtpReceiveSocket implements Runnable{
         for (int i=0; i<mBufferCount; i++) {
 
             mBuffers[i] = new byte[MTU];
-            mPackets[i] = new DatagramPacket(mBuffers[i], 1);
+            mPackets[i] = new DatagramPacket(mBuffers[i], MTU);
 
 			/*							     Version(2)  Padding(0)					 					*/
 			/*									 ^		  ^			Extension(0)						*/
@@ -81,7 +83,10 @@ public class RtpReceiveSocket implements Runnable{
     private void reset() {
         mTimestamps = new long[mBufferCount];
         mReport.reset();
-        mBufferRequested = new Semaphore(0);
+        mBufferRequested = new Semaphore(mBufferCount);
+        mBufferReceived = new Semaphore(mBufferCount);
+        mBufferReceived.drainPermits();
+        mBufferIn = mBufferOut = 0;
     }
 
     /** Sets the destination address and to which the packets will be sent. */
@@ -91,6 +96,7 @@ public class RtpReceiveSocket implements Runnable{
             mPort = dport;
             try {
                 mSocket = new DatagramSocket(dport);
+                Log.d("RtpReceiveSocket", "listening on " + dport);
             } catch (Exception e) {
                 throw new RuntimeException(e.getMessage());
             }
@@ -102,13 +108,15 @@ public class RtpReceiveSocket implements Runnable{
         }
     }
 
-    public byte[] consumeData() {
+    public byte[] consumeData() throws InterruptedException {
         if (mThread == null) {
             mThread = new Thread(this);
             mThread.start();
         }
+        mBufferReceived.acquire();
         byte[] result = mBuffers[mBufferOut];
         if (++mBufferOut >= mBufferCount) mBufferOut = 0;
+        mBufferRequested.release();
         return result;
     }
 
@@ -119,6 +127,7 @@ public class RtpReceiveSocket implements Runnable{
                 if (mSocket != null) {
                     mSocket.receive(mPackets[mBufferIn]);
                     if (++mBufferIn >= mBufferCount) mBufferIn = 0;
+                    mBufferReceived.release();
                 }
             }
         } catch (Exception e) {

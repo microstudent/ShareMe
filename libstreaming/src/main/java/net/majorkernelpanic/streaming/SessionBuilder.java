@@ -143,7 +143,7 @@ public class SessionBuilder {
                 if (mPlaytimeProvider != null) {
                     mp3Stream.setPlaytimeProvider(mPlaytimeProvider);
                 }
-                session.addAudioTrack(new MP3Stream(mMp3Path));
+                session.addAudioTrack(mp3Stream);
                 break;
         }
 
@@ -382,6 +382,7 @@ public class SessionBuilder {
                 .setAudioQuality(mAudioQuality)
                 .setContext(mContext)
                 .setCallback(mCallback)
+                .setPlaytimeProvider(mPlaytimeProvider)
                 .setMp3Path(mMp3Path);
     }
 }

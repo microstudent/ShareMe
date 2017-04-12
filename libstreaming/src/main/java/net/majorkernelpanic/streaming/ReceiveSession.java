@@ -41,8 +41,12 @@ public class ReceiveSession {
 
     }
 
-    public InputStream getTrack(int i) {
-        return null;
+    public InputStream getTrack(int id) {
+        if (id == 0) {
+            return mAudioStream;
+        } else {
+            return null;
+        }
     }
 
     public void start() {
