@@ -37,7 +37,7 @@ abstract public class AbstractPacketizer {
 	protected final long initTs;
 
 	protected RtpSocket socket = null;
-	protected InputStream is = null;
+	protected InputStream is = null;//压包器从这里读数据
 	protected byte[] buffer;
 	
 	protected long ts = 0;

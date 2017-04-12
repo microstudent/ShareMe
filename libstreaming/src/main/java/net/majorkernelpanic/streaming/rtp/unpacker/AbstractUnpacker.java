@@ -1,5 +1,7 @@
 package net.majorkernelpanic.streaming.rtp.unpacker;
 
+import net.majorkernelpanic.streaming.rtp.packetizer.RtpSocket;
+
 import java.nio.ByteBuffer;
 
 /**
@@ -8,6 +10,11 @@ import java.nio.ByteBuffer;
  */
 
 public abstract class AbstractUnpacker {
+    protected static final int rtphl = RtpSocket.RTP_HEADER_LENGTH;
+
+    // Maximum size of RTP packets
+    protected final static int MAXPACKETSIZE = RtpSocket.MTU-28;
+
     protected ByteBuffer mOutputBuffer;
     protected RtpReceiveSocket mSocket;
 

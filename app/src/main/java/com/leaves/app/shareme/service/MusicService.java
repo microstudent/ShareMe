@@ -87,9 +87,11 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
                         }
                     }));
         }
-        Media media = (Media) intent.getSerializableExtra(Constant.MEDIA);
-        if (media != null) {
-            play(media);
+        if (intent != null) {
+            Media media = (Media) intent.getSerializableExtra(Constant.MEDIA);
+            if (media != null) {
+                play(media);
+            }
         }
         return START_STICKY;
     }

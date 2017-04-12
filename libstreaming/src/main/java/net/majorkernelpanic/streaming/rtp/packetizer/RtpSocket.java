@@ -25,6 +25,8 @@ import java.net.InetAddress;
 import java.net.MulticastSocket;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
+
+import net.majorkernelpanic.streaming.ByteUtils;
 import net.majorkernelpanic.streaming.rtcp.SenderReport;
 import android.os.SystemClock;
 import android.util.Log;
@@ -252,6 +254,9 @@ public class RtpSocket implements Runnable {
 	/** Increments the sequence number. */
 	private void updateSequence() {
 		setLong(mBuffers[mBufferIn], ++mSeq, 2, 4);
+		if (mSeq < 100) {
+			Log.d(TAG, "mSeq:" + mSeq);
+		}
 	}
 
 	/** 
