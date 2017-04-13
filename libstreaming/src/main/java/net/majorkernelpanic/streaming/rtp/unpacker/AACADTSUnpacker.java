@@ -71,19 +71,19 @@ public class AACADTSUnpacker extends AbstractUnpacker implements Runnable {
             long timeStamp = ByteUtils.byteToLong(rtpPacket, 4, 4);
             int AUHeaderLength = (int) ByteUtils.byteToLong(rtpPacket, rtphl, 2);
             int AUSize = (int) ByteUtils.byteToLong(rtpPacket, rtphl + 2, 2);
+            AUSize >>= 3;
             int AUIndex = (int) ByteUtils.byteToLong(rtpPacket, rtphl + 3, 1);
-            int chunkSize = rtpPacket.length - rtphl - AUHeaderLength;
             boolean bitMark = (rtpPacket[1] & 0x80) == 0x80;
             if (bitMark) {
                 int inputIndex = mDecoder.dequeueInputBuffer(10000);
                 if (inputIndex >= 0) {
                     ByteBuffer inputBuffer = mInputBuffers[inputIndex];
-                    Log.d(TAG, "get input");
                     inputBuffer.clear();
-                    inputBuffer.put(rtpPacket, rtphl + AUHeaderLength, chunkSize);
+                    inputBuffer.put(rtpPacket, rtphl + 4, AUSize);
+                    ByteUtils.logByte(rtpPacket, rtphl + 4, AUSize);
                     mTimeStampQueue.add(timeStamp);
-                    mDecoder.queueInputBuffer(inputIndex, 0, chunkSize, 0, 0);
-                    Log.d(TAG, "queueInput");
+                    mDecoder.queueInputBuffer(inputIndex, 0, AUSize, 0, 0);
+
                 } else {
                     Log.v(TAG, "No buffer available...");
                 }

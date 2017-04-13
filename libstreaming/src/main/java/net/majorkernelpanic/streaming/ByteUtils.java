@@ -1,5 +1,9 @@
 package net.majorkernelpanic.streaming;
 
+import android.util.Log;
+
+import java.util.Arrays;
+
 /**
  * Created by Leaves on 2017/4/13.
  */
@@ -16,5 +20,9 @@ public class ByteUtils {
             n |= src[i] & 0xFF;
         }
         return n;
+    }
+
+    public static void logByte(byte[] src, int offset, int length) {
+        Log.d("ByteUtils", Arrays.toString(Arrays.copyOfRange(src, offset, offset + length - 1)));
     }
 }

@@ -19,6 +19,8 @@
 package net.majorkernelpanic.streaming.rtp.packetizer;
 
 import java.io.IOException;
+
+import net.majorkernelpanic.streaming.ByteUtils;
 import net.majorkernelpanic.streaming.audio.AACStream;
 import net.majorkernelpanic.streaming.rtp.packetizer.AbstractPacketizer;
 
@@ -41,6 +43,7 @@ public class AACADTSPacketizer extends AbstractPacketizer implements Runnable {
 
 	private Thread t;
 	private int samplingRate = 8000;
+	private int count = 0;
 
 	public AACADTSPacketizer() {
 		super();
@@ -109,10 +112,10 @@ public class AACADTSPacketizer extends AbstractPacketizer implements Runnable {
 				frameLength -= (protection ? 7 : 9);
 
 				// Number of AAC frames in the ADTS frame
-				nbau = (header[6]&0x03) + 1;
+				nbau = (header[6] & 0x03) + 1;
 
 				// The number of RTP packets that will be sent for this ADTS frame
-				nbpk = frameLength/MAXPACKETSIZE + 1;
+				nbpk = frameLength / MAXPACKETSIZE + 1;
 
 				// Read CRS if any
 				if (!protection) is.read(header,0,2);
@@ -141,6 +144,10 @@ public class AACADTSPacketizer extends AbstractPacketizer implements Runnable {
 					}
 					sum += length;
 					fill(buffer, rtphl+4, length);
+					if (count++ < 100) {
+//						Log.d(TAG, "length:" + length);
+						ByteUtils.logByte(buffer, rtphl + 4, length);
+					}
 
 					// AU-headers-length field: contains the size in bits of a AU-header
 					// 13+3 = 16 bits -> 13bits for AU-size and 3bits for AU-Index / AU-Index-delta 
@@ -182,8 +189,7 @@ public class AACADTSPacketizer extends AbstractPacketizer implements Runnable {
 			len = is.read(buffer, offset+sum, length-sum);
 			if (len<0) {
 				throw new IOException("End of stream");
-			}
-			else sum+=len;
+			} else sum += len;
 		}
 		return sum;
 	}
