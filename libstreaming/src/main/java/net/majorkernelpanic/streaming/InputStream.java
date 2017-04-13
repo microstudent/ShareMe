@@ -29,7 +29,9 @@ import java.net.InetAddress;
  */
 public interface InputStream {
 	public void start() throws IllegalStateException, IOException;
-	
+
+	public void config(Config config);
+
 	/**
 	 * Stops the stream.
 	 */
@@ -74,4 +76,10 @@ public interface InputStream {
 	public String getSessionDescription() throws IllegalStateException;
 
 	public boolean isStreaming();
+
+	public static class Config {
+		public int sampleRate;
+		public int channelCount;
+		public int bitRate;
+	}
 }

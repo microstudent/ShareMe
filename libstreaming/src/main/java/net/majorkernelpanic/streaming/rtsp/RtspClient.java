@@ -37,7 +37,6 @@ import java.util.regex.Pattern;
 import net.majorkernelpanic.streaming.InputStream;
 import net.majorkernelpanic.streaming.ReceiveSession;
 import net.majorkernelpanic.streaming.Session;
-import net.majorkernelpanic.streaming.Stream;
 import net.majorkernelpanic.streaming.rtp.packetizer.RtpSocket;
 import android.os.Handler;
 import android.os.HandlerThread;
@@ -387,10 +386,67 @@ public class RtspClient {
 		mOutputStream.flush();
 		Response response = Response.parseResponse(mBufferedReader);
 		if (response.headers.containsKey("content-length")) {
-			//todo 临时将body忽略
 			int contentLength = Integer.parseInt(response.headers.get("content-length").trim());
-			mBufferedReader.skip(contentLength);
+			StringBuilder sb = new StringBuilder();
+			while (contentLength > 0) {
+				String line = mBufferedReader.readLine();
+				Log.e(TAG, "l: " + line.length() + ", c: " + line + "remind = " + contentLength);
+				contentLength -= (line.length() + 2);//2是\r\n
+				if (!line.equals("\r\n")) {
+					if (sb.length() != 0) {
+						sb.append("\r\n");
+					}
+					sb.append(line);
+//					response.headers.put(matcher.group(1).toLowerCase(Locale.US), matcher.group(2));
+				} else {
+					Log.d(TAG, "break");
+					break;
+				}
+			}
+			InputStream.Config config = parse(sb.toString(), "\r\n");
+			mParameters.session.getTrack(0).config(config);
+//			mBufferedReader.readLine()
+//			mBufferedReader.skip(contentLength);
 		}
+	}
+
+	/**
+	 * 我们只关心采样率
+	 */
+	public static InputStream.Config parse(String value, String delimiter) {
+		InputStream.Config config = new InputStream.Config();
+		if (value == null)
+			return config;
+		String[] parts = value.split(delimiter);
+		for (String part : parts) {
+			String[] pair = part.split("=", 2);
+			String key = pair[0].trim();
+			String v = null;
+			if (pair.length > 1)
+				v = pair[1];
+			if (key.equals("a")) {
+				if (v != null) {
+					String[] strings;
+					if (v.startsWith("rtpmap")) {
+						strings = v.split("/");
+						if (strings.length == 2) {
+							config.sampleRate = Integer.parseInt(strings[1]);
+						}
+					} else if (v.startsWith("fmtp")) {
+						strings = v.split("; ");
+						for (int i = 0; i < strings.length; i++) {
+							String[] pair1 = strings[i].split("=", 2);
+							if (pair1[0].trim().equals("config")) {
+//	mConfig = (mProfile & 0x1F) << 11 | (mSamplingRateIndex & 0x0F) << 7 | (mChannel & 0x0F) << 3;
+								int configInt = Integer.parseInt(pair1[1], 16);
+								config.channelCount = configInt >> 3 & 0x0F;
+							}
+						}
+					}
+				}
+			}
+		}
+		return config;
 	}
 
 	/**

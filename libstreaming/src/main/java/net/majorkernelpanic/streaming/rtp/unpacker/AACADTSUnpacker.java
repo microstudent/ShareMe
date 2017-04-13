@@ -1,33 +1,42 @@
 package net.majorkernelpanic.streaming.rtp.unpacker;
 
+import android.media.MediaCodec;
 import android.os.SystemClock;
 import android.util.Log;
 
 import net.majorkernelpanic.streaming.ByteUtils;
 
 import java.nio.ByteBuffer;
+import java.util.LinkedList;
+import java.util.Queue;
 import java.util.TreeMap;
 
 import okio.Okio;
 
+import static net.majorkernelpanic.streaming.rtp.unpacker.RtpReceiveSocket.MTU;
+
 /**
- *
  * Created by Leaves on 2017/4/2.
  */
 
-public class AACADTSUnpacker extends AbstractUnpacker implements Runnable{
+public class AACADTSUnpacker extends AbstractUnpacker implements Runnable {
     private static final String TAG = "AACADTSUnpacker";
     private Thread mThread;
-    private ByteBuffer mParsedBuffer;//解析好的AAC音频
+    private MediaCodec mDecoder;
+    private ByteBuffer[] mInputBuffers;
+    private Queue<Long> mTimeStampQueue;
 
-    public AACADTSUnpacker() {
-        mParsedBuffer = ByteBuffer.allocate(1000);
-        mParsedBuffer.put(mOutputBuffer);
+    public AACADTSUnpacker(MediaCodec decoder) {
+        if (decoder != null) {
+            mDecoder = decoder;
+            mInputBuffers = decoder.getInputBuffers();
+        }
+        mTimeStampQueue = new LinkedList<>();
     }
 
     @Override
     public void start() {
-        if (mThread==null) {
+        if (mThread == null) {
             mThread = new Thread(this);
             mThread.start();
         }
@@ -40,7 +49,8 @@ public class AACADTSUnpacker extends AbstractUnpacker implements Runnable{
             mThread.interrupt();
             try {
                 mThread.join();
-            } catch (InterruptedException e) {}
+            } catch (InterruptedException e) {
+            }
             mThread = null;
         }
     }
@@ -57,17 +67,29 @@ public class AACADTSUnpacker extends AbstractUnpacker implements Runnable{
     }
 
     private void parse(byte[] rtpPacket) {
-        int AUHeaderLength = (int) ByteUtils.byteToLong(rtpPacket, rtphl, 2);
-        int AUSize = (int) ByteUtils.byteToLong(rtpPacket, rtphl + 2, 2);
-        int AUIndex = (int) ByteUtils.byteToLong(rtpPacket, rtphl + 3, 1);
-        boolean bitMark = (rtpPacket[1] & 0x80) == 0x80;
-        if (bitMark) {
-            Log.d(TAG, "bitMark == true");
-            if (mParsedBuffer.hasRemaining()) {
-                mParsedBuffer.put(rtpPacket, AUHeaderLength, rtpPacket.length - AUHeaderLength);
+        if (mDecoder != null) {
+            long timeStamp = ByteUtils.byteToLong(rtpPacket, 4, 4);
+            int AUHeaderLength = (int) ByteUtils.byteToLong(rtpPacket, rtphl, 2);
+            int AUSize = (int) ByteUtils.byteToLong(rtpPacket, rtphl + 2, 2);
+            int AUIndex = (int) ByteUtils.byteToLong(rtpPacket, rtphl + 3, 1);
+            int chunkSize = rtpPacket.length - rtphl - AUHeaderLength;
+            boolean bitMark = (rtpPacket[1] & 0x80) == 0x80;
+            if (bitMark) {
+                int inputIndex = mDecoder.dequeueInputBuffer(10000);
+                if (inputIndex >= 0) {
+                    ByteBuffer inputBuffer = mInputBuffers[inputIndex];
+                    Log.d(TAG, "get input");
+                    inputBuffer.clear();
+                    inputBuffer.put(rtpPacket, rtphl + AUHeaderLength, chunkSize);
+                    mTimeStampQueue.add(timeStamp);
+                    mDecoder.queueInputBuffer(inputIndex, 0, chunkSize, 0, 0);
+                    Log.d(TAG, "queueInput");
+                } else {
+                    Log.v(TAG, "No buffer available...");
+                }
+            } else {
+                Log.d(TAG, "bitMark == false");
             }
-        } else {
-            Log.d(TAG, "bitMark == false");
         }
     }
 }
