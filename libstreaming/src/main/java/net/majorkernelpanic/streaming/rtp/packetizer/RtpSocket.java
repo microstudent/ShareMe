@@ -255,7 +255,7 @@ public class RtpSocket implements Runnable {
 	private void updateSequence() {
 		setLong(mBuffers[mBufferIn], ++mSeq, 2, 4);
 		if (mSeq < 100) {
-			Log.d(TAG, "mSeq:" + mSeq);
+			Log.d(TAG, "receive mSeq:" + mSeq);
 		}
 	}
 
@@ -304,6 +304,9 @@ public class RtpSocket implements Runnable {
 				mOldTimestamp = mTimestamps[mBufferOut];
 				if (mCount++>30) {
 					if (mTransport == TRANSPORT_UDP) {
+//						if (mSeq < 100) {
+//							ByteUtils.logByte(mBuffers[mBufferOut], 0, 200);
+//						}
 						mSocket.send(mPackets[mBufferOut]);
 					} else {
 						sendTCP();

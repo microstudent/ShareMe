@@ -1,5 +1,8 @@
 package net.majorkernelpanic.streaming.inputstream.audio;
 
+import android.media.AudioFormat;
+import android.media.AudioManager;
+import android.media.AudioTrack;
 import android.media.MediaCodec;
 import android.media.MediaCodecInfo;
 import android.media.MediaFormat;
@@ -20,12 +23,14 @@ import static net.majorkernelpanic.streaming.rtp.unpacker.RtpReceiveSocket.MTU;
  * Created by Leaves on 2017/4/10.
  */
 
-public class AACInputStream implements InputStream {
-
+public class AACInputStream implements InputStream, Runnable {
     private AACADTSUnpacker mAACADTSUnpacker;
     private MediaCodec mMediaDecode;
     private ByteBuffer[] mOutputBuffer;
     private MediaCodec.BufferInfo mDecodeBufferInfo;
+
+    private AudioTrack mAudioTrack;
+    private Thread mPlayThread;
 
     public AACInputStream() {
     }
@@ -33,17 +38,16 @@ public class AACInputStream implements InputStream {
     @Override
     public void start() throws IllegalStateException, IOException {
         mAACADTSUnpacker.start();
-        int outputIndex = mMediaDecode.dequeueOutputBuffer(mDecodeBufferInfo, 10000);
-        ByteBuffer outputBuffer;
-        byte[] chunkPCM;
-        while (outputIndex >= 0) {//每次解码完成的数据不一定能一次吐出 所以用while循环，保证解码器吐出所有数据
-            outputBuffer = mOutputBuffer[outputIndex];//拿到用于存放PCM数据的Buffer
-            chunkPCM = new byte[mDecodeBufferInfo.size];//BufferInfo内定义了此数据块的大小
-            outputBuffer.get(chunkPCM);//将Buffer内的数据取出到字节数组中
-            outputBuffer.clear();//数据取出后一定记得清空此Buffer MediaCodec是循环使用这些Buffer的，不清空下次会得到同样的数据
-//            putPCMData(chunkPCM);//自己定义的方法，供编码器所在的线程获取数据,下面会贴出代码
-            mMediaDecode.releaseOutputBuffer(outputIndex, false);//此操作一定要做，不然MediaCodec用完所有的Buffer后 将不能向外输出数据
-            outputIndex = mMediaDecode.dequeueOutputBuffer(mDecodeBufferInfo, 10000);//再次获取数据，如果没有数据输出则outputIndex=-1 循环结束
+        if (mPlayThread == null) {
+            mPlayThread = new Thread(this);
+            mPlayThread.setName("PlayThread");
+            mPlayThread.start();
+        }
+    }
+
+    private void consumePCMData(byte[] chunkPCM) {
+        if (mAudioTrack != null) {
+            mAudioTrack.write(chunkPCM, 0, chunkPCM.length);
         }
     }
 
@@ -65,6 +69,17 @@ public class AACInputStream implements InputStream {
             mOutputBuffer = mMediaDecode.getOutputBuffers();
             mDecodeBufferInfo = new MediaCodec.BufferInfo();//用于描述解码得到的byte[]数据的相关信息
             mAACADTSUnpacker = new AACADTSUnpacker(mMediaDecode);
+
+
+            mAudioTrack = new AudioTrack(
+                    AudioManager.STREAM_MUSIC,
+                    config.sampleRate,
+                    AudioFormat.CHANNEL_OUT_STEREO,
+                    AudioFormat.ENCODING_PCM_16BIT,
+                    MTU,
+                    AudioTrack.MODE_STREAM
+            );
+            mAudioTrack.play();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -105,5 +120,22 @@ public class AACInputStream implements InputStream {
     @Override
     public boolean isStreaming() {
         return false;
+    }
+
+    @Override
+    public void run() {
+        while (!mPlayThread.isInterrupted()) {
+            int outputIndex = mMediaDecode.dequeueOutputBuffer(mDecodeBufferInfo, 10000);
+            ByteBuffer outputBuffer;
+            byte[] chunkPCM;
+            if (outputIndex >= 0) {
+                outputBuffer = mOutputBuffer[outputIndex];//拿到用于存放PCM数据的Buffer
+                chunkPCM = new byte[mDecodeBufferInfo.size];//BufferInfo内定义了此数据块的大小
+                outputBuffer.get(chunkPCM);//将Buffer内的数据取出到字节数组中
+                outputBuffer.clear();//数据取出后一定记得清空此Buffer MediaCodec是循环使用这些Buffer的，不清空下次会得到同样的数据
+                consumePCMData(chunkPCM);//自己定义的方法，供编码器所在的线程获取数据,下面会贴出代码
+                mMediaDecode.releaseOutputBuffer(outputIndex, false);//此操作一定要做，不然MediaCodec用完所有的Buffer后 将不能向外输出数据
+            }
+        }
     }
 }

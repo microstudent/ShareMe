@@ -144,10 +144,10 @@ public class AACADTSPacketizer extends AbstractPacketizer implements Runnable {
 					}
 					sum += length;
 					fill(buffer, rtphl+4, length);
-					if (count++ < 100) {
-//						Log.d(TAG, "length:" + length);
-						ByteUtils.logByte(buffer, rtphl + 4, length);
-					}
+//					if (count++ < 100) {
+//						Log.d(TAG, "receive length:" + length);
+//						ByteUtils.logByte(buffer, rtphl + 4, length);
+//					}
 
 					// AU-headers-length field: contains the size in bits of a AU-header
 					// 13+3 = 16 bits -> 13bits for AU-size and 3bits for AU-Index / AU-Index-delta 

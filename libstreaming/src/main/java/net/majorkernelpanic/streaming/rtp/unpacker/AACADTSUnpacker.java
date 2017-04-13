@@ -25,6 +25,7 @@ public class AACADTSUnpacker extends AbstractUnpacker implements Runnable {
     private MediaCodec mDecoder;
     private ByteBuffer[] mInputBuffers;
     private Queue<Long> mTimeStampQueue;
+    private int mCount;
 
     public AACADTSUnpacker(MediaCodec decoder) {
         if (decoder != null) {
@@ -38,6 +39,7 @@ public class AACADTSUnpacker extends AbstractUnpacker implements Runnable {
     public void start() {
         if (mThread == null) {
             mThread = new Thread(this);
+            mThread.setName("unpackThread");
             mThread.start();
         }
     }
@@ -80,10 +82,14 @@ public class AACADTSUnpacker extends AbstractUnpacker implements Runnable {
                     ByteBuffer inputBuffer = mInputBuffers[inputIndex];
                     inputBuffer.clear();
                     inputBuffer.put(rtpPacket, rtphl + 4, AUSize);
-                    ByteUtils.logByte(rtpPacket, rtphl + 4, AUSize);
+                    if (mCount++ < 100) {
+                        inputBuffer.flip();
+                        byte[] temp = new byte[200];
+                        inputBuffer.get(temp, 0, AUSize);
+                        ByteUtils.logByte(temp, 0, AUSize);
+                    }
                     mTimeStampQueue.add(timeStamp);
-                    mDecoder.queueInputBuffer(inputIndex, 0, AUSize, 0, 0);
-
+                    mDecoder.queueInputBuffer(inputIndex, 0, AUSize, mTimeStampQueue.poll(), 0);
                 } else {
                     Log.v(TAG, "No buffer available...");
                 }

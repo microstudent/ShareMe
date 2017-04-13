@@ -2,6 +2,8 @@ package net.majorkernelpanic.streaming.audio;
 
 import android.media.MediaCodec;
 import android.util.Log;
+
+import net.majorkernelpanic.streaming.ByteUtils;
 import net.majorkernelpanic.streaming.rtp.MediaCodecInputStream;
 
 import java.io.IOException;
@@ -16,8 +18,12 @@ public class AACCodecInputStream extends MediaCodecInputStream{
     private byte[] mADTSHeader;
     private int mHeaderPos = -1;
 
+    private byte[] mDecodeBuffers;
+    private int mCount;
+
     public AACCodecInputStream(MediaCodec mediaCodec) {
         super(mediaCodec);
+        mDecodeBuffers = new byte[3000];
     }
 
 
@@ -38,6 +44,7 @@ public class AACCodecInputStream extends MediaCodecInputStream{
             }
 
             if (!mBuffer.hasRemaining()) {
+                mBuffer.clear();
                 mMediaCodec.releaseOutputBuffer(mIndex, false);
                 mBuffer = null;
             }
@@ -68,6 +75,7 @@ public class AACCodecInputStream extends MediaCodecInputStream{
                 mBuffer.get(buffer, offset, min);
             }
             if (mBuffer.position() >= mBufferInfo.size) {
+                mBuffer.clear();
                 mMediaCodec.releaseOutputBuffer(mIndex, false);
                 mBuffer = null;
             }
@@ -88,6 +96,16 @@ public class AACCodecInputStream extends MediaCodecInputStream{
                 outPacketSize = outBitSize + 7;//7为ADTS头部的大小
                 //Log.d(TAG,"Index: "+mIndex+" Time: "+mBufferInfo.presentationTimeUs+" size: "+mBufferInfo.size);
                 mBuffer = mBuffers[mIndex];
+                if (mCount++ < 100) {
+                    mBuffer.position(mBufferInfo.offset);
+                    mBuffer.limit(mBufferInfo.offset + outBitSize);
+                    Log.d("AACCodecInputStream", "receive length = " + mBuffer.remaining() + "size = " + mBufferInfo.size);
+                    for (int i = 0; i < 200; i++) {
+                        mDecodeBuffers[i] = 0;
+                    }
+                    mBuffer.get(mDecodeBuffers, 0, mBufferInfo.size);
+                    ByteUtils.logByte(mDecodeBuffers, 0, 200);
+                }
                 mBuffer.position(mBufferInfo.offset);
                 mBuffer.limit(mBufferInfo.offset + outBitSize);
                 mADTSHeader = new byte[7];

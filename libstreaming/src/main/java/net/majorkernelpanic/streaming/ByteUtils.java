@@ -2,6 +2,7 @@ package net.majorkernelpanic.streaming;
 
 import android.util.Log;
 
+import java.math.BigInteger;
 import java.util.Arrays;
 
 /**
@@ -23,6 +24,10 @@ public class ByteUtils {
     }
 
     public static void logByte(byte[] src, int offset, int length) {
-        Log.d("ByteUtils", Arrays.toString(Arrays.copyOfRange(src, offset, offset + length - 1)));
+        Log.d("ByteUtils", "receive" + binary(Arrays.copyOfRange(src, offset, offset + length), 16));
+    }
+
+    public static String binary(byte[] bytes, int radix){
+        return new BigInteger(1, bytes).toString(radix);// 这里的1代表正数
     }
 }

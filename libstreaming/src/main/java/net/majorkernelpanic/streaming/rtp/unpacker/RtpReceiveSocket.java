@@ -76,24 +76,23 @@ public class RtpReceiveSocket implements Runnable{
     public byte[] read() {
         if (mReceiverThread == null) {
             mReceiverThread = new Thread(this);
+            mReceiverThread.setName("receiverThread");
             mReceiverThread.start();
         }
         if (mCheckerThread == null) {
             mCheckerThread = new Thread(new CheckerRunnable());
+            mCheckerThread.setName("checkerThread");
             mCheckerThread.start();
         }
         byte[] result = null;
         try {
-            while (!mSeqChecker.tryAcquire(5, TimeUnit.MILLISECONDS)) {
+            while (!mSeqChecker.tryAcquire(10, TimeUnit.MILLISECONDS)) {
                 mSeq++;
             }
             result = (byte[]) mSortBuffers.get(mSeq);
             mSortBuffers.remove(mSeq);
 //            clearUpBuffers();
             mSeq++;
-            if (mSeq < 100) {
-                Log.d(TAG, "mSeq:" + mSeq);
-            }
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -130,7 +129,7 @@ public class RtpReceiveSocket implements Runnable{
             mPort = dport;
             try {
                 mSocket = new DatagramSocket(dport);
-//                Log.d("RtpReceiveSocket", "listening on " + dport);
+                Log.d("RtpReceiveSocket", "listening on " + dport);
             } catch (Exception e) {
                 throw new RuntimeException(e.getMessage());
             }
@@ -156,6 +155,10 @@ public class RtpReceiveSocket implements Runnable{
             while (mBufferRequested.tryAcquire(4, TimeUnit.SECONDS)) {
                 if (mSocket != null) {
                     mSocket.receive(mPackets[mBufferIn]);
+                    if (mSeq < 100) {
+                        Log.d(TAG, "receive mSeq:" + mSeq);
+//                        ByteUtils.logByte(mBuffers[mBufferIn], 0, 200);
+                    }
                     if (++mBufferIn >= mBufferCount) mBufferIn = 0;
                     mBufferReceived.release();
                     byte[] src = consumeData();
