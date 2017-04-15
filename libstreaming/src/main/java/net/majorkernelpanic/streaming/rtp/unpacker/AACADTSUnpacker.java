@@ -1,7 +1,6 @@
 package net.majorkernelpanic.streaming.rtp.unpacker;
 
 import android.media.MediaCodec;
-import android.os.SystemClock;
 import android.util.Log;
 
 import net.majorkernelpanic.streaming.ByteUtils;
@@ -9,11 +8,6 @@ import net.majorkernelpanic.streaming.ByteUtils;
 import java.nio.ByteBuffer;
 import java.util.LinkedList;
 import java.util.Queue;
-import java.util.TreeMap;
-
-import okio.Okio;
-
-import static net.majorkernelpanic.streaming.rtp.unpacker.RtpReceiveSocket.MTU;
 
 /**
  * Created by Leaves on 2017/4/2.
@@ -26,12 +20,14 @@ public class AACADTSUnpacker extends AbstractUnpacker implements Runnable {
     private ByteBuffer[] mInputBuffers;
     private Queue<Long> mTimeStampQueue;
     private int mCount;
+    private byte[] mADTSHeader;
 
     public AACADTSUnpacker(MediaCodec decoder) {
         if (decoder != null) {
             mDecoder = decoder;
             mInputBuffers = decoder.getInputBuffers();
         }
+        mADTSHeader = new byte[7];
         mTimeStampQueue = new LinkedList<>();
     }
 
@@ -81,15 +77,17 @@ public class AACADTSUnpacker extends AbstractUnpacker implements Runnable {
                 if (inputIndex >= 0) {
                     ByteBuffer inputBuffer = mInputBuffers[inputIndex];
                     inputBuffer.clear();
+                    addADTStoPacket(mADTSHeader, AUSize + 7);
+                    inputBuffer.put(mADTSHeader);
                     inputBuffer.put(rtpPacket, rtphl + 4, AUSize);
                     if (mCount++ < 100) {
                         inputBuffer.flip();
                         byte[] temp = new byte[200];
-                        inputBuffer.get(temp, 0, AUSize);
-                        ByteUtils.logByte(temp, 0, AUSize);
+                        inputBuffer.get(temp, 0, AUSize + 7);
+                        ByteUtils.logByte(temp, 0,  AUSize + 7);
                     }
                     mTimeStampQueue.add(timeStamp);
-                    mDecoder.queueInputBuffer(inputIndex, 0, AUSize, mTimeStampQueue.poll(), 0);
+                    mDecoder.queueInputBuffer(inputIndex, 0, AUSize + 7, timeStamp, 0);
                 } else {
                     Log.v(TAG, "No buffer available...");
                 }
@@ -97,5 +95,27 @@ public class AACADTSUnpacker extends AbstractUnpacker implements Runnable {
                 Log.d(TAG, "bitMark == false");
             }
         }
+    }
+
+
+    /**
+     * 添加ADTS头
+     * @param packet
+     * @param packetLen
+     */
+    private void addADTStoPacket(byte[] packet, int packetLen) {
+        int profile = 2; // AAC LC
+        int freqIdx = 4; // 44.1KHz
+        int chanCfg = 2; // CPE
+
+
+        // fill in ADTS data
+        packet[0] = (byte) 0xFF;
+        packet[1] = (byte) 0xF9;
+        packet[2] = (byte) (((profile - 1) << 6) + (freqIdx << 2) + (chanCfg >> 2));
+        packet[3] = (byte) (((chanCfg & 3) << 6) + (packetLen >> 11));
+        packet[4] = (byte) ((packetLen & 0x7FF) >> 3);
+        packet[5] = (byte) (((packetLen & 7) << 5) + 0x1F);
+        packet[6] = (byte) 0xFC;
     }
 }

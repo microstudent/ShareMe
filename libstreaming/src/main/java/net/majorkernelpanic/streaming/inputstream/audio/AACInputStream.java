@@ -63,7 +63,13 @@ public class AACInputStream implements InputStream, Runnable {
             MediaFormat format = MediaFormat.createAudioFormat("audio/mp4a-latm", config.sampleRate, config.channelCount);
             format.setInteger(MediaFormat.KEY_AAC_PROFILE, MediaCodecInfo.CodecProfileLevel.AACObjectLC);
             format.setInteger(MediaFormat.KEY_MAX_INPUT_SIZE, MTU);
-            format.setInteger(MediaFormat.KEY_BIT_RATE, 32000);
+            format.setInteger(MediaFormat.KEY_BIT_RATE, 24000);
+            format.setInteger(MediaFormat.KEY_IS_ADTS, 1);
+
+            byte[] bytes = new byte[]{(byte) 0x12, (byte)0x12};
+            ByteBuffer bb = ByteBuffer.wrap(bytes);
+            format.setByteBuffer("csd-0", bb);
+
             mMediaDecode.configure(format, null, null, 0);
             mMediaDecode.start();
             mOutputBuffer = mMediaDecode.getOutputBuffers();
