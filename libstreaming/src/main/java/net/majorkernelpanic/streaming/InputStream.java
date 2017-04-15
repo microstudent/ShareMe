@@ -70,8 +70,6 @@ public interface InputStream {
 	
 	/**
 	 * Returns a description of the stream using SDP. 
-	 * This method can only be called after {@link InputStream#configure()}.
-	 * @throws IllegalStateException Thrown when {@link InputStream#configure()} wa not called.
 	 */
 	public String getSessionDescription() throws IllegalStateException;
 
@@ -81,5 +79,6 @@ public interface InputStream {
 		public int sampleRate;
 		public int channelCount;
 		public int bitRate;
+		public int sampleRateIndex;
 	}
 }

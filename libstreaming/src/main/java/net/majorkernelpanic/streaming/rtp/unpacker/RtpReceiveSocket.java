@@ -7,6 +7,7 @@ import net.majorkernelpanic.streaming.rtcp.SenderReport;
 
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
+import java.util.Hashtable;
 import java.util.TreeMap;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
@@ -24,28 +25,23 @@ public class RtpReceiveSocket implements Runnable{
     public static final int MTU = 1300;
 
     private final byte[][] mBuffers;
-    private final byte[] mTcpHeader;
 
     private SenderReport mReport;
-    private int mSsrc, mPort = -1;
     private volatile long mSeq = 1;
-    private int mTransport;
     private int mBufferCount ,mBufferIn, mBufferOut;
     private DatagramPacket[] mPackets;
-    private long[] mTimestamps;
     private DatagramSocket mSocket;
     private Semaphore mBufferRequested, mBufferReceived, mSeqChecker;
     private Thread mReceiverThread, mCheckerThread;
-    private TreeMap<Long, Object> mSortBuffers;
+    private Hashtable<Long, Object> mSortBuffers;
 
     public RtpReceiveSocket() {
         mBufferCount = 300;
         mBuffers = new byte[mBufferCount][];
         mPackets = new DatagramPacket[mBufferCount];
         mReport = new SenderReport();
-        mTcpHeader = new byte[] {'$',0,0,0};
 
-        mSortBuffers = new TreeMap<>();
+        mSortBuffers = new Hashtable<>();
 
         reset();
 
@@ -86,7 +82,7 @@ public class RtpReceiveSocket implements Runnable{
         }
         byte[] result = null;
         try {
-            while (!mSeqChecker.tryAcquire(10, TimeUnit.MILLISECONDS)) {
+            while (!mSeqChecker.tryAcquire(100, TimeUnit.MILLISECONDS)) {
                 mSeq++;
             }
             result = (byte[]) mSortBuffers.get(mSeq);
@@ -99,18 +95,8 @@ public class RtpReceiveSocket implements Runnable{
         return result;
     }
 
-    private void clearUpBuffers() {
-        while (true) {
-            Long key = mSortBuffers.floorKey(mSeq);
-            if (key == null) {
-                break;
-            }
-            mSortBuffers.remove(key);
-        }
-    }
 
     public void reset() {
-        mTimestamps = new long[mBufferCount];
         mReport.reset();
         mBufferRequested = new Semaphore(mBufferCount);
         mBufferReceived = new Semaphore(mBufferCount);
@@ -118,15 +104,13 @@ public class RtpReceiveSocket implements Runnable{
         mSeqChecker = new Semaphore(1);
         mSeqChecker.drainPermits();
         mBufferIn = mBufferOut = 0;
-        mSeq = 1;
+        mSeq = 30;
         mSortBuffers.clear();
     }
 
     /** Sets the destination address and to which the packets will be sent. */
     public void setDestination(int dport, int rtcpPort) {
         if (dport != 0 && rtcpPort != 0) {
-            mTransport = TRANSPORT_UDP;
-            mPort = dport;
             try {
                 mSocket = new DatagramSocket(dport);
                 Log.d("RtpReceiveSocket", "listening on " + dport);

@@ -6,6 +6,7 @@ import android.media.AudioTrack;
 import android.media.MediaCodec;
 import android.media.MediaCodecInfo;
 import android.media.MediaFormat;
+import android.util.Log;
 
 import net.majorkernelpanic.streaming.InputStream;
 import net.majorkernelpanic.streaming.Stream;
@@ -15,6 +16,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.net.InetAddress;
 import java.nio.ByteBuffer;
+import java.util.Queue;
 
 import static net.majorkernelpanic.streaming.rtp.unpacker.RtpReceiveSocket.MTU;
 
@@ -31,6 +33,8 @@ public class AACInputStream implements InputStream, Runnable {
 
     private AudioTrack mAudioTrack;
     private Thread mPlayThread;
+    private int mSeq = 32;
+    private Queue<Long> mTimeStampQueue;
 
     public AACInputStream() {
     }
@@ -75,7 +79,8 @@ public class AACInputStream implements InputStream, Runnable {
             mOutputBuffer = mMediaDecode.getOutputBuffers();
             mDecodeBufferInfo = new MediaCodec.BufferInfo();//用于描述解码得到的byte[]数据的相关信息
             mAACADTSUnpacker = new AACADTSUnpacker(mMediaDecode);
-
+            mAACADTSUnpacker.setConfig(config);
+            mTimeStampQueue = mAACADTSUnpacker.getTimeStampQueue();
 
             mAudioTrack = new AudioTrack(
                     AudioManager.STREAM_MUSIC,

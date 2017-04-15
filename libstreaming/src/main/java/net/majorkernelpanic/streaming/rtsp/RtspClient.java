@@ -440,6 +440,7 @@ public class RtspClient {
 //	mConfig = (mProfile & 0x1F) << 11 | (mSamplingRateIndex & 0x0F) << 7 | (mChannel & 0x0F) << 3;
 								int configInt = Integer.parseInt(pair1[1], 16);
 								config.channelCount = configInt >> 3 & 0x0F;
+								config.sampleRateIndex = configInt >> 10 & 0x0f;
 							}
 						}
 					}

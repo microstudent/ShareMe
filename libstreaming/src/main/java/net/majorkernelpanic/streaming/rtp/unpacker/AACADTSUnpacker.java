@@ -4,6 +4,7 @@ import android.media.MediaCodec;
 import android.util.Log;
 
 import net.majorkernelpanic.streaming.ByteUtils;
+import net.majorkernelpanic.streaming.InputStream;
 
 import java.nio.ByteBuffer;
 import java.util.LinkedList;
@@ -21,6 +22,7 @@ public class AACADTSUnpacker extends AbstractUnpacker implements Runnable {
     private Queue<Long> mTimeStampQueue;
     private int mCount;
     private byte[] mADTSHeader;
+    private InputStream.Config mConfig;
 
     public AACADTSUnpacker(MediaCodec decoder) {
         if (decoder != null) {
@@ -73,19 +75,19 @@ public class AACADTSUnpacker extends AbstractUnpacker implements Runnable {
             int AUIndex = (int) ByteUtils.byteToLong(rtpPacket, rtphl + 3, 1);
             boolean bitMark = (rtpPacket[1] & 0x80) == 0x80;
             if (bitMark) {
-                int inputIndex = mDecoder.dequeueInputBuffer(10000);
+                int inputIndex = mDecoder.dequeueInputBuffer(-1);
                 if (inputIndex >= 0) {
                     ByteBuffer inputBuffer = mInputBuffers[inputIndex];
                     inputBuffer.clear();
                     addADTStoPacket(mADTSHeader, AUSize + 7);
                     inputBuffer.put(mADTSHeader);
                     inputBuffer.put(rtpPacket, rtphl + 4, AUSize);
-                    if (mCount++ < 100) {
-                        inputBuffer.flip();
-                        byte[] temp = new byte[200];
-                        inputBuffer.get(temp, 0, AUSize + 7);
-                        ByteUtils.logByte(temp, 0,  AUSize + 7);
-                    }
+//                    if (mCount++ < 100) {
+//                        inputBuffer.flip();
+//                        byte[] temp = new byte[200];
+//                        inputBuffer.get(temp, 0, AUSize + 7);
+//                        ByteUtils.logByte(temp, 0,  AUSize + 7);
+//                    }
                     mTimeStampQueue.add(timeStamp);
                     mDecoder.queueInputBuffer(inputIndex, 0, AUSize + 7, timeStamp, 0);
                 } else {
@@ -98,16 +100,25 @@ public class AACADTSUnpacker extends AbstractUnpacker implements Runnable {
     }
 
 
+    public Queue<Long> getTimeStampQueue() {
+        return mTimeStampQueue;
+    }
+
     /**
      * 添加ADTS头
+     *
      * @param packet
      * @param packetLen
      */
     private void addADTStoPacket(byte[] packet, int packetLen) {
         int profile = 2; // AAC LC
-        int freqIdx = 4; // 44.1KHz
+        int freqIdx = 4;
         int chanCfg = 2; // CPE
-
+        if (mConfig != null) {
+            profile = 2; // AAC LC
+            freqIdx = mConfig.sampleRateIndex;
+            chanCfg = mConfig.channelCount; // CPE
+        }
 
         // fill in ADTS data
         packet[0] = (byte) 0xFF;
@@ -117,5 +128,9 @@ public class AACADTSUnpacker extends AbstractUnpacker implements Runnable {
         packet[4] = (byte) ((packetLen & 0x7FF) >> 3);
         packet[5] = (byte) (((packetLen & 7) << 5) + 0x1F);
         packet[6] = (byte) 0xFC;
+    }
+
+    public void setConfig(InputStream.Config config) {
+        mConfig = config;
     }
 }
