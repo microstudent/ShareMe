@@ -165,8 +165,8 @@ public class Mp3Wrapper {
                     mDecodeOutputBuffers[mOutputBufferIndex].get(chunk);
                     mDecodeOutputBuffers[mOutputBufferIndex].reset();
                     try {
-                        //太快可能来不及接收，导致丢包
-                        Thread.sleep(10);
+                        //太快可能来不及接收，导致丢包,太慢可能导致跟不上播放速度
+                        Thread.sleep(20);
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
