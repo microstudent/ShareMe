@@ -8,6 +8,7 @@ import android.media.MediaCodecInfo;
 import android.media.MediaFormat;
 import android.util.Log;
 
+import net.majorkernelpanic.streaming.ByteUtils;
 import net.majorkernelpanic.streaming.InputStream;
 import net.majorkernelpanic.streaming.Stream;
 import net.majorkernelpanic.streaming.rtp.unpacker.AACADTSUnpacker;
@@ -17,6 +18,7 @@ import java.io.OutputStream;
 import java.net.InetAddress;
 import java.nio.ByteBuffer;
 import java.util.Queue;
+
 
 import static net.majorkernelpanic.streaming.rtp.unpacker.RtpReceiveSocket.MTU;
 
@@ -33,7 +35,7 @@ public class AACInputStream implements InputStream, Runnable {
 
     private AudioTrack mAudioTrack;
     private Thread mPlayThread;
-    private int mSeq = 32;
+    private int mSeq = 0;
     private Queue<Long> mTimeStampQueue;
 
     public AACInputStream() {
@@ -51,7 +53,10 @@ public class AACInputStream implements InputStream, Runnable {
 
     private void consumePCMData(byte[] chunkPCM) {
         if (mAudioTrack != null) {
+            long start = System.currentTimeMillis();
             mAudioTrack.write(chunkPCM, 0, chunkPCM.length);
+            Log.d("AACInputStream", " cost time : " + (System.currentTimeMillis() - start));
+            Log.d("AACInputStream", "count:" + mSeq++);
         }
     }
 
@@ -67,7 +72,6 @@ public class AACInputStream implements InputStream, Runnable {
             MediaFormat format = MediaFormat.createAudioFormat("audio/mp4a-latm", config.sampleRate, config.channelCount);
             format.setInteger(MediaFormat.KEY_AAC_PROFILE, MediaCodecInfo.CodecProfileLevel.AACObjectLC);
             format.setInteger(MediaFormat.KEY_MAX_INPUT_SIZE, MTU);
-            format.setInteger(MediaFormat.KEY_BIT_RATE, 24000);
             format.setInteger(MediaFormat.KEY_IS_ADTS, 1);
 
             byte[] bytes = new byte[]{(byte) 0x12, (byte)0x12};

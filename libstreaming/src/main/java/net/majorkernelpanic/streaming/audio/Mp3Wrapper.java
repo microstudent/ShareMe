@@ -164,6 +164,12 @@ public class Mp3Wrapper {
                     mDecodeOutputBuffers[mOutputBufferIndex].mark();
                     mDecodeOutputBuffers[mOutputBufferIndex].get(chunk);
                     mDecodeOutputBuffers[mOutputBufferIndex].reset();
+                    try {
+                        //太快可能来不及接收，导致丢包
+                        Thread.sleep(10);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
 //                    if (chunk.length > 0) {
 //                        mAudioTrack.write(chunk, 0, chunk.length);
 //                    }

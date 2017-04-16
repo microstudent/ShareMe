@@ -1,14 +1,13 @@
 package net.majorkernelpanic.streaming.rtp.unpacker;
 
 import android.util.Log;
+import android.util.SparseArray;
 
 import net.majorkernelpanic.streaming.ByteUtils;
 import net.majorkernelpanic.streaming.rtcp.SenderReport;
 
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
-import java.util.Hashtable;
-import java.util.TreeMap;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
@@ -23,17 +22,20 @@ public class RtpReceiveSocket implements Runnable{
     public final static int TRANSPORT_UDP = 0x00;
 
     public static final int MTU = 1300;
+    private static final long FIRST_RUN_DELAY = 10000;//2sec
 
     private final byte[][] mBuffers;
 
     private SenderReport mReport;
-    private volatile long mSeq = 1;
+    private volatile int mSeq = 1;
     private int mBufferCount ,mBufferIn, mBufferOut;
     private DatagramPacket[] mPackets;
     private DatagramSocket mSocket;
-    private Semaphore mBufferRequested, mBufferReceived, mSeqChecker;
-    private Thread mReceiverThread, mCheckerThread;
-    private Hashtable<Long, Object> mSortBuffers;
+    private Semaphore mBufferRequested, mBufferReceived;
+    private Thread mReceiverThread;
+    private SparseArray<Object> mSortBuffers;
+    private long mWaitingTimeout;
+    private boolean isFirstRun = true;
 
     public RtpReceiveSocket() {
         mBufferCount = 300;
@@ -41,7 +43,7 @@ public class RtpReceiveSocket implements Runnable{
         mPackets = new DatagramPacket[mBufferCount];
         mReport = new SenderReport();
 
-        mSortBuffers = new Hashtable<>();
+        mSortBuffers = new SparseArray();
 
         reset();
 
@@ -75,17 +77,24 @@ public class RtpReceiveSocket implements Runnable{
             mReceiverThread.setName("receiverThread");
             mReceiverThread.start();
         }
-        if (mCheckerThread == null) {
-            mCheckerThread = new Thread(new CheckerRunnable());
-            mCheckerThread.setName("checkerThread");
-            mCheckerThread.start();
+        if (isFirstRun) {
+            try {
+                Thread.sleep(FIRST_RUN_DELAY);
+                isFirstRun = false;
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         }
         byte[] result = null;
         try {
-            while (!mSeqChecker.tryAcquire(100, TimeUnit.MILLISECONDS)) {
+            //等待时间最多只能是一帧的时间，一帧用多少时间由采样率决定，
+            while (mSortBuffers.get(mSeq) == null) {
+                Log.d(TAG, "skipping seq" + mSeq);
+                Thread.sleep(mWaitingTimeout);
                 mSeq++;
             }
             result = (byte[]) mSortBuffers.get(mSeq);
+            Log.d(TAG, "reading seq: " + mSeq);
             mSortBuffers.remove(mSeq);
 //            clearUpBuffers();
             mSeq++;
@@ -101,8 +110,6 @@ public class RtpReceiveSocket implements Runnable{
         mBufferRequested = new Semaphore(mBufferCount);
         mBufferReceived = new Semaphore(mBufferCount);
         mBufferReceived.drainPermits();
-        mSeqChecker = new Semaphore(1);
-        mSeqChecker.drainPermits();
         mBufferIn = mBufferOut = 0;
         mSeq = 30;
         mSortBuffers.clear();
@@ -113,6 +120,7 @@ public class RtpReceiveSocket implements Runnable{
         if (dport != 0 && rtcpPort != 0) {
             try {
                 mSocket = new DatagramSocket(dport);
+                mSocket.setSoTimeout(0);
                 Log.d("RtpReceiveSocket", "listening on " + dport);
             } catch (Exception e) {
                 throw new RuntimeException(e.getMessage());
@@ -139,14 +147,12 @@ public class RtpReceiveSocket implements Runnable{
             while (mBufferRequested.tryAcquire(4, TimeUnit.SECONDS)) {
                 if (mSocket != null) {
                     mSocket.receive(mPackets[mBufferIn]);
-                    if (mSeq < 100) {
-                        Log.d(TAG, "receive mSeq:" + mSeq);
 //                        ByteUtils.logByte(mBuffers[mBufferIn], 0, 200);
-                    }
                     if (++mBufferIn >= mBufferCount) mBufferIn = 0;
                     mBufferReceived.release();
                     byte[] src = consumeData();
-                    long seq = ByteUtils.byteToLong(src, 2, 2);
+                    int seq = (int) ByteUtils.byteToLong(src, 2, 2);
+                    Log.d(TAG, "receiving seq: " + seq);
                     mSortBuffers.put(seq, src);
                 }
             }
@@ -157,19 +163,14 @@ public class RtpReceiveSocket implements Runnable{
 
     public void close() {
         mSocket.close();
-        mCheckerThread.interrupt();
         mReceiverThread.interrupt();
         reset();
     }
 
-    private class CheckerRunnable implements Runnable {
-        @Override
-        public void run() {
-            while (!mCheckerThread.isInterrupted()) {
-                if (mSortBuffers.containsKey(mSeq)) {
-                    mSeqChecker.release();
-                }
-            }
-        }
+    /**
+     * in millsec
+     */
+    public void setWaitingTimeout(long waitingTimeout) {
+        mWaitingTimeout = waitingTimeout;
     }
 }

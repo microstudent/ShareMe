@@ -20,9 +20,9 @@ public class AACADTSUnpacker extends AbstractUnpacker implements Runnable {
     private MediaCodec mDecoder;
     private ByteBuffer[] mInputBuffers;
     private Queue<Long> mTimeStampQueue;
-    private int mCount;
     private byte[] mADTSHeader;
     private InputStream.Config mConfig;
+    private int mSeq = 0;
 
     public AACADTSUnpacker(MediaCodec decoder) {
         if (decoder != null) {
@@ -89,6 +89,7 @@ public class AACADTSUnpacker extends AbstractUnpacker implements Runnable {
 //                        ByteUtils.logByte(temp, 0,  AUSize + 7);
 //                    }
                     mTimeStampQueue.add(timeStamp);
+                    Log.d(TAG, "count:" + mSeq++);
                     mDecoder.queueInputBuffer(inputIndex, 0, AUSize + 7, timeStamp, 0);
                 } else {
                     Log.v(TAG, "No buffer available...");
@@ -132,5 +133,6 @@ public class AACADTSUnpacker extends AbstractUnpacker implements Runnable {
 
     public void setConfig(InputStream.Config config) {
         mConfig = config;
+        mSocket.setWaitingTimeout(1000000L / config.sampleRate);
     }
 }
