@@ -43,7 +43,7 @@ public class RtpReceiveSocket implements Runnable{
         mPackets = new DatagramPacket[mBufferCount];
         mReport = new SenderReport();
 
-        mSortBuffers = new SparseArray();
+        mSortBuffers = new SparseArray<Object>();
 
         reset();
 

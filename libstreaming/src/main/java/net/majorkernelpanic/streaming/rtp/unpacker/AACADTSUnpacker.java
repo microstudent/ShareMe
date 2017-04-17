@@ -19,7 +19,6 @@ public class AACADTSUnpacker extends AbstractUnpacker implements Runnable {
     private Thread mThread;
     private MediaCodec mDecoder;
     private ByteBuffer[] mInputBuffers;
-    private Queue<Long> mTimeStampQueue;
     private byte[] mADTSHeader;
     private InputStream.Config mConfig;
     private int mSeq = 0;
@@ -30,7 +29,6 @@ public class AACADTSUnpacker extends AbstractUnpacker implements Runnable {
             mInputBuffers = decoder.getInputBuffers();
         }
         mADTSHeader = new byte[7];
-        mTimeStampQueue = new LinkedList<>();
     }
 
     @Override
@@ -88,7 +86,6 @@ public class AACADTSUnpacker extends AbstractUnpacker implements Runnable {
 //                        inputBuffer.get(temp, 0, AUSize + 7);
 //                        ByteUtils.logByte(temp, 0,  AUSize + 7);
 //                    }
-                    mTimeStampQueue.add(timeStamp);
                     Log.d(TAG, "count:" + mSeq++);
                     mDecoder.queueInputBuffer(inputIndex, 0, AUSize + 7, timeStamp, 0);
                 } else {
@@ -98,11 +95,6 @@ public class AACADTSUnpacker extends AbstractUnpacker implements Runnable {
                 Log.d(TAG, "bitMark == false");
             }
         }
-    }
-
-
-    public Queue<Long> getTimeStampQueue() {
-        return mTimeStampQueue;
     }
 
     /**

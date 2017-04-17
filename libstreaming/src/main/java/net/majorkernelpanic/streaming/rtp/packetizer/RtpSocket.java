@@ -54,7 +54,6 @@ public class RtpSocket implements Runnable {
 	private DatagramPacket[] mPackets;
 	private byte[][] mBuffers;
 	private long[] mTimestamps;
-	private long mCurrentTime = -1;
 
 	private SenderReport mReport;
 	
@@ -301,7 +300,7 @@ public class RtpSocket implements Runnable {
 						delta = 0;
 					}
 				}
-				mReport.update(mPackets[mBufferOut].getLength(), getCurrentTimeStamp());
+				mReport.update(mPackets[mBufferOut].getLength(), System.nanoTime(), getCurrentTimeStamp());
 				mOldTimestamp = mTimestamps[mBufferOut];
 				if (mCount++>30) {
 					if (mTransport == TRANSPORT_UDP) {
@@ -324,9 +323,9 @@ public class RtpSocket implements Runnable {
 	}
 
 	private long getCurrentTimeStamp() {
-		if (mCurrentTime != -1) {
-			return (mCurrentTime / 100L) * (mClock / 1000L) / 10000L;
-		}
+//		if (mCurrentTime != -1) {
+//			return (mCurrentTime / 100L) * (mClock / 1000L) / 10000L;
+//		}
 		return (mTimestamps[mBufferOut] / 100L) * (mClock / 1000L) / 10000L;
 	}
 
@@ -411,10 +410,6 @@ public class RtpSocket implements Runnable {
 			return (int) (delta>0?8000*sum/delta:0);
 		}
 		
-	}
-
-	public void setCurrentTime(long currentTime) {
-		this.mCurrentTime = currentTime;
 	}
 
 

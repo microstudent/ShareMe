@@ -105,30 +105,30 @@ public class SenderReport {
 	 */
 	public void setInterval(long interval) {
 		this.interval = interval;
-	}	
+	}
 
-	/** 
+	/**
 	 * Updates the number of packets sent, and the total amount of data sent.
-	 * @param length The length of the packet 
-	 * @param rtpts
-	 *            The RTP timestamp.
-	 * @throws IOException 
+	 *
+	 * @param length The length of the packet
+	 * @param rtpts  The RTP timestamp.
+	 * @throws IOException
 	 **/
-	public void update(int length, long rtpts) throws IOException {
+	public void update(int length, long ntpTime, long rtpts) throws IOException {
 		mPacketCount += 1;
 		mOctetCount += length;
 		setLong(mPacketCount, 20, 24);
 		setLong(mOctetCount, 24, 28);
 
 		now = SystemClock.elapsedRealtime();
-		delta += oldnow != 0 ? now-oldnow : 0;
+		delta += oldnow != 0 ? now - oldnow : 0;
 		oldnow = now;
-		if (interval>0 && delta>=interval) {
+		if (interval > 0 && delta >= interval) {
 			// We send a Sender Report
-			send(System.nanoTime(), rtpts);
+			send(ntpTime, rtpts);
 			delta = 0;
 		}
-		
+
 	}
 
 	public void setSSRC(int ssrc) {
@@ -198,7 +198,7 @@ public class SenderReport {
 	 */
 	private void send(long ntpts, long rtpts) throws IOException {
 		long hb = ntpts/1000000000;
-		long lb = ( ( ntpts - hb*1000000000 ) * 4294967296L )/1000000000;
+		long lb = ((ntpts - hb * 1000000000) * 4294967296L) / 1000000000;
 		setLong(hb, 8, 12);
 		setLong(lb, 12, 16);
 		setLong(rtpts, 16, 20);
