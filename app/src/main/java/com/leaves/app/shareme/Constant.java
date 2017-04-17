@@ -14,6 +14,7 @@ public class Constant {
     public static final int TAG_QUERY_PLAYING_AUDIO = 0;
     public static final int TAG_MEDIA = 1;
     public volatile static List<Media> mPlayingMedias;
+    public static final int DEFAULT_PLAY_TIME_DELAY = 5000;//5sec
 
     public interface WifiDirect {
         String INSTANCE_NAME = "ShareMe";

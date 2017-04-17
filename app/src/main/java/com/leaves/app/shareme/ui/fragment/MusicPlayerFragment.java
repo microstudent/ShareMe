@@ -1,8 +1,12 @@
 package com.leaves.app.shareme.ui.fragment;
 
+import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.os.IBinder;
 import android.preference.PreferenceManager;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -13,7 +17,6 @@ import android.widget.TextView;
 import com.bumptech.glide.Glide;
 import com.leaves.app.shareme.R;
 import com.leaves.app.shareme.bean.Media;
-import com.leaves.app.shareme.eventbus.MediaEvent;
 import com.leaves.app.shareme.eventbus.RxBus;
 import com.leaves.app.shareme.eventbus.TimeSeekEvent;
 import com.leaves.app.shareme.service.MusicServerService;
@@ -51,6 +54,18 @@ public class MusicPlayerFragment extends BottomSheetFragment implements RtspClie
         // Required empty public constructor
     }
 
+    private MusicServerService.ServerBinder mServerBinder;
+    private ServiceConnection mConnection = new ServiceConnection() {
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+        }
+
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder service) {
+            mServerBinder = (MusicServerService.ServerBinder)service;
+        }
+    };
+
     public static MusicPlayerFragment newInstance() {
         MusicPlayerFragment fragment = new MusicPlayerFragment();
         return fragment;
@@ -60,7 +75,7 @@ public class MusicPlayerFragment extends BottomSheetFragment implements RtspClie
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Intent intent = new Intent(getContext(), MusicServerService.class);
-        getActivity().startService(intent);
+        getActivity().bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
 
         SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(getContext()).edit();
         editor.putString(RtspServer.KEY_PORT, String.valueOf(7236));
@@ -91,16 +106,16 @@ public class MusicPlayerFragment extends BottomSheetFragment implements RtspClie
 
     @OnClick(R.id.bt_play)
     public void connectionToServer() {
-        // Configures the SessionBuilder
-        mSession = new ReceiveSession.Builder()
-                .setAudioDecoder(ReceiveSession.Builder.AUDIO_AAC)
-                .setVideoDecoder(ReceiveSession.Builder.VIDEO_NONE)
-                .setCallback(this)
-                .build();
-        mClient = new RtspClient();
-        mClient.setSession(mSession);
-        mClient.setCallback(this);
-        toggleStream();
+//        // Configures the SessionBuilder
+//        mSession = new ReceiveSession.Builder()
+//                .setAudioDecoder(ReceiveSession.Builder.AUDIO_AAC)
+//                .setVideoDecoder(ReceiveSession.Builder.VIDEO_NONE)
+//                .setCallback(this)
+//                .build();
+//        mClient = new RtspClient();
+//        mClient.setSession(mSession);
+//        mClient.setCallback(this);
+//        toggleStream();
     }
 
     // Connects/disconnects to the RTSP server and starts/stops the stream
@@ -164,8 +179,8 @@ public class MusicPlayerFragment extends BottomSheetFragment implements RtspClie
             mTitleView.setText(media.getTitle());
             mSubTextView.setText(media.getArtist());
             mPlayingAudio = media;
-            MediaEvent event = new MediaEvent(MusicServerService.ACTION_PLAY, media);
-            RxBus.getDefault().post(event);
+//            MediaEvent event = new MediaEvent(MusicServerService.ACTION_PLAY, media);
+//            RxBus.getDefault().post(event);
             // Configures the SessionBuilder
             SessionBuilder.getInstance()
                     .setContext(getContext().getApplicationContext())
@@ -175,7 +190,10 @@ public class MusicPlayerFragment extends BottomSheetFragment implements RtspClie
                     .setAudioEncoder(SessionBuilder.AUDIO_MP3);
 
             // Starts the RTSP server
-            getActivity().startService(new Intent(getContext(), RtspServer.class));
+            if (mServerBinder != null) {
+                mServerBinder.play(media);
+            }
+//            getActivity().startService(new Intent(getContext(), RtspServer.class));
         }
     }
 
@@ -183,7 +201,6 @@ public class MusicPlayerFragment extends BottomSheetFragment implements RtspClie
     public long getCurrentPlayTime() {
         return mCurrentPlayTime;
     }
-
 
 //
 //    @Override

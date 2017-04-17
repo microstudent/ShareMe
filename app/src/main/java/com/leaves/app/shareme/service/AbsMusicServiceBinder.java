@@ -1,5 +1,7 @@
 package com.leaves.app.shareme.service;
 
+import android.os.Binder;
+
 import com.leaves.app.shareme.bean.Media;
 
 import net.majorkernelpanic.streaming.PlaytimeProvider;
@@ -8,11 +10,10 @@ import net.majorkernelpanic.streaming.PlaytimeProvider;
  * Created by Leaves on 2017/4/17.
  */
 
-public interface MusicServiceBinder {
-    void play(Media media);
+public abstract class AbsMusicServiceBinder extends Binder{
+    abstract void play(Media media);
 
-    void pause();
+    abstract void pause();
 
-    void stop();
-
+    abstract void stop();
 }

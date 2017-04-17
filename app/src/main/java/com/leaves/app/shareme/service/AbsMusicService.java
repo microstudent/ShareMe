@@ -6,7 +6,6 @@ import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.net.wifi.WifiManager;
 import android.support.v4.app.NotificationCompat;
 
@@ -26,8 +25,11 @@ public abstract class AbsMusicService extends Service {
 
     private int mMode;
     private WifiManager.WifiLock mWifiLock;
+    protected Media mMedia;
 
-    public AbsMusicService() {
+    @Override
+    public void onCreate() {
+        super.onCreate();
         mWifiLock = ((WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE))
                 .createWifiLock(WifiManager.WIFI_MODE_FULL, "musicLock");
     }
@@ -38,7 +40,6 @@ public abstract class AbsMusicService extends Service {
         } else {
             mMode = MODE_REMOTE;
         }
-        initIfNeeded();
         if (invalidate) {
             reset();
         }
@@ -46,26 +47,39 @@ public abstract class AbsMusicService extends Service {
         mWifiLock.setReferenceCounted(false);
         mWifiLock.acquire();
 
-        PendingIntent pi = PendingIntent.getActivity(getApplicationContext(), 0,
-                getNotificationIntent(),
-                PendingIntent.FLAG_UPDATE_CURRENT);
+        mMedia = media;
         Glide.with(this).load(media.getImage()).asBitmap().listener(new RequestListener<String, Bitmap>() {
             @Override
             public boolean onException(Exception e, String model, Target<Bitmap> target, boolean isFirstResource) {
+                showNotification(null);
                 return false;
             }
 
             @Override
             public boolean onResourceReady(Bitmap resource, String model, Target<Bitmap> target, boolean isFromMemoryCache, boolean isFirstResource) {
+                showNotification(resource);
                 return false;
             }
         }).preload();
+        start(invalidate);
+    }
+
+    protected abstract void pause();
+
+    protected abstract void start(boolean invalidate);
+
+    protected abstract void stop();
+
+    private void showNotification(Bitmap cover) {
+        PendingIntent pi = PendingIntent.getActivity(getApplicationContext(), 0,
+                getNotificationIntent(),
+                PendingIntent.FLAG_UPDATE_CURRENT);
         Notification notification = new NotificationCompat.Builder(this)
                 .setContentIntent(pi)
-                .setLargeIcon(BitmapFactory.decodeFile(media.getImage()))
+                .setLargeIcon(cover)
                 .setSmallIcon(R.drawable.ic_notification)
-                .setContentText(media.getTitle())
-                .setSubText(media.getArtist())
+                .setContentText(mMedia.getTitle())
+                .setSubText(mMedia.getArtist())
                 .build();
         startForeground(22, notification);
     }
@@ -73,8 +87,6 @@ public abstract class AbsMusicService extends Service {
     protected abstract Intent getNotificationIntent();
 
     protected abstract void reset();
-
-    protected abstract void initIfNeeded();
 
     public int getMode() {
         return mMode;

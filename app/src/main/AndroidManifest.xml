@@ -37,6 +37,7 @@
 
         <service android:name=".service.MusicServerService"/>
         <service android:name="net.majorkernelpanic.streaming.rtsp.RtspServer"/>
+        <service android:name=".service.MusicClientService"/>
     </application>
 
 </manifest>
