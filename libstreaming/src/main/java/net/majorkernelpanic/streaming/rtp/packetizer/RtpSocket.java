@@ -266,6 +266,7 @@ public class RtpSocket implements Runnable {
 	public void updateTimestamp(long timestamp) {
 		mTimestamps[mBufferIn] = timestamp;
 		setLong(mBuffers[mBufferIn], (timestamp/100L)*(mClock/1000L)/10000L, 4, 8);
+//		setLong(mBuffers[mBufferIn], (timestamp * mClock / 1000000000L), 4, 8);
 	}
 
 	/** Sets the marker in the RTP packet. */
