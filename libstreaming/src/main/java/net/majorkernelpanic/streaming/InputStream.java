@@ -18,6 +18,8 @@
 
 package net.majorkernelpanic.streaming;
 
+import net.majorkernelpanic.streaming.rtcp.OnRTCPUpdateListener;
+import net.majorkernelpanic.streaming.rtp.OnPCMDataAvailableListener;
 import net.majorkernelpanic.streaming.rtp.packetizer.RtpSocket;
 
 import java.io.IOException;
@@ -74,6 +76,11 @@ public interface InputStream {
 	public String getSessionDescription() throws IllegalStateException;
 
 	public boolean isStreaming();
+
+
+	public void setOnRTCPUpdateListener(OnRTCPUpdateListener onRTCPUpdateListener);
+
+	public void setOnPCMDataAvailableListener(OnPCMDataAvailableListener onPCMDataAvailableListener);
 
 	public static class Config {
 		public int sampleRate;

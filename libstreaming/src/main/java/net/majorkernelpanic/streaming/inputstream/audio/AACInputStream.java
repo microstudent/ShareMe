@@ -144,6 +144,7 @@ public class AACInputStream implements InputStream, Runnable {
         return false;
     }
 
+
     @Override
     public void run() {
         while (!mPlayThread.isInterrupted()) {
@@ -178,10 +179,10 @@ public class AACInputStream implements InputStream, Runnable {
         mCurrentTimeStamp = timeStamp;
     }
 
+
+    @Override
     public void setOnRTCPUpdateListener(OnRTCPUpdateListener onRTCPUpdateListener) {
-        if (mRTCPReceiver != null) {
-            mRTCPReceiver.setOnRTCPUpdateListener(onRTCPUpdateListener);
-        }
+        mRTCPReceiver.setOnRTCPUpdateListener(onRTCPUpdateListener);
     }
 
     public void setOnPCMDataAvailableListener(OnPCMDataAvailableListener onPCMDataAvailableListener) {

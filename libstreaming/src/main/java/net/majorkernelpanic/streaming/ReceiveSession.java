@@ -1,6 +1,8 @@
 package net.majorkernelpanic.streaming;
 
 import net.majorkernelpanic.streaming.inputstream.audio.AACInputStream;
+import net.majorkernelpanic.streaming.rtcp.OnRTCPUpdateListener;
+import net.majorkernelpanic.streaming.rtp.OnPCMDataAvailableListener;
 
 import java.io.IOException;
 
@@ -60,6 +62,8 @@ public class ReceiveSession {
         private int mAudioDecoder;
         private int mVideoDecoder;
         private Callback mCallback;
+        private OnRTCPUpdateListener mRTCPListener;
+        private OnPCMDataAvailableListener mRTPListener;
 
         public Builder setAudioDecoder(int audioDecoder) {
             mAudioDecoder = audioDecoder;
@@ -76,11 +80,24 @@ public class ReceiveSession {
             return this;
         }
 
+        public Builder setRTCPListener(OnRTCPUpdateListener listener) {
+            mRTCPListener = listener;
+            return this;
+        }
+
+        public Builder setOnPCMDataAvailableListener(OnPCMDataAvailableListener listener) {
+            mRTPListener = listener;
+            return this;
+        }
+
         public ReceiveSession build() {
             ReceiveSession session = new ReceiveSession();
             switch (mAudioDecoder) {
                 case AUDIO_AAC:
-                    session.setAudioDecoder(new AACInputStream());
+                    AACInputStream stream = new AACInputStream();
+                    stream.setOnRTCPUpdateListener(mRTCPListener);
+                    stream.setOnPCMDataAvailableListener(mRTPListener);
+                    session.setAudioDecoder(stream);
                     break;
             }
             switch (mVideoDecoder) {
@@ -134,9 +151,5 @@ public class ReceiveSession {
 
         /** Called when the stream of the session have been stopped. */
         public void onSessionStopped();
-
-        public void onAudioAvailable(byte[] data, int relatedTime);
-
-        public void onCurrentTimeUpdate(int currentTime);
     }
 }

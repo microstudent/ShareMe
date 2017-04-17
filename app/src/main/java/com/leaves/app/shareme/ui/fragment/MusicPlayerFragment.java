@@ -163,16 +163,6 @@ public class MusicPlayerFragment extends BottomSheetFragment implements RtspClie
     }
 
     @Override
-    public void onAudioAvailable(byte[] data, int relatedTime) {
-
-    }
-
-    @Override
-    public void onCurrentTimeUpdate(int currentTime) {
-
-    }
-
-    @Override
     public void onRtspUpdate(int message, Exception exception) {
 
     }
