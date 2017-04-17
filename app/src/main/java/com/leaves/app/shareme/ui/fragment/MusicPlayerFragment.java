@@ -1,12 +1,9 @@
 package com.leaves.app.shareme.ui.fragment;
 
-import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.net.Uri;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
-import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -14,25 +11,18 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
-import com.leaves.app.shareme.Constant;
 import com.leaves.app.shareme.R;
 import com.leaves.app.shareme.bean.Media;
 import com.leaves.app.shareme.eventbus.MediaEvent;
 import com.leaves.app.shareme.eventbus.RxBus;
 import com.leaves.app.shareme.eventbus.TimeSeekEvent;
-import com.leaves.app.shareme.service.MusicService;
-import com.leaves.app.shareme.ui.activity.MainActivity;
+import com.leaves.app.shareme.service.MusicServerService;
 
 import net.majorkernelpanic.streaming.PlaytimeProvider;
 import net.majorkernelpanic.streaming.ReceiveSession;
-import net.majorkernelpanic.streaming.Session;
 import net.majorkernelpanic.streaming.SessionBuilder;
-import net.majorkernelpanic.streaming.audio.AudioQuality;
 import net.majorkernelpanic.streaming.rtsp.RtspClient;
 import net.majorkernelpanic.streaming.rtsp.RtspServer;
-
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -69,7 +59,7 @@ public class MusicPlayerFragment extends BottomSheetFragment implements RtspClie
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Intent intent = new Intent(getContext(), MusicService.class);
+        Intent intent = new Intent(getContext(), MusicServerService.class);
         getActivity().startService(intent);
 
         SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(getContext()).edit();
@@ -174,7 +164,7 @@ public class MusicPlayerFragment extends BottomSheetFragment implements RtspClie
             mTitleView.setText(media.getTitle());
             mSubTextView.setText(media.getArtist());
             mPlayingAudio = media;
-            MediaEvent event = new MediaEvent(MusicService.ACTION_PLAY, media);
+            MediaEvent event = new MediaEvent(MusicServerService.ACTION_PLAY, media);
             RxBus.getDefault().post(event);
             // Configures the SessionBuilder
             SessionBuilder.getInstance()
