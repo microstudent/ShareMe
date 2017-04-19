@@ -75,6 +75,11 @@ public class MusicFragment extends Fragment {
         return fragment;
     }
 
+    public void play(Media media) {
+        mMedia = media;
+        mBinder.play(media);
+    }
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

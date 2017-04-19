@@ -229,17 +229,17 @@ public class MusicClientService extends AbsMusicService implements RtspClient.Ca
     public class ClientBinder extends AbsMusicServiceBinder {
 
         @Override
-        void play(Media media) {
+        public void play(Media media) {
 
         }
 
         @Override
-        void pause() {
+        public void pause() {
 
         }
 
         @Override
-        void stop() {
+        public void stop() {
 
         }
 

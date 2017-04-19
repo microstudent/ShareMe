@@ -11,9 +11,9 @@ import net.majorkernelpanic.streaming.PlaytimeProvider;
  */
 
 public abstract class AbsMusicServiceBinder extends Binder{
-    abstract void play(Media media);
+    public abstract void play(Media media);
 
-    abstract void pause();
+    public abstract void pause();
 
-    abstract void stop();
+    public abstract void stop();
 }

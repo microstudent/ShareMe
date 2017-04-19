@@ -86,11 +86,10 @@ public class MainActivity extends AppCompatActivity implements
                             finish();
                         } else {
                             initView();
+                            setupView();
                         }
                     }
                 });
-        initView();
-        setupView();
     }
 
     private void initView() {
@@ -105,31 +104,31 @@ public class MainActivity extends AppCompatActivity implements
     }
 
     private void setupView() {
-//        mBottomSheetBehavior.setBottomSheetCallback(new BottomSheetBehavior.BottomSheetCallback() {
-//            @Override
-//            public void onStateChanged(@NonNull View bottomSheet, int newState) {
-//                if (newState == STATE_EXPANDED) {
-//                    mDockerBehavior.setNeedMeasure(false);
-//                    if (mAudioListFragment == null) {
-//                        mAudioListFragment = AudioListFragment.newInstance();
-//                    }
-//                    switchFragment(mAudioListFragment, R.id.bottom_sheet);
-//                    mBottomSheetBehavior.setScrollable(true);
-//                } else if (newState == STATE_COLLAPSED) {
-//                    mDockerBehavior.setNeedMeasure(false);
-//                    if (mBehaviorFragment == null) {
-//                        mBehaviorFragment = BehaviorFragment.newInstance();
-//                    }
-//                    switchFragment(mBehaviorFragment, R.id.bottom_sheet);
-//                    mBottomSheetBehavior.setScrollable(true);
-//                }
-//            }
-//
-//            @Override
-//            public void onSlide(@NonNull View bottomSheet, float slideOffset) {
-//
-//            }
-//        });
+        mBottomSheetBehavior.setBottomSheetCallback(new BottomSheetBehavior.BottomSheetCallback() {
+            @Override
+            public void onStateChanged(@NonNull View bottomSheet, int newState) {
+                if (newState == STATE_EXPANDED) {
+                    mDockerBehavior.setNeedMeasure(false);
+                    if (mAudioListFragment == null) {
+                        mAudioListFragment = AudioListFragment.newInstance();
+                    }
+                    switchFragment(BehaviorFragment.TAG, mAudioListFragment, AudioListFragment.TAG, R.id.bottom_sheet);
+                    mBottomSheetBehavior.setScrollable(true);
+                } else if (newState == STATE_COLLAPSED) {
+                    mDockerBehavior.setNeedMeasure(false);
+                    if (mBehaviorFragment == null) {
+                        mBehaviorFragment = BehaviorFragment.newInstance();
+                    }
+                    switchFragment(AudioListFragment.TAG, mBehaviorFragment, BehaviorFragment.TAG, R.id.bottom_sheet);
+                    mBottomSheetBehavior.setScrollable(true);
+                }
+            }
+
+            @Override
+            public void onSlide(@NonNull View bottomSheet, float slideOffset) {
+
+            }
+        });
         setSupportActionBar(mToolbar);
         setTitle("");
         mBottomSheetBehavior.setMinOffset(300);
@@ -169,6 +168,7 @@ public class MainActivity extends AppCompatActivity implements
                             .commit();
                     fragment = BehaviorFragment.newInstance();
                     switchFragment(DialpadFragment.TAG, fragment, BehaviorFragment.TAG, R.id.bottom_sheet);
+                    mBottomSheetBehavior.setScrollable(true);
                     break;
             }
         }
@@ -223,6 +223,7 @@ public class MainActivity extends AppCompatActivity implements
     @Override
     public void onAudioClick(Media media) {
         mBottomSheetBehavior.setState(STATE_COLLAPSED);
+        mMusicFragment.play(media);
     }
 
     @Override
