@@ -34,7 +34,6 @@ import com.leaves.app.shareme.ui.fragment.BehaviorFragment;
 import com.leaves.app.shareme.ui.fragment.BottomSheetFragment;
 import com.leaves.app.shareme.ui.fragment.DialpadFragment;
 import com.leaves.app.shareme.ui.fragment.PasswordFragment;
-import com.leaves.app.shareme.ui.fragment.MusicPlayerFragment;
 import com.leaves.app.shareme.ui.widget.dialpad.listener.OnNumberClickListener;
 import com.tbruyelle.rxpermissions2.RxPermissions;
 
@@ -63,7 +62,7 @@ public class MainActivity extends AppCompatActivity implements
     private DodgeBottomSheetBehavior mBottomSheetBehavior;
     private DockerBehavior mDockerBehavior;
     private PasswordFragment mPasswordFragment;
-    private MusicPlayerFragment mMusicPlayerFragment;
+    private BehaviorFragment mBehaviorFragment;
     private AudioListFragment mAudioListFragment;
     private Fragment mLastBottomFragment;
     private MainActivityContract.Presenter mPresenter;
@@ -115,10 +114,10 @@ public class MainActivity extends AppCompatActivity implements
                     mBottomSheetBehavior.setScrollable(true);
                 } else if (newState == STATE_COLLAPSED) {
                     mDockerBehavior.setNeedMeasure(false);
-                    if (mMusicPlayerFragment == null) {
-                        mMusicPlayerFragment = MusicPlayerFragment.newInstance();
+                    if (mBehaviorFragment == null) {
+                        mBehaviorFragment = BehaviorFragment.newInstance();
                     }
-                    switchFragment(mMusicPlayerFragment, R.id.bottom_sheet);
+                    switchFragment(mBehaviorFragment, R.id.bottom_sheet);
                     mBottomSheetBehavior.setScrollable(true);
                 }
             }
@@ -184,7 +183,7 @@ public class MainActivity extends AppCompatActivity implements
 
     @Override
     public void onSearchingDevice() {
-//        mMusicPlayerFragment = BehaviorFragment.newInstance();
+//        mBehaviorFragment = BehaviorFragment.newInstance();
         switchFragment(BehaviorFragment.newInstance(), R.id.bottom_sheet);
         mBottomSheetBehavior.setScrollable(true);
     }
@@ -213,7 +212,6 @@ public class MainActivity extends AppCompatActivity implements
     @Override
     public void onAudioClick(Media media) {
         mBottomSheetBehavior.setState(STATE_COLLAPSED);
-        mMusicPlayerFragment.playAsServer(media);
     }
 
     @Override
