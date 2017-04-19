@@ -108,14 +108,14 @@ public class MainActivity extends AppCompatActivity implements
             @Override
             public void onStateChanged(@NonNull View bottomSheet, int newState) {
                 if (newState == STATE_EXPANDED) {
-                    mDockerBehavior.setNeedMeasure(false);
+//                    mDockerBehavior.setNeedMeasure(false);
                     if (mAudioListFragment == null) {
                         mAudioListFragment = AudioListFragment.newInstance();
                     }
                     switchFragment(BehaviorFragment.TAG, mAudioListFragment, AudioListFragment.TAG, R.id.bottom_sheet);
                     mBottomSheetBehavior.setScrollable(true);
                 } else if (newState == STATE_COLLAPSED) {
-                    mDockerBehavior.setNeedMeasure(false);
+//                    mDockerBehavior.setNeedMeasure(false);
                     if (mBehaviorFragment == null) {
                         mBehaviorFragment = BehaviorFragment.newInstance();
                     }

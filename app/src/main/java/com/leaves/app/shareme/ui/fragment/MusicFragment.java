@@ -7,7 +7,9 @@ import android.content.ServiceConnection;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.os.Looper;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -24,6 +26,10 @@ import com.leaves.app.shareme.util.GlideCircleTransform;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import butterknife.OnClick;
+import io.reactivex.Observable;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.functions.Consumer;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -77,7 +83,10 @@ public class MusicFragment extends Fragment {
 
     public void play(Media media) {
         mMedia = media;
-        mBinder.play(media);
+        if (mBinder != null) {
+            mBinder.play(media);
+        }
+        setupView();
     }
 
     @Override
@@ -108,11 +117,27 @@ public class MusicFragment extends Fragment {
         // Inflate the layout for this fragment
         View view = inflater.inflate(R.layout.fragment_music, container, false);
         ButterKnife.bind(this, view);
-        initView();
+        setupView();
         return view;
     }
 
-    private void initView() {
-        Glide.with(this).load(R.drawable.bg_piano).asBitmap().transform(new GlideCircleTransform(getContext())).into(mCoverView);
+    private void setupView() {
+        if (mMedia == null) {
+            Glide.with(this).load(R.drawable.bg_piano).asBitmap().
+                    transform(new GlideCircleTransform(getContext())).into(mCoverView);
+        } else {
+            Glide.with(this).load(mMedia.getImage()).asBitmap().
+                    transform(new GlideCircleTransform(getContext())).into(mCoverView);
+            Observable.just(mMedia)
+                    .subscribeOn(AndroidSchedulers.mainThread())
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe(new Consumer<Media>() {
+                        @Override
+                        public void accept(Media media) throws Exception {
+                            mTitleView.setText(mMedia.getTitle());
+                            mAuthorView.setText(mMedia.getArtist());
+                        }
+                    });
+        }
     }
 }
