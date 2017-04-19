@@ -18,7 +18,7 @@ import butterknife.ButterKnife;
  */
 
 public class DialpadFragment extends BottomSheetFragment {
-
+    public static final String TAG = "DialpadFragment";
 
     private OnNumberClickListener mListener;
 

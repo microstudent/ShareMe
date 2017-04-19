@@ -27,6 +27,7 @@ import butterknife.ButterKnife;
  * create an instance of this fragment.
  */
 public class AudioListFragment extends Fragment implements AudioListContract.View{
+    public static final String TAG = "AudioListFragment";
     private OnAudioClickListener mListener;
     private AudioListAdapter mAdapter;
 

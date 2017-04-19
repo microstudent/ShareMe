@@ -22,14 +22,16 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 
-public class PasswordFragment extends Fragment{
+public class PasswordFragment extends Fragment {
+    public static final String TAG = "PasswordFragment";
     private static final long DEFAULT_ANIM_DURATION = 500;
     public static final int MODE_PASSWORD = 0;
     public static final int MODE_SEARCHING = 1;
 
     @IntDef({MODE_SEARCHING, MODE_PASSWORD})
     @Retention(RetentionPolicy.SOURCE)
-    @interface Mode {}
+    @interface Mode {
+    }
 
     private MainFragmentCallback mListener;
 

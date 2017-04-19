@@ -22,6 +22,7 @@ import com.leaves.app.shareme.R;
  * create an instance of this fragment.
  */
 public abstract class BottomSheetFragment extends Fragment {
+    public static final String TAG = "BottomSheetFragment";
     private OnFragmentMeasureListener mListener;
     private ViewTreeObserver.OnGlobalLayoutListener mMeasureNotifyer = new ViewTreeObserver.OnGlobalLayoutListener() {
         @Override

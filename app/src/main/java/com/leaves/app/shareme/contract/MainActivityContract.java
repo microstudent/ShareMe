@@ -17,5 +17,7 @@ public interface MainActivityContract {
 
     interface Presenter extends BasePresenter {
         void appendPassword(String number);
+
+        boolean isServer();
     }
 }

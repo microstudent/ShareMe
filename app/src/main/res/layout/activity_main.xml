@@ -25,6 +25,8 @@
         android:layout_marginTop="@dimen/status_bar_height"
         app:layout_insetEdge="top"
         android:onClick="mock"
+        app:theme="@style/ToolbarTheme"
+        app:popupTheme="@style/ToolbarPopupTheme"
         app:logo="@drawable/ic_action">
         <TextView
             android:text="ShareMe"

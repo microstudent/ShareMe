@@ -16,6 +16,7 @@ import com.leaves.app.shareme.R;
  * create an instance of this fragment.
  */
 public class BehaviorFragment extends Fragment {
+    public static final String TAG = "BehaviorFragment";
 
 //    private OnBehaviorClickListener mListener;
 

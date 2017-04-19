@@ -33,7 +33,7 @@ import butterknife.OnClick;
 import io.reactivex.functions.Consumer;
 
 public class MusicPlayerFragment extends BottomSheetFragment implements RtspClient.Callback, ReceiveSession.Callback, PlaytimeProvider {
-
+    public static final String TAG = "MusicPlayerFragment";
     @BindView(R.id.iv_cover)
     ImageView mCoverView;
 

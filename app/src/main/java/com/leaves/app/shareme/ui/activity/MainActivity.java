@@ -11,6 +11,8 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.Toast;
@@ -33,6 +35,7 @@ import com.leaves.app.shareme.ui.fragment.AudioListFragment;
 import com.leaves.app.shareme.ui.fragment.BehaviorFragment;
 import com.leaves.app.shareme.ui.fragment.BottomSheetFragment;
 import com.leaves.app.shareme.ui.fragment.DialpadFragment;
+import com.leaves.app.shareme.ui.fragment.MusicFragment;
 import com.leaves.app.shareme.ui.fragment.PasswordFragment;
 import com.leaves.app.shareme.ui.widget.dialpad.listener.OnNumberClickListener;
 import com.tbruyelle.rxpermissions2.RxPermissions;
@@ -64,9 +67,9 @@ public class MainActivity extends AppCompatActivity implements
     private PasswordFragment mPasswordFragment;
     private BehaviorFragment mBehaviorFragment;
     private AudioListFragment mAudioListFragment;
-    private Fragment mLastBottomFragment;
     private MainActivityContract.Presenter mPresenter;
     private int mMode = -1;
+    private MusicFragment mMusicFragment;
 
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -102,31 +105,33 @@ public class MainActivity extends AppCompatActivity implements
     }
 
     private void setupView() {
-        mBottomSheetBehavior.setBottomSheetCallback(new BottomSheetBehavior.BottomSheetCallback() {
-            @Override
-            public void onStateChanged(@NonNull View bottomSheet, int newState) {
-                if (newState == STATE_EXPANDED) {
-                    mDockerBehavior.setNeedMeasure(false);
-                    if (mAudioListFragment == null) {
-                        mAudioListFragment = AudioListFragment.newInstance();
-                    }
-                    switchFragment(mAudioListFragment, R.id.bottom_sheet);
-                    mBottomSheetBehavior.setScrollable(true);
-                } else if (newState == STATE_COLLAPSED) {
-                    mDockerBehavior.setNeedMeasure(false);
-                    if (mBehaviorFragment == null) {
-                        mBehaviorFragment = BehaviorFragment.newInstance();
-                    }
-                    switchFragment(mBehaviorFragment, R.id.bottom_sheet);
-                    mBottomSheetBehavior.setScrollable(true);
-                }
-            }
-
-            @Override
-            public void onSlide(@NonNull View bottomSheet, float slideOffset) {
-
-            }
-        });
+//        mBottomSheetBehavior.setBottomSheetCallback(new BottomSheetBehavior.BottomSheetCallback() {
+//            @Override
+//            public void onStateChanged(@NonNull View bottomSheet, int newState) {
+//                if (newState == STATE_EXPANDED) {
+//                    mDockerBehavior.setNeedMeasure(false);
+//                    if (mAudioListFragment == null) {
+//                        mAudioListFragment = AudioListFragment.newInstance();
+//                    }
+//                    switchFragment(mAudioListFragment, R.id.bottom_sheet);
+//                    mBottomSheetBehavior.setScrollable(true);
+//                } else if (newState == STATE_COLLAPSED) {
+//                    mDockerBehavior.setNeedMeasure(false);
+//                    if (mBehaviorFragment == null) {
+//                        mBehaviorFragment = BehaviorFragment.newInstance();
+//                    }
+//                    switchFragment(mBehaviorFragment, R.id.bottom_sheet);
+//                    mBottomSheetBehavior.setScrollable(true);
+//                }
+//            }
+//
+//            @Override
+//            public void onSlide(@NonNull View bottomSheet, float slideOffset) {
+//
+//            }
+//        });
+        setSupportActionBar(mToolbar);
+        setTitle("");
         mBottomSheetBehavior.setMinOffset(300);
         mBottomSheetBehavior.setScrollable(false);
 
@@ -147,19 +152,23 @@ public class MainActivity extends AppCompatActivity implements
     @Override
     public void setupFragment(int mode) {
         if (mMode != mode) {
-            mPasswordFragment = PasswordFragment.newInstance();
-            mFragmentManager.beginTransaction()
-                    .add(R.id.container_main, mPasswordFragment)
-                    .commit();
             Fragment fragment;
             switch (mode) {
                 case MainPresenter.MODE_STARTUP:
+                    mPasswordFragment = PasswordFragment.newInstance();
+                    mFragmentManager.beginTransaction()
+                            .replace(R.id.container_main, mPasswordFragment, PasswordFragment.TAG)
+                            .commit();
                     fragment = DialpadFragment.newInstance();
-                    switchFragment(fragment, R.id.bottom_sheet);
+                    switchFragment(null, fragment, DialpadFragment.TAG, R.id.bottom_sheet);
                     break;
                 case MainPresenter.MODE_CONNECTED:
+                    mMusicFragment = MusicFragment.newInstance(mPresenter.isServer());
+                    mFragmentManager.beginTransaction()
+                            .replace(R.id.container_main, mMusicFragment, MusicFragment.TAG)
+                            .commit();
                     fragment = BehaviorFragment.newInstance();
-                    switchFragment(fragment, R.id.bottom_sheet);
+                    switchFragment(DialpadFragment.TAG, fragment, BehaviorFragment.TAG, R.id.bottom_sheet);
                     break;
             }
         }
@@ -181,28 +190,30 @@ public class MainActivity extends AppCompatActivity implements
         mPresenter.appendPassword(number);
     }
 
+    /**
+     * 由password通知的
+     */
     @Override
     public void onSearchingDevice() {
-//        mBehaviorFragment = BehaviorFragment.newInstance();
-        switchFragment(BehaviorFragment.newInstance(), R.id.bottom_sheet);
+        switchFragment(DialpadFragment.TAG, BehaviorFragment.newInstance(), BehaviorFragment.TAG, R.id.bottom_sheet);
         mBottomSheetBehavior.setScrollable(true);
     }
 
-    private void switchFragment(Fragment to, @IdRes int resId) {
+    private void switchFragment(String fromTag, Fragment to, String toTag, @IdRes int resId) {
         FragmentTransaction transaction = mFragmentManager.beginTransaction();
-        if (mLastBottomFragment == null) {
-            transaction.add(resId, to);
-        } else if (to != mLastBottomFragment) {
+        Fragment fromFragment = mFragmentManager.findFragmentByTag(fromTag);
+        if (fromFragment == null) {
+            transaction.add(resId, to, toTag);
+        } else if (to != fromFragment) {
             if (!to.isAdded()) {
-                transaction.hide(mLastBottomFragment)
-                        .add(resId, to).addToBackStack(null);
+                transaction.hide(fromFragment)
+                        .add(resId, to, toTag).addToBackStack(null);
             } else {
-                transaction.hide(mLastBottomFragment)
+                transaction.hide(fromFragment)
                         .show(to).addToBackStack(null);
             }
         }
         transaction.commit();
-        mLastBottomFragment = to;
     }
 
     public void mock(View view) {
@@ -220,13 +231,29 @@ public class MainActivity extends AppCompatActivity implements
     }
 
     @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu_main, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.action_exit:
+                System.exit(0);
+                return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    @Override
     public void onSearching() {
         mPasswordFragment.switchToMode(PasswordFragment.MODE_SEARCHING);
     }
 
     @Override
     public void onBackPressed() {
-        super.onBackPressed();
-//        moveTaskToBack(true);
+//        super.onBackPressed();
+        moveTaskToBack(true);
     }
 }

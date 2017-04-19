@@ -24,6 +24,7 @@ public class MainPresenter implements MainActivityContract.Presenter, WifiDirect
     private MainActivityContract.View mView;
     private int mMode = MODE_STARTUP;
     private boolean isServiceStarted;
+    private boolean isServer;
 
     public MainPresenter(MainActivityContract.View view, FragmentManager manager, Context context) {
         mWifiDirectionPresenter = new WifiDirectionPresenter(this, manager, context);
@@ -54,6 +55,7 @@ public class MainPresenter implements MainActivityContract.Presenter, WifiDirect
     @Override
     public void startAsServer() {
         mMode = MODE_CONNECTED;
+        isServer = true;
         mView.setupFragment(mMode);
         if (!isServiceStarted) {
             Intent intent = new Intent(mContext, MusicServerService.class);
@@ -65,6 +67,7 @@ public class MainPresenter implements MainActivityContract.Presenter, WifiDirect
     @Override
     public void startAsClient(String serverIp) {
         mMode = MODE_CONNECTED;
+        isServer = false;
         mView.setupFragment(mMode);
         if (!isServiceStarted) {
             Intent intent = new Intent(mContext, MusicClientService.class);
@@ -77,6 +80,7 @@ public class MainPresenter implements MainActivityContract.Presenter, WifiDirect
     @Override
     public void startAsUndefined() {
         mMode = MODE_STARTUP;
+        isServer = false;
         mView.setupFragment(mMode);
     }
 
@@ -84,4 +88,10 @@ public class MainPresenter implements MainActivityContract.Presenter, WifiDirect
     public void appendPassword(String number) {
         mWifiDirectionPresenter.appendPassword(number);
     }
+
+    @Override
+    public boolean isServer() {
+        return isServer;
+    }
+
 }

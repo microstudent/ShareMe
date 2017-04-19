@@ -41,4 +41,6 @@
     <dimen name="status_bar_height">25dp</dimen>
     <dimen name="list_item_spacing">16dp</dimen>
     <dimen name="list_item_spacing_half">8dp</dimen>
+
+    <dimen name="cover_image_size">150dp</dimen>
 </resources>
