@@ -8,7 +8,6 @@ import android.support.v7.app.AppCompatActivity;
 
 import com.leaves.app.shareme.Constant;
 import com.leaves.app.shareme.contract.WifiDirectionContract;
-import com.leaves.app.shareme.ui.fragment.MusicPlayerFragment;
 import com.leaves.sdk.wifidirect.WifiDirect;
 import com.leaves.sdk.wifidirect.listener.OnConnectionChangeListener;
 import com.leaves.sdk.wifidirect.listener.OnDeviceDetailChangeListener;
@@ -81,10 +80,13 @@ public class WifiDirectionPresenter implements WifiDirectionContract.Presenter, 
     public void onConnectionChange(WifiP2pDeviceList deviceList) {
         if (mWifiDirect.isGroupOwner()) {
             mView.showToast("I am group owner");
-            mView.startServer();
+            mView.startAsServer();
         } else {
-            mView.setServerIp();
-            MusicPlayerFragment.mServerIp = mWifiDirect.getGroupOwnerIp();
+            if (mWifiDirect.getGroupOwnerIp() != null) {
+                mView.startAsClient(mWifiDirect.getGroupOwnerIp());
+            } else {
+                mView.startAsUndefined();
+            }
         }
     }
 

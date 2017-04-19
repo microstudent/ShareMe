@@ -5,4 +5,7 @@
     <string name="cancel">取消</string>
     <string name="title_searching">正在搜索匹配的设备...</string>
     <string name="hint_searching">通过ShareMe，你可以分享自己的音乐，\n使自己的手机和其他手机同时播放一个媒体！</string>
+    <string name="connection">连接信息</string>
+    <string name="media_list">媒体列表</string>
+
 </resources>

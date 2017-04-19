@@ -5,5 +5,5 @@ package net.majorkernelpanic.streaming.rtp;
  */
 
 public interface OnPCMDataAvailableListener {
-    void onPCMDataAvaialable(long rtpTime, byte[] data);
+    void onPCMDataAvailable(long rtpTime, byte[] data);
 }

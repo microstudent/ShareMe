@@ -25,13 +25,15 @@ import com.bumptech.glide.request.RequestListener;
 import com.bumptech.glide.request.target.Target;
 import com.leaves.app.shareme.R;
 import com.leaves.app.shareme.bean.Media;
-import com.leaves.app.shareme.contract.WifiDirectionContract;
+import com.leaves.app.shareme.contract.MainActivityContract;
+import com.leaves.app.shareme.presenter.MainPresenter;
 import com.leaves.app.shareme.ui.behavior.DockerBehavior;
 import com.leaves.app.shareme.ui.behavior.DodgeBottomSheetBehavior;
 import com.leaves.app.shareme.ui.fragment.AudioListFragment;
+import com.leaves.app.shareme.ui.fragment.BehaviorFragment;
 import com.leaves.app.shareme.ui.fragment.BottomSheetFragment;
 import com.leaves.app.shareme.ui.fragment.DialpadFragment;
-import com.leaves.app.shareme.ui.fragment.MainFragment;
+import com.leaves.app.shareme.ui.fragment.PasswordFragment;
 import com.leaves.app.shareme.ui.fragment.MusicPlayerFragment;
 import com.leaves.app.shareme.ui.widget.dialpad.listener.OnNumberClickListener;
 import com.tbruyelle.rxpermissions2.RxPermissions;
@@ -42,7 +44,8 @@ import static android.support.design.widget.BottomSheetBehavior.STATE_EXPANDED;
 
 public class MainActivity extends AppCompatActivity implements
         OnNumberClickListener, BottomSheetFragment.OnFragmentMeasureListener,
-        MainFragment.MainFragmentCallback, AudioListFragment.OnAudioClickListener {
+        PasswordFragment.MainFragmentCallback, AudioListFragment.OnAudioClickListener, MainActivityContract.View {
+
     private FragmentManager mFragmentManager;
 
     @BindView(R.id.iv_bg)
@@ -59,12 +62,13 @@ public class MainActivity extends AppCompatActivity implements
 
     private DodgeBottomSheetBehavior mBottomSheetBehavior;
     private DockerBehavior mDockerBehavior;
-    private MainFragment mMainFragment;
+    private PasswordFragment mPasswordFragment;
     private MusicPlayerFragment mMusicPlayerFragment;
     private AudioListFragment mAudioListFragment;
     private Fragment mLastBottomFragment;
+    private MainActivityContract.Presenter mPresenter;
+    private int mMode = -1;
 
-    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
@@ -95,10 +99,10 @@ public class MainActivity extends AppCompatActivity implements
             mBottomSheetBehavior = (DodgeBottomSheetBehavior) behavior;
         }
         mDockerBehavior = DockerBehavior.from(mContentView);
+        mPresenter = new MainPresenter(this, getSupportFragmentManager(), this);
     }
 
     private void setupView() {
-        setupFragment();
         mBottomSheetBehavior.setBottomSheetCallback(new BottomSheetBehavior.BottomSheetCallback() {
             @Override
             public void onStateChanged(@NonNull View bottomSheet, int newState) {
@@ -141,13 +145,26 @@ public class MainActivity extends AppCompatActivity implements
         }).preload();
     }
 
-    private void setupFragment() {
-        mMainFragment = MainFragment.newInstance();
-        mFragmentManager.beginTransaction()
-                .add(R.id.container_main, mMainFragment)
-                .commit();
-        Fragment fragment = DialpadFragment.newInstance();
-        switchFragment(fragment, R.id.bottom_sheet);
+    @Override
+    public void setupFragment(int mode) {
+        if (mMode != mode) {
+            mPasswordFragment = PasswordFragment.newInstance();
+            mFragmentManager.beginTransaction()
+                    .add(R.id.container_main, mPasswordFragment)
+                    .commit();
+            Fragment fragment;
+            switch (mode) {
+                case MainPresenter.MODE_STARTUP:
+                    fragment = DialpadFragment.newInstance();
+                    switchFragment(fragment, R.id.bottom_sheet);
+                    break;
+                case MainPresenter.MODE_CONNECTED:
+                    fragment = BehaviorFragment.newInstance();
+                    switchFragment(fragment, R.id.bottom_sheet);
+                    break;
+            }
+        }
+        mMode = mode;
     }
 
     @Override
@@ -159,41 +176,59 @@ public class MainActivity extends AppCompatActivity implements
 
     @Override
     public void onNumberClick(String number) {
-        if (mMainFragment != null) {
-            mMainFragment.appendPassword(number);
+        if (mPasswordFragment != null) {
+            mPasswordFragment.appendPassword(number);
         }
+        mPresenter.appendPassword(number);
     }
 
     @Override
     public void onSearchingDevice() {
-        mMusicPlayerFragment = MusicPlayerFragment.newInstance();
-        switchFragment(mMusicPlayerFragment, R.id.bottom_sheet);
+//        mMusicPlayerFragment = BehaviorFragment.newInstance();
+        switchFragment(BehaviorFragment.newInstance(), R.id.bottom_sheet);
         mBottomSheetBehavior.setScrollable(true);
     }
 
     private void switchFragment(Fragment to, @IdRes int resId) {
+        FragmentTransaction transaction = mFragmentManager.beginTransaction();
         if (mLastBottomFragment == null) {
-            mFragmentManager.beginTransaction().add(resId, to)
-                    .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE).commit();
-        }else if (to != mLastBottomFragment) {
+            transaction.add(resId, to);
+        } else if (to != mLastBottomFragment) {
             if (!to.isAdded()) {
-                mFragmentManager.beginTransaction().hide(mLastBottomFragment)
-                        .add(resId, to).setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE).commit();
+                transaction.hide(mLastBottomFragment)
+                        .add(resId, to).addToBackStack(null);
             } else {
-                mFragmentManager.beginTransaction().hide(mLastBottomFragment)
-                        .show(to).setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE).commit();
+                transaction.hide(mLastBottomFragment)
+                        .show(to).addToBackStack(null);
             }
         }
+        transaction.commit();
         mLastBottomFragment = to;
     }
 
-    public void connectToServer(View view) {
+    public void mock(View view) {
         onSearchingDevice();
     }
 
     @Override
     public void onAudioClick(Media media) {
         mBottomSheetBehavior.setState(STATE_COLLAPSED);
-        mMusicPlayerFragment.play(media);
+        mMusicPlayerFragment.playAsServer(media);
+    }
+
+    @Override
+    public void showToast(String msg) {
+        Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public void onSearching() {
+        mPasswordFragment.switchToMode(PasswordFragment.MODE_SEARCHING);
+    }
+
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+//        moveTaskToBack(true);
     }
 }

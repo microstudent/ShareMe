@@ -7,6 +7,15 @@ package com.leaves.app.shareme.bean;
 public class Frame {
     private long ntpTime;
     private long rtpTime;
+    private byte[] PCMData;
+
+    public byte[] getPCMData() {
+        return PCMData;
+    }
+
+    public void setPCMData(byte[] PCMData) {
+        this.PCMData = PCMData;
+    }
 
     public long getNtpTime() {
         return ntpTime;

@@ -1,8 +1,5 @@
 package net.majorkernelpanic.streaming.inputstream.audio;
 
-import android.media.AudioFormat;
-import android.media.AudioManager;
-import android.media.AudioTrack;
 import android.media.MediaCodec;
 import android.media.MediaCodecInfo;
 import android.media.MediaFormat;
@@ -17,7 +14,6 @@ import net.majorkernelpanic.streaming.rtp.unpacker.AACADTSUnpacker;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
-import java.util.Queue;
 
 
 import static net.majorkernelpanic.streaming.rtp.unpacker.RtpReceiveSocket.MTU;
@@ -56,7 +52,7 @@ public class AACInputStream implements InputStream, Runnable {
 
     private void consumePCMData(long rtpTime, byte[] chunkPCM) {
         if (mOnPCMDataAvailableListener != null) {
-            mOnPCMDataAvailableListener.onPCMDataAvaialable(rtpTime, chunkPCM);
+            mOnPCMDataAvailableListener.onPCMDataAvailable(rtpTime, chunkPCM);
         }
 //        if (mAudioTrack != null) {
 //            long start = System.currentTimeMillis();
@@ -156,28 +152,12 @@ public class AACInputStream implements InputStream, Runnable {
                 chunkPCM = new byte[mDecodeBufferInfo.size];//BufferInfo内定义了此数据块的大小
                 outputBuffer.get(chunkPCM);//将Buffer内的数据取出到字节数组中
                 outputBuffer.clear();//数据取出后一定记得清空此Buffer MediaCodec是循环使用这些Buffer的，不清空下次会得到同样的数据
-                playSilentIfNeeded(mDecodeBufferInfo.presentationTimeUs);
                 consumePCMData(mDecodeBufferInfo.presentationTimeUs, chunkPCM);//自己定义的方法，供编码器所在的线程获取数据,下面会贴出代码
                 mMediaDecode.releaseOutputBuffer(outputIndex, false);//此操作一定要做，不然MediaCodec用完所有的Buffer后 将不能向外输出数据
             }
         }
     }
 
-    private void playSilentIfNeeded(long timeStamp) {
-        if (mCurrentTimeStamp == 0) {
-            mCurrentTimeStamp = timeStamp;
-        }
-        while (mCurrentTimeStamp + 1 != timeStamp && timeStamp > mCurrentTimeStamp) {
-            try {
-                Thread.sleep(1000000L / mConfig.sampleRate);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-            Log.d("AACInputStream", "current = " + mCurrentTimeStamp + "timeStamp = " + timeStamp);
-            mCurrentTimeStamp++;
-        }
-        mCurrentTimeStamp = timeStamp;
-    }
 
 
     @Override

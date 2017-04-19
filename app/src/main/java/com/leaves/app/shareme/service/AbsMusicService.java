@@ -61,6 +61,7 @@ public abstract class AbsMusicService extends Service {
                 return false;
             }
         }).preload();
+        //notify Client
         start(invalidate);
     }
 

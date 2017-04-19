@@ -15,9 +15,11 @@ public interface WifiDirectionContract {
 
         void onDeviceFound(WifiP2pDevice wifiP2pDevice);
 
-        void startServer();
+        void startAsServer();
 
-        void setServerIp();
+        void startAsClient(String serverIp);
+
+        void startAsUndefined();
     }
 
     interface Presenter extends BasePresenter {

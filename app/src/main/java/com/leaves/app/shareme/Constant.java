@@ -22,4 +22,13 @@ public class Constant {
         String KEY_PASSWORD = "password";
         String KEY_TIMESTAMP = "timestamp";
     }
+
+    public interface WebSocket {
+        String REGEX = "/ShareMe";
+        int PORT = 8080;
+    }
+
+    public interface Intent{
+        String SERVER_IP = "server_ip";
+    }
 }

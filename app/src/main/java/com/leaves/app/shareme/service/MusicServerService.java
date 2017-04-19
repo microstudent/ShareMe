@@ -10,6 +10,10 @@ import android.support.annotation.Nullable;
 import android.widget.Toast;
 
 
+import com.koushikdutta.async.http.WebSocket;
+import com.koushikdutta.async.http.server.AsyncHttpServer;
+import com.koushikdutta.async.http.server.AsyncHttpServerRequest;
+import com.leaves.app.shareme.Constant;
 import com.leaves.app.shareme.bean.Frame;
 import com.leaves.app.shareme.bean.Media;
 import com.leaves.app.shareme.eventbus.RxBus;
@@ -29,10 +33,8 @@ import io.reactivex.schedulers.Schedulers;
  * Created by Leaves on 2016/11/7.
  */
 
-public class MusicServerService extends AbsMusicService implements MediaPlayer.OnPreparedListener, MediaPlayer.OnErrorListener, MediaPlayer.OnCompletionListener {
-    public static final int ACTION_PLAY = 1;
-    public static final int ACTION_STOP = 2;
-    public static final int ACTION_PAUSE = 3;
+public class MusicServerService extends AbsMusicService implements MediaPlayer.OnPreparedListener,
+        MediaPlayer.OnErrorListener, MediaPlayer.OnCompletionListener ,WebSocket.StringCallback{
     private MediaPlayer mMediaPlayer = null;
 
     private Disposable mTimeSeekDisposable;
@@ -46,45 +48,26 @@ public class MusicServerService extends AbsMusicService implements MediaPlayer.O
     private ServerBinder mBinder;
     private Frame mFrame;
 
-//    @Override
-//    public int onStartCommand(Intent intent, int flags, int startId) {
-//        if (mCompositeDisposable == null || !mCompositeDisposable.isDisposed()) {
-//            mCompositeDisposable = new CompositeDisposable();
-//
-//            mCompositeDisposable.add(RxBus.getDefault().toFlowable(MediaEvent.class)
-//                    .subscribe(new Consumer<MediaEvent>() {
-//                        @Override
-//                        public void accept(MediaEvent mediaEvent) throws Exception {
-//                            switch (mediaEvent.getAction()) {
-//                                case ACTION_PLAY:
-//                                    play(mediaEvent.getMedia());
-//                                    break;
-//                                case ACTION_PAUSE:
-//                                    pause();
-//                                    break;
-//                                case ACTION_STOP:
-//                                    stop();
-//                            }
-//                        }
-//                    }));
-//            mCompositeDisposable.add(RxBus.getDefault().toFlowable(Message.class)
-//                    .subscribe(new Consumer<Message>() {
-//                        @Override
-//                        public void accept(Message message) throws Exception {
-//                            if (message.getTag() == Constant.TAG_QUERY_PLAYING_AUDIO) {
-//                                RxBus.getDefault().post(new Message(Constant.TAG_MEDIA, mPlayingMedia));
-//                            }
-//                        }
-//                    }));
-//        }
-//        if (intent != null) {
-//            Media media = (Media) intent.getSerializableExtra(Constant.MEDIA);
-//            if (media != null) {
-//                play(media);
-//            }
-//        }
-//        return START_STICKY;
-//    }
+    private AsyncHttpServer mWebSocketServer;
+    private WebSocket mConnectedWebSocket;
+
+    @Override
+    public int onStartCommand(Intent intent, int flags, int startId) {
+        if (mCompositeDisposable == null || !mCompositeDisposable.isDisposed()) {
+            mCompositeDisposable = new CompositeDisposable();
+        }
+        //先建立webSocket服务器，通知client连接
+        mWebSocketServer = new AsyncHttpServer();
+        mWebSocketServer.websocket(Constant.WebSocket.REGEX, null, new AsyncHttpServer.WebSocketRequestCallback() {
+            @Override
+            public void onConnected(WebSocket webSocket, AsyncHttpServerRequest request) {
+                mConnectedWebSocket = webSocket;
+                webSocket.setStringCallback(MusicServerService.this);
+            }
+        });
+        mWebSocketServer.listen(Constant.WebSocket.PORT);
+        return START_STICKY;
+    }
 
 
     @Override
@@ -122,6 +105,11 @@ public class MusicServerService extends AbsMusicService implements MediaPlayer.O
     }
 
     @Override
+    public void onStringAvailable(String s) {
+
+    }
+
+    @Override
     protected Intent getNotificationIntent() {
         return new Intent(this, MainActivity.class);
     }
@@ -140,6 +128,10 @@ public class MusicServerService extends AbsMusicService implements MediaPlayer.O
 
     @Override
     protected void start(boolean invalidate) {
+        //notifyThe client
+        if (mConnectedWebSocket != null) {
+            mConnectedWebSocket.send("start Play");
+        }
         if (invalidate) {
             mMediaPlayer.reset();
             Uri uri = Uri.parse(mMedia.getSrc());
@@ -157,7 +149,7 @@ public class MusicServerService extends AbsMusicService implements MediaPlayer.O
         }
     }
 
-//    private void play(Media media) {
+//    private void playAsServer(Media media) {
 //        if (media == null) {
 //            return;
 //        }

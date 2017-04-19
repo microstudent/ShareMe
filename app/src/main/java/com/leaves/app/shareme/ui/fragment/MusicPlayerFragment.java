@@ -44,7 +44,6 @@ public class MusicPlayerFragment extends BottomSheetFragment implements RtspClie
     TextView mSubTextView;
     private RtspClient mClient;
     private ReceiveSession mSession;
-    public static String mServerIp;
     private Media mPlayingAudio;
     private long mCurrentPlayTime;
 
@@ -54,18 +53,6 @@ public class MusicPlayerFragment extends BottomSheetFragment implements RtspClie
         // Required empty public constructor
     }
 
-    private MusicServerService.ServerBinder mServerBinder;
-    private ServiceConnection mConnection = new ServiceConnection() {
-        @Override
-        public void onServiceDisconnected(ComponentName name) {
-        }
-
-        @Override
-        public void onServiceConnected(ComponentName name, IBinder service) {
-            mServerBinder = (MusicServerService.ServerBinder)service;
-        }
-    };
-
     public static MusicPlayerFragment newInstance() {
         MusicPlayerFragment fragment = new MusicPlayerFragment();
         return fragment;
@@ -74,12 +61,6 @@ public class MusicPlayerFragment extends BottomSheetFragment implements RtspClie
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Intent intent = new Intent(getContext(), MusicServerService.class);
-        getActivity().bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
-
-        SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(getContext()).edit();
-        editor.putString(RtspServer.KEY_PORT, String.valueOf(7236));
-        editor.apply();
 
         RxBus.getDefault().toFlowable(TimeSeekEvent.class)
                 .subscribe(new Consumer<TimeSeekEvent>() {
@@ -105,46 +86,18 @@ public class MusicPlayerFragment extends BottomSheetFragment implements RtspClie
     }
 
     @OnClick(R.id.bt_play)
-    public void connectionToServer() {
-//        // Configures the SessionBuilder
-//        mSession = new ReceiveSession.Builder()
-//                .setAudioDecoder(ReceiveSession.Builder.AUDIO_AAC)
-//                .setVideoDecoder(ReceiveSession.Builder.VIDEO_NONE)
-//                .setCallback(this)
-//                .build();
-//        mClient = new RtspClient();
-//        mClient.setSession(mSession);
-//        mClient.setCallback(this);
-//        toggleStream();
+    public void playAsClient() {
+
     }
 
-    // Connects/disconnects to the RTSP server and starts/stops the stream
-    public void toggleStream() {
-        if (!mClient.isStreaming()) {
-            String ip,port,path;
-
-            // We parse the URI written in the Editext
-//            Pattern uri = Pattern.compile("rtsp://(.+):(\\d*)/(.+)");
-//            Matcher m = uri.matcher("rtsp://" + mServerIp + ":7236/");
-//            m.find();
-//            ip = m.group(1);
-//            port = m.group(2);
-//            path = m.group(3);
-            ip = mServerIp;
-            port = "7236";
-            path = "";
-            mClient.setServerAddress(ip, Integer.parseInt(port));
-            mClient.setStreamPath(path);
-            mClient.startStream();
-
-        } else {
-            // Stops the stream and disconnects from the RTSP server
-            mClient.stopStream();
+    public void playAsServer(Media media) {
+        if (media != null) {
+            Glide.with(this).load(media.getImage())
+                    .asBitmap().into(mCoverView);
+            mTitleView.setText(media.getTitle());
+            mSubTextView.setText(media.getArtist());
+            mPlayingAudio = media;
         }
-    }
-
-    public void setServerIp(String serverIp) {
-        mServerIp = serverIp;
     }
 
     @Override
@@ -154,7 +107,6 @@ public class MusicPlayerFragment extends BottomSheetFragment implements RtspClie
 
     @Override
     public void onSessionError(int reason, int streamType, Exception e) {
-
     }
 
     @Override
@@ -170,31 +122,6 @@ public class MusicPlayerFragment extends BottomSheetFragment implements RtspClie
     @Override
     public void onRtspUpdate(int message, Exception exception) {
 
-    }
-
-    public void play(Media media) {
-        if (media != null) {
-            Glide.with(this).load(media.getImage())
-                    .asBitmap().into(mCoverView);
-            mTitleView.setText(media.getTitle());
-            mSubTextView.setText(media.getArtist());
-            mPlayingAudio = media;
-//            MediaEvent event = new MediaEvent(MusicServerService.ACTION_PLAY, media);
-//            RxBus.getDefault().post(event);
-            // Configures the SessionBuilder
-            SessionBuilder.getInstance()
-                    .setContext(getContext().getApplicationContext())
-                    .setVideoEncoder(SessionBuilder.VIDEO_NONE)
-                    .setMp3Path(media.getSrc())
-                    .setPlaytimeProvider(this)
-                    .setAudioEncoder(SessionBuilder.AUDIO_MP3);
-
-            // Starts the RTSP server
-            if (mServerBinder != null) {
-                mServerBinder.play(media);
-            }
-//            getActivity().startService(new Intent(getContext(), RtspServer.class));
-        }
     }
 
     @Override
