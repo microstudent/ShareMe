@@ -25,14 +25,13 @@ import net.majorkernelpanic.streaming.PlaytimeProvider;
 import net.majorkernelpanic.streaming.ReceiveSession;
 import net.majorkernelpanic.streaming.SessionBuilder;
 import net.majorkernelpanic.streaming.rtsp.RtspClient;
-import net.majorkernelpanic.streaming.rtsp.RtspServer;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 import io.reactivex.functions.Consumer;
 
-public class MusicPlayerFragment extends BottomSheetFragment implements RtspClient.Callback, ReceiveSession.Callback, PlaytimeProvider {
+public class MusicPlayerFragment extends BottomSheetFragment implements PlaytimeProvider {
     public static final String TAG = "MusicPlayerFragment";
     @BindView(R.id.iv_cover)
     ImageView mCoverView;
@@ -98,30 +97,6 @@ public class MusicPlayerFragment extends BottomSheetFragment implements RtspClie
             mSubTextView.setText(media.getArtist());
             mPlayingAudio = media;
         }
-    }
-
-    @Override
-    public void onBitrateUpdate(long bitrate) {
-
-    }
-
-    @Override
-    public void onSessionError(int reason, int streamType, Exception e) {
-    }
-
-    @Override
-    public void onSessionStarted() {
-
-    }
-
-    @Override
-    public void onSessionStopped() {
-
-    }
-
-    @Override
-    public void onRtspUpdate(int message, Exception exception) {
-
     }
 
     @Override

@@ -128,6 +128,8 @@ public class RtspClient {
 	 */
 	public interface Callback {
 		public void onRtspUpdate(int message, Exception exception);
+
+		public void onConfigured(InputStream.Config config);
 	}
 
 	public RtspClient() {
@@ -405,6 +407,9 @@ public class RtspClient {
 			}
 			InputStream.Config config = parse(sb.toString(), "\r\n");
 			mParameters.session.getTrack(0).config(config);
+			if (mCallback != null) {
+				mCallback.onConfigured(config);
+			}
 //			mBufferedReader.readLine()
 //			mBufferedReader.skip(contentLength);
 		}

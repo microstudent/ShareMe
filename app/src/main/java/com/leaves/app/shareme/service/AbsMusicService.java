@@ -96,4 +96,12 @@ public abstract class AbsMusicService extends Service {
     private boolean isLocalSrc(String src) {
         return !(src != null && src.startsWith("rtsp"));
     }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        if (mWifiLock != null) {
+            mWifiLock.release();
+        }
+    }
 }

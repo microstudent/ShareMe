@@ -9,6 +9,7 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.os.Looper;
 import android.support.v4.app.Fragment;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -126,18 +127,12 @@ public class MusicFragment extends Fragment {
             Glide.with(this).load(R.drawable.bg_piano).asBitmap().
                     transform(new GlideCircleTransform(getContext())).into(mCoverView);
         } else {
-            Glide.with(this).load(mMedia.getImage()).asBitmap().
-                    transform(new GlideCircleTransform(getContext())).into(mCoverView);
-            Observable.just(mMedia)
-                    .subscribeOn(AndroidSchedulers.mainThread())
-                    .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe(new Consumer<Media>() {
-                        @Override
-                        public void accept(Media media) throws Exception {
-                            mTitleView.setText(mMedia.getTitle());
-                            mAuthorView.setText(mMedia.getArtist());
-                        }
-                    });
+            if (!TextUtils.isEmpty(mMedia.getImage())) {
+                Glide.with(this).load(mMedia.getImage()).asBitmap().
+                        transform(new GlideCircleTransform(getContext())).into(mCoverView);
+            }
+            mTitleView.setText(mMedia.getTitle());
+            mAuthorView.setText(mMedia.getArtist());
         }
     }
 }

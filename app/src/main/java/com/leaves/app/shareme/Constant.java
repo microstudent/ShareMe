@@ -24,8 +24,8 @@ public class Constant {
     }
 
     public interface WebSocket {
-        String REGEX = "/ShareMe";
-        int PORT = 8080;
+        String REGEX = "/";
+        int PORT = 9000;
     }
 
     public interface Intent{

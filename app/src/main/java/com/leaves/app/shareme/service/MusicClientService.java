@@ -9,6 +9,8 @@ import android.support.annotation.Nullable;
 import android.util.Log;
 import android.widget.Toast;
 
+import com.google.gson.Gson;
+import com.koushikdutta.async.future.Future;
 import com.koushikdutta.async.http.AsyncHttpClient;
 import com.koushikdutta.async.http.WebSocket;
 import com.leaves.app.shareme.Constant;
@@ -22,9 +24,12 @@ import net.majorkernelpanic.streaming.rtp.OnPCMDataAvailableListener;
 import net.majorkernelpanic.streaming.rtsp.RtspClient;
 
 import java.util.Queue;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.TimeUnit;
 
 import io.reactivex.Observable;
+import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.functions.BooleanSupplier;
 import io.reactivex.functions.Consumer;
 import io.reactivex.schedulers.Schedulers;
@@ -35,6 +40,7 @@ import io.reactivex.schedulers.Schedulers;
 
 public class MusicClientService extends AbsMusicService implements RtspClient.Callback, OnPCMDataAvailableListener, OnRTCPUpdateListener, WebSocket.StringCallback {
     private static final String TAG = "MusicClientService";
+    private static final boolean DEBUG = true;
     private AudioTrack mAudioTrack;
     private ClientBinder mBinder;
     private ReceiveSession mSession;
@@ -45,11 +51,12 @@ public class MusicClientService extends AbsMusicService implements RtspClient.Ca
     private volatile long mCurrentRtpTime;
     private InputStream.Config mConfig;
     private WebSocket mConnectedWebSocket;
-
+    private Gson mGson;
 
     @Override
     public void onCreate() {
         super.onCreate();
+        mGson = new Gson();
         // Configures the SessionBuilder
         mSession = new ReceiveSession.Builder()
                 .setAudioDecoder(ReceiveSession.Builder.AUDIO_AAC)
@@ -88,10 +95,11 @@ public class MusicClientService extends AbsMusicService implements RtspClient.Ca
                         if (ex != null) {
                             Log.d(TAG, "ex:" + ex.getMessage());
                             ex.printStackTrace();
+                            tryConnectToWebSocketServer();
                             return;
                         }
                         mConnectedWebSocket = webSocket;
-
+                        Log.d(TAG, "clientConnect success");
                         webSocket.setStringCallback(MusicClientService.this);
                     }
                 });
@@ -101,31 +109,37 @@ public class MusicClientService extends AbsMusicService implements RtspClient.Ca
     protected void pause() {
         if (mAudioTrack != null) {
             mAudioTrack.pause();
+            isPlaying = false;
         }
     }
 
     @Override
     protected void start(boolean invalidate) {
-        mAudioTrack.play();
+        isPlaying = true;
         if (!mClient.isStreaming()) {
             mClient.startStream();
         }
         Observable.just(mFrameQueue)
-                .observeOn(Schedulers.newThread())
+                .subscribeOn(Schedulers.single())
+                .observeOn(Schedulers.single())
                 .repeatUntil(new BooleanSupplier() {
                     @Override
                     public boolean getAsBoolean() throws Exception {
-                        return isPlaying;
+                        return !isPlaying;
                     }
                 }).subscribe(new Consumer<Queue<Frame>>() {
             @Override
             public void accept(Queue<Frame> frames) throws Exception {
+                if (mAudioTrack != null && mAudioTrack.getPlayState() != AudioTrack.PLAYSTATE_PLAYING) {
+                    mAudioTrack.play();
+                }
                 Frame frame = frames.poll();
                 if (frame != null) {
+                    if (DEBUG) Log.d(TAG, "writing audio track");
                     playSilentIfNeeded(frame.getRtpTime());
                     mAudioTrack.write(frame.getPCMData(), 0, frame.getPCMData().length);
                 } else {
-                    Log.e(TAG, "no buffer to playAsServer!");
+//                    Log.e(TAG, "no buffer to playAsServer!");
                 }
             }
         });
@@ -136,6 +150,7 @@ public class MusicClientService extends AbsMusicService implements RtspClient.Ca
         mClient.stopStream();
         if (mAudioTrack != null) {
             mAudioTrack.stop();
+            isPlaying = false;
         }
     }
 
@@ -208,11 +223,17 @@ public class MusicClientService extends AbsMusicService implements RtspClient.Ca
     }
 
     @Override
+    public void onConfigured(InputStream.Config config) {
+        setConfig(config);
+    }
+
+    @Override
     public void onPCMDataAvailable(long rtpTime, byte[] data) {
         Frame frame = new Frame();
         frame.setRtpTime(rtpTime);
         frame.setPCMData(data);
         mFrameQueue.add(frame);
+        if (DEBUG) Log.d(TAG, "onPCMDataAvailable");
     }
 
     @Override
@@ -220,9 +241,13 @@ public class MusicClientService extends AbsMusicService implements RtspClient.Ca
 
     }
 
+    /**
+     * 非主线程
+     */
     @Override
     public void onStringAvailable(String s) {
-
+        mMedia = mGson.fromJson(s, Media.class);
+        start(true);
     }
 
 
@@ -243,9 +268,6 @@ public class MusicClientService extends AbsMusicService implements RtspClient.Ca
 
         }
 
-        public void setConfig(InputStream.Config config) {
-            MusicClientService.this.setConfig(config);
-        }
 
         public void sync(long currentRTPTime) {
             MusicClientService.this.sync(currentRTPTime);

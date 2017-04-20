@@ -38,14 +38,5 @@ public class RTSPActivity extends AppCompatActivity {
 
         // Starts the RTSP server
         this.startService(new Intent(this,RtspServer.class));
-//        AsyncRtspServer server = new AsyncRtspServer();
-//        server.options("/");
-//        server.get("/", new HttpServerRequestCallback() {
-//            @Override
-//            public void onRequest(AsyncHttpServerRequest request, AsyncHttpServerResponse response) {
-//                response.send("hello");
-//            }
-//        });
-//        server.listen(7236);
     }
 }

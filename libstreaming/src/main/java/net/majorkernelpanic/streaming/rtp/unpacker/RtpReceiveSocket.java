@@ -3,6 +3,7 @@ package net.majorkernelpanic.streaming.rtp.unpacker;
 import android.util.Log;
 import android.util.SparseArray;
 
+import net.majorkernelpanic.streaming.BuildConfig;
 import net.majorkernelpanic.streaming.ByteUtils;
 import net.majorkernelpanic.streaming.rtcp.SenderReport;
 
@@ -23,6 +24,7 @@ public class RtpReceiveSocket implements Runnable{
 
     public static final int MTU = 1300;
     private static final long FIRST_RUN_DELAY = 10000;//2sec
+    private static final boolean DEBUG = true;
 
     private final byte[][] mBuffers;
 
@@ -89,12 +91,12 @@ public class RtpReceiveSocket implements Runnable{
         try {
             //等待时间最多只能是一帧的时间，一帧用多少时间由采样率决定，
             while (mSortBuffers.get(mSeq) == null) {
-                Log.d(TAG, "skipping seq" + mSeq);
+                if (DEBUG) Log.d(TAG, "skipping seq" + mSeq);
                 Thread.sleep(mWaitingTimeout);
                 mSeq++;
             }
             result = (byte[]) mSortBuffers.get(mSeq);
-            Log.d(TAG, "reading seq: " + mSeq);
+            if (DEBUG) Log.d(TAG, "reading seq: " + mSeq);
             mSortBuffers.remove(mSeq);
 //            clearUpBuffers();
             mSeq++;
@@ -121,7 +123,7 @@ public class RtpReceiveSocket implements Runnable{
             try {
                 mSocket = new DatagramSocket(dport);
                 mSocket.setSoTimeout(0);
-                Log.d("RtpReceiveSocket", "listening on " + dport);
+                if (DEBUG) Log.d("RtpReceiveSocket", "listening on " + dport);
             } catch (Exception e) {
                 throw new RuntimeException(e.getMessage());
             }
@@ -152,7 +154,7 @@ public class RtpReceiveSocket implements Runnable{
                     mBufferReceived.release();
                     byte[] src = consumeData();
                     int seq = (int) ByteUtils.byteToLong(src, 2, 2);
-                    Log.d(TAG, "receiving seq: " + seq);
+                    if (DEBUG) Log.d(TAG, "receiving seq: " + seq);
                     mSortBuffers.put(seq, src);
                 }
             }

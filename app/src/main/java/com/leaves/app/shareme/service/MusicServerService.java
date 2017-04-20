@@ -1,15 +1,19 @@
 package com.leaves.app.shareme.service;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.net.wifi.WifiManager;
 import android.os.IBinder;
 import android.os.PowerManager;
+import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
+import android.util.Log;
 import android.widget.Toast;
 
 
+import com.google.gson.Gson;
 import com.koushikdutta.async.http.WebSocket;
 import com.koushikdutta.async.http.server.AsyncHttpServer;
 import com.koushikdutta.async.http.server.AsyncHttpServerRequest;
@@ -19,6 +23,9 @@ import com.leaves.app.shareme.bean.Media;
 import com.leaves.app.shareme.eventbus.RxBus;
 import com.leaves.app.shareme.eventbus.TimeSeekEvent;
 import com.leaves.app.shareme.ui.activity.MainActivity;
+
+import net.majorkernelpanic.streaming.SessionBuilder;
+import net.majorkernelpanic.streaming.rtsp.RtspServer;
 
 import java.util.concurrent.Callable;
 
@@ -41,7 +48,6 @@ public class MusicServerService extends AbsMusicService implements MediaPlayer.O
     private CompositeDisposable mCompositeDisposable;
 
 
-    private WifiManager.WifiLock mWifiLock;
     private Observable<Long> timeSeek;
 
     private boolean isPrepared = false;
@@ -50,6 +56,8 @@ public class MusicServerService extends AbsMusicService implements MediaPlayer.O
 
     private AsyncHttpServer mWebSocketServer;
     private WebSocket mConnectedWebSocket;
+    private Gson mGson;
+    private RtspServer mRtspServer;
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
@@ -61,11 +69,13 @@ public class MusicServerService extends AbsMusicService implements MediaPlayer.O
         mWebSocketServer.websocket(Constant.WebSocket.REGEX, null, new AsyncHttpServer.WebSocketRequestCallback() {
             @Override
             public void onConnected(WebSocket webSocket, AsyncHttpServerRequest request) {
+                Log.d("MusicServerService", "server connect success");
                 mConnectedWebSocket = webSocket;
                 webSocket.setStringCallback(MusicServerService.this);
             }
         });
         mWebSocketServer.listen(Constant.WebSocket.PORT);
+        Log.d("MusicServerService", "listen on" + Constant.WebSocket.PORT);
         return START_STICKY;
     }
 
@@ -84,6 +94,7 @@ public class MusicServerService extends AbsMusicService implements MediaPlayer.O
     @Override
     public void onCreate() {
         super.onCreate();
+        mGson = new Gson();
         if (mCompositeDisposable == null || !mCompositeDisposable.isDisposed()) {
             mCompositeDisposable = new CompositeDisposable();
         }
@@ -130,9 +141,10 @@ public class MusicServerService extends AbsMusicService implements MediaPlayer.O
     protected void start(boolean invalidate) {
         //notifyThe client
         if (mConnectedWebSocket != null) {
-            mConnectedWebSocket.send("start Play");
+            mConnectedWebSocket.send(mGson.toJson(mMedia));
         }
         if (invalidate) {
+            startRTSPServer();
             mMediaPlayer.reset();
             Uri uri = Uri.parse(mMedia.getSrc());
             try {
@@ -147,6 +159,23 @@ public class MusicServerService extends AbsMusicService implements MediaPlayer.O
                 mMediaPlayer.start();
             }
         }
+    }
+
+    private void startRTSPServer() {
+        // Sets the port of the RTSP server to 1234
+        SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(this).edit();
+        editor.putString(RtspServer.KEY_PORT, String.valueOf(7236));
+        editor.apply();
+        mRtspServer = new RtspServer();
+        // Configures the SessionBuilder
+        SessionBuilder.getInstance()
+                .setContext(getApplicationContext())
+                .setVideoEncoder(SessionBuilder.VIDEO_NONE)
+                .setMp3Path(mMedia.getSrc())
+                .setAudioEncoder(SessionBuilder.AUDIO_MP3);
+
+        // Starts the RTSP server
+        this.startService(new Intent(this, RtspServer.class));
     }
 
 //    private void playAsServer(Media media) {
@@ -236,22 +265,6 @@ public class MusicServerService extends AbsMusicService implements MediaPlayer.O
         }
     }
 
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-        if (mMediaPlayer != null) {
-            mMediaPlayer.release();
-            mMediaPlayer = null;
-        }
-        if (mWifiLock != null) {
-            mWifiLock.release();
-        }
-        unregisterTimeSeek();
-        if (mCompositeDisposable != null) {
-            mCompositeDisposable.dispose();
-        }
-        isPrepared = false;
-    }
 
     @Override
     public void onCompletion(MediaPlayer mp) {

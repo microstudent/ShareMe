@@ -3,6 +3,7 @@ package net.majorkernelpanic.streaming.inputstream.audio;
 import android.media.MediaCodec;
 import android.media.MediaCodecInfo;
 import android.media.MediaFormat;
+import android.os.Build;
 import android.util.Log;
 
 import net.majorkernelpanic.streaming.InputStream;
@@ -35,6 +36,7 @@ public class AACInputStream implements InputStream, Runnable {
     private long mCurrentTimeStamp = 0;
     private RTCPReceiver mRTCPReceiver;
     private OnPCMDataAvailableListener mOnPCMDataAvailableListener;
+    private long mConsumeOffset;
 
     public AACInputStream() {
         mRTCPReceiver = new RTCPReceiver();
@@ -50,9 +52,17 @@ public class AACInputStream implements InputStream, Runnable {
         }
     }
 
+    /**
+     * 消费必须以一定的速率进行消费，否则可能导致下层异常
+     */
     private void consumePCMData(long rtpTime, byte[] chunkPCM) {
         if (mOnPCMDataAvailableListener != null) {
             mOnPCMDataAvailableListener.onPCMDataAvailable(rtpTime, chunkPCM);
+        }
+        try {
+            Thread.sleep(mConsumeOffset);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
 //        if (mAudioTrack != null) {
 //            long start = System.currentTimeMillis();
@@ -96,6 +106,7 @@ public class AACInputStream implements InputStream, Runnable {
 //                    AudioTrack.MODE_STREAM
 //            );
             mConfig = config;
+            mConsumeOffset = 1000000L / mConfig.sampleRate;
 //            mAudioTrack.play();
         } catch (IOException e) {
             e.printStackTrace();
@@ -148,10 +159,16 @@ public class AACInputStream implements InputStream, Runnable {
             ByteBuffer outputBuffer;
             byte[] chunkPCM;
             if (outputIndex >= 0) {
-                outputBuffer = mOutputBuffer[outputIndex];//拿到用于存放PCM数据的Buffer
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                    outputBuffer = mMediaDecode.getOutputBuffer(outputIndex);
+                } else {
+                    outputBuffer = mOutputBuffer[outputIndex];//拿到用于存放PCM数据的Buffer
+                }
                 chunkPCM = new byte[mDecodeBufferInfo.size];//BufferInfo内定义了此数据块的大小
-                outputBuffer.get(chunkPCM);//将Buffer内的数据取出到字节数组中
-                outputBuffer.clear();//数据取出后一定记得清空此Buffer MediaCodec是循环使用这些Buffer的，不清空下次会得到同样的数据
+                if (outputBuffer != null) {
+                    outputBuffer.get(chunkPCM);//将Buffer内的数据取出到字节数组中
+                    outputBuffer.clear();//数据取出后一定记得清空此Buffer MediaCodec是循环使用这些Buffer的，不清空下次会得到同样的数据
+                }
                 consumePCMData(mDecodeBufferInfo.presentationTimeUs, chunkPCM);//自己定义的方法，供编码器所在的线程获取数据,下面会贴出代码
                 mMediaDecode.releaseOutputBuffer(outputIndex, false);//此操作一定要做，不然MediaCodec用完所有的Buffer后 将不能向外输出数据
             }
