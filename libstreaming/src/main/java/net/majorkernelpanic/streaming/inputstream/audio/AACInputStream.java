@@ -106,7 +106,7 @@ public class AACInputStream implements InputStream, Runnable {
 //                    AudioTrack.MODE_STREAM
 //            );
             mConfig = config;
-            mConsumeOffset = 1000000L / mConfig.sampleRate;
+            mConsumeOffset = 1000000L / mConfig.sampleRate - 3;//比播放速度稍微快一点
 //            mAudioTrack.play();
         } catch (IOException e) {
             e.printStackTrace();

@@ -236,6 +236,7 @@ public class RtspClient {
 				try {
 					tryConnection();
 				} catch (Exception e) {
+					e.printStackTrace();
 					postError(ERROR_CONNECTION_FAILED, e);
 					abort();
 					return;
@@ -248,6 +249,8 @@ public class RtspClient {
 						mHandler.post(mConnectionMonitor);
 					}
 				} catch (Exception e) {
+					e.printStackTrace();
+					Log.e(TAG, "teardown with" + e.getMessage());
 					abort();
 				}
 

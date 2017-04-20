@@ -52,12 +52,10 @@ public class MusicServerService extends AbsMusicService implements MediaPlayer.O
 
     private boolean isPrepared = false;
     private ServerBinder mBinder;
-    private Frame mFrame;
 
     private AsyncHttpServer mWebSocketServer;
     private WebSocket mConnectedWebSocket;
     private Gson mGson;
-    private RtspServer mRtspServer;
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
@@ -166,7 +164,6 @@ public class MusicServerService extends AbsMusicService implements MediaPlayer.O
         SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(this).edit();
         editor.putString(RtspServer.KEY_PORT, String.valueOf(7236));
         editor.apply();
-        mRtspServer = new RtspServer();
         // Configures the SessionBuilder
         SessionBuilder.getInstance()
                 .setContext(getApplicationContext())
