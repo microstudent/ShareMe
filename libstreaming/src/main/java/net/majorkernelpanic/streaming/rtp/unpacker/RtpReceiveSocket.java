@@ -36,7 +36,7 @@ public class RtpReceiveSocket implements Runnable{
     private int mBufferCount ,mBufferIn, mBufferOut;
     private DatagramPacket[] mPackets;
     private DatagramSocket mSocket;
-    private Semaphore mBufferRequested, mBufferReceived;
+    private Semaphore mBufferRequested;
     private Thread mReceiverThread;
     private SparseArray<Object> mSortBuffers;
     private long mWaitingTimeout;
@@ -114,8 +114,6 @@ public class RtpReceiveSocket implements Runnable{
     public void reset() {
         mReport.reset();
         mBufferRequested = new Semaphore(mBufferCount);
-        mBufferReceived = new Semaphore(mBufferCount);
-        mBufferReceived.drainPermits();
         mBufferIn = mBufferOut = 0;
         mSeq = 30;
         mSortBuffers.clear();
@@ -140,7 +138,6 @@ public class RtpReceiveSocket implements Runnable{
     }
 
     public byte[] consumeData() throws InterruptedException {
-        mBufferReceived.acquire();
         byte[] result = mBuffers[mBufferOut];
         if (++mBufferOut >= mBufferCount) mBufferOut = 0;
         mBufferRequested.release();
@@ -153,9 +150,7 @@ public class RtpReceiveSocket implements Runnable{
             while (mBufferRequested.tryAcquire(4, TimeUnit.SECONDS)) {
                 if (mSocket != null) {
                     mSocket.receive(mPackets[mBufferIn]);
-//                        ByteUtils.logByte(mBuffers[mBufferIn], 0, 200);
                     if (++mBufferIn >= mBufferCount) mBufferIn = 0;
-                    mBufferReceived.release();
                     byte[] src = consumeData();
                     int seq = (int) ByteUtils.byteToLong(src, 2, 2);
                     if (DEBUG) Log.d(TAG, "receiving seq: " + seq);

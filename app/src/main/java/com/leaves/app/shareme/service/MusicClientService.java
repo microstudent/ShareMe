@@ -144,7 +144,15 @@ public class MusicClientService extends AbsMusicService implements Runnable, Rts
     protected void start(boolean invalidate) {
         isPlaying = true;
         if (!mClient.isStreaming()) {
-            mClient.startStream();
+            Observable.just(mClient)
+                    .subscribeOn(Schedulers.single())
+                    .delay(10, TimeUnit.MILLISECONDS)
+                    .subscribe(new Consumer<RtspClient>() {
+                        @Override
+                        public void accept(RtspClient rtspClient) throws Exception {
+                            mClient.startStream();
+                        }
+                    });
         }
         mPlayThread.start();
     }
