@@ -23,6 +23,7 @@ public class AACADTSUnpacker extends AbstractUnpacker implements Runnable {
     private byte[] mADTSHeader;
     private InputStream.Config mConfig;
     private int mSeq = 0;
+    private long mLastTimeStamp = 0;
 
     public AACADTSUnpacker(MediaCodec decoder) {
         if (decoder != null) {
@@ -87,7 +88,10 @@ public class AACADTSUnpacker extends AbstractUnpacker implements Runnable {
                         addADTStoPacket(mADTSHeader, AUSize + 7);
                         inputBuffer.put(mADTSHeader);
                         inputBuffer.put(rtpPacket, rtphl + 4, AUSize);
-                        Log.d(TAG, "decoding timeStamp:" + timeStamp);
+                        if (timeStamp - mLastTimeStamp > 1) {
+                            Log.d(TAG, "skipping some frame" + timeStamp + "last = " + mLastTimeStamp);
+                        }
+                        mLastTimeStamp = timeStamp;
                         mDecoder.queueInputBuffer(inputIndex, 0, AUSize + 7, timeStamp, 0);
                     }
                 } else {

@@ -27,12 +27,12 @@ public class RtpReceiveSocket implements Runnable{
 
     public static final int MTU = 1300;
     public static final long FIRST_RUN_DELAY = 6000;//2sec
-    private static final boolean DEBUG = false;
+    private static final boolean DEBUG = true;
 
     private final byte[][] mBuffers;
 
     private SenderReport mReport;
-    private volatile int mSeq = 1;
+    private volatile int mSeq = 0;
     private int mBufferCount ,mBufferIn, mBufferOut;
     private DatagramPacket[] mPackets;
     private DatagramSocket mSocket;
@@ -115,7 +115,7 @@ public class RtpReceiveSocket implements Runnable{
         mReport.reset();
         mBufferRequested = new Semaphore(mBufferCount);
         mBufferIn = mBufferOut = 0;
-        mSeq = 30;
+        mSeq = 0;
         mSortBuffers.clear();
     }
 

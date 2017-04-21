@@ -126,7 +126,6 @@ public class MusicClientService extends AbsMusicService implements Runnable, Rts
                                         Toast.makeText(MusicClientService.this, "连接至WebSocket服务器成功", Toast.LENGTH_SHORT).show();
                                     }
                                 });
-                        Log.d(TAG, "clientConnect success");
                         webSocket.setStringCallback(MusicClientService.this);
                     }
                 });
@@ -273,7 +272,7 @@ public class MusicClientService extends AbsMusicService implements Runnable, Rts
             }
             Frame frame = mFrameQueue.poll();
             if (frame != null) {
-//                playSilentIfNeeded(frame.getRtpTime());
+                playSilentIfNeeded(frame.getRtpTime());
                 if (DEBUG) Log.d(TAG, "writing audio track, mCurrent = " + mCurrentRtpTime + ",timeStamp = " + frame.getRtpTime());
                 mAudioTrack.write(frame.getPCMData(), 0, frame.getPCMData().length);
             } else {

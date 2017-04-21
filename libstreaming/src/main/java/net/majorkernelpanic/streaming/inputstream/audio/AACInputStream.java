@@ -64,12 +64,6 @@ public class AACInputStream implements InputStream, Runnable {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-//        if (mAudioTrack != null) {
-//            long start = System.currentTimeMillis();
-//            mAudioTrack.write(chunkPCM, 0, chunkPCM.length);
-//            Log.d("AACInputStream", " cost time : " + (System.currentTimeMillis() - start));
-//            Log.d("AACInputStream", "count:" + mSeq++);
-//        }
     }
 
     @Override

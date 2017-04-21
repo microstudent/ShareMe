@@ -71,6 +71,7 @@ public class RtpSocket implements Runnable {
 	protected OutputStream mOutputStream = null;
 	
 	private AverageBitrate mAverageBitrate;
+	private long mLastSendTimeStamp;
 
 	/**
 	 * This RTP socket implements a buffering mechanism relying on a FIFO of buffers and a Thread.
@@ -253,9 +254,6 @@ public class RtpSocket implements Runnable {
 	/** Increments the sequence number. */
 	private void updateSequence() {
 		setLong(mBuffers[mBufferIn], ++mSeq, 2, 4);
-		if (mSeq < 100) {
-			Log.d(TAG, "receive mSeq:" + mSeq);
-		}
 	}
 
 	/** 
@@ -302,16 +300,14 @@ public class RtpSocket implements Runnable {
 				}
 				mReport.update(mPackets[mBufferOut].getLength(), System.nanoTime(), getCurrentTimeStamp());
 				mOldTimestamp = mTimestamps[mBufferOut];
-				if (mCount++>30) {
+//				if (mCount++>30) {
 					if (mTransport == TRANSPORT_UDP) {
-//						if (mSeq < 100) {
-//							ByteUtils.logByte(mBuffers[mBufferOut], 0, 200);
-//						}
 						mSocket.send(mPackets[mBufferOut]);
+//						logSendDetail(mBufferOut);
 					} else {
 						sendTCP();
 					}
-				}
+//				}
 				if (++mBufferOut>=mBufferCount) mBufferOut = 0;
 				mBufferRequested.release();
 			}
@@ -320,6 +316,15 @@ public class RtpSocket implements Runnable {
 		}
 		mThread = null;
 		resetFifo();
+	}
+
+	private void logSendDetail(int bufferOut) {
+		long timeStamp = (mTimestamps[bufferOut] / 100L) * (mClock / 1000L) / 10000L;
+		int seq = mSeq;
+		if (timeStamp - mLastSendTimeStamp > 1) {
+			Log.d(TAG, "skipping seq:" + seq + "for timestamp" + mLastSendTimeStamp + 1);
+		}
+		mLastSendTimeStamp = timeStamp;
 	}
 
 	private long getCurrentTimeStamp() {
