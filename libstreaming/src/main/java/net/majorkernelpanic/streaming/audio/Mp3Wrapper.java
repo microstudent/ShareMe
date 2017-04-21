@@ -40,7 +40,6 @@ public class Mp3Wrapper {
     private final ByteBuffer[] mDecodeInputBuffers;
     private ByteBuffer[] mDecodeOutputBuffers;
     private final MediaCodec.BufferInfo mDecodeBufferInfo;
-    private AudioTrack mAudioTrack;
     private MediaCodec mMediaDecode;
 
     private MediaExtractor mMediaExtractor;
@@ -48,6 +47,7 @@ public class Mp3Wrapper {
     private MediaFormat mMediaFormat;
     private boolean isEndOfInputFile;
     private int mOutputBufferIndex = -1;
+    private long mSendOffset;
 
     public Mp3Wrapper(String path) {
         mPath = path;
@@ -65,21 +65,13 @@ public class Mp3Wrapper {
                     break;
                 }
             }
+            mSendOffset = 1000000L / mMediaFormat.getInteger(MediaFormat.KEY_SAMPLE_RATE);
             int minBufferSize = AudioTrack.getMinBufferSize(44100, AudioFormat.CHANNEL_CONFIGURATION_STEREO, AudioFormat.ENCODING_PCM_16BIT);
             int bufferSize = 4 * minBufferSize;
-            mAudioTrack = new AudioTrack(
-                    AudioManager.STREAM_MUSIC,
-                    mMediaFormat.getInteger(MediaFormat.KEY_SAMPLE_RATE),
-                    AudioFormat.CHANNEL_OUT_STEREO,
-                    AudioFormat.ENCODING_PCM_16BIT,
-                    bufferSize,
-                    AudioTrack.MODE_STREAM
-            );
         } catch (IOException e) {
             e.printStackTrace();
         }
         mMediaDecode.start();
-        mAudioTrack.play();
         mDecodeInputBuffers = mMediaDecode.getInputBuffers();//MediaCodec在此ByteBuffer[]中获取输入数据
         mDecodeOutputBuffers = mMediaDecode.getOutputBuffers();//MediaCodec将解码后的数据放到此ByteBuffer[]中 我们可以直接在这里面得到PCM数据
         mDecodeBufferInfo = new MediaCodec.BufferInfo();//用于描述解码得到的byte[]数据的相关信息
@@ -166,7 +158,7 @@ public class Mp3Wrapper {
                     mDecodeOutputBuffers[mOutputBufferIndex].reset();
                     try {
                         //太快可能来不及接收，导致丢包,太慢可能导致跟不上播放速度
-                        Thread.sleep(20);
+                        Thread.sleep(mSendOffset);
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }

@@ -27,7 +27,9 @@ import com.leaves.app.shareme.ui.activity.MainActivity;
 import net.majorkernelpanic.streaming.SessionBuilder;
 import net.majorkernelpanic.streaming.rtsp.RtspServer;
 
+import java.io.IOException;
 import java.util.concurrent.Callable;
+import java.util.concurrent.TimeUnit;
 
 import io.reactivex.Observable;
 import io.reactivex.android.schedulers.AndroidSchedulers;
@@ -40,8 +42,7 @@ import io.reactivex.schedulers.Schedulers;
  * Created by Leaves on 2016/11/7.
  */
 
-public class MusicServerService extends AbsMusicService implements MediaPlayer.OnPreparedListener,
-        MediaPlayer.OnErrorListener, MediaPlayer.OnCompletionListener ,WebSocket.StringCallback{
+public class MusicServerService extends AbsMusicService implements WebSocket.StringCallback{
     private MediaPlayer mMediaPlayer = null;
 
     private Disposable mTimeSeekDisposable;
@@ -97,9 +98,9 @@ public class MusicServerService extends AbsMusicService implements MediaPlayer.O
             mCompositeDisposable = new CompositeDisposable();
         }
         mMediaPlayer = new MediaPlayer(); // initialize it here
-        mMediaPlayer.setOnPreparedListener(this);
-        mMediaPlayer.setOnErrorListener(this);
-        mMediaPlayer.setOnCompletionListener(this);
+//        mMediaPlayer.setOnPreparedListener(this);
+//        mMediaPlayer.setOnErrorListener(this);
+//        mMediaPlayer.setOnCompletionListener(this);
         mMediaPlayer.setWakeMode(getApplicationContext(), PowerManager.PARTIAL_WAKE_LOCK);
         timeSeek = Observable.fromCallable(new Callable<Long>() {
             @Override
@@ -145,13 +146,41 @@ public class MusicServerService extends AbsMusicService implements MediaPlayer.O
             startRTSPServer();
             mMediaPlayer.reset();
             Uri uri = Uri.parse(mMedia.getSrc());
-            try {
-                mMediaPlayer.setDataSource(this, uri);
-                mMediaPlayer.prepareAsync(); // prepare async to not block main thread
-                isPrepared = false;
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+            Observable.just(uri)
+                    .observeOn(Schedulers.io())
+                    .subscribe(new Consumer<Uri>() {
+                        @Override
+                        public void accept(Uri uri) throws Exception {
+                            mMediaPlayer.setDataSource(MusicServerService.this, uri);
+                            mMediaPlayer.prepare();
+                            isPrepared = true;
+                        }
+                    }, new Consumer<Throwable>() {
+                        @Override
+                        public void accept(Throwable throwable) throws Exception {
+                            throwable.printStackTrace();
+                            Toast.makeText(MusicServerService.this, "播放失败", Toast.LENGTH_SHORT).show();
+                            if (mMediaPlayer != null) {
+                                mMediaPlayer.reset();
+                            }
+                        }
+                    });
+            Observable.just(uri)
+                    .observeOn(Schedulers.io())
+                    .delay(Constant.DEFAULT_PLAY_TIME_DELAY, TimeUnit.MILLISECONDS)
+                    .subscribe(new Consumer<Uri>() {
+                        @Override
+                        public void accept(Uri uri) throws Exception {
+                            if (isPrepared) {
+                                mMediaPlayer.start();
+                            }
+                        }
+                    }, new Consumer<Throwable>() {
+                        @Override
+                        public void accept(Throwable throwable) throws Exception {
+                            throwable.printStackTrace();
+                        }
+                    });
         } else {
             if (mMediaPlayer != null && isPrepared) {
                 mMediaPlayer.start();
@@ -226,23 +255,6 @@ public class MusicServerService extends AbsMusicService implements MediaPlayer.O
         return mBinder;
     }
 
-    @Override
-    public void onPrepared(MediaPlayer mp) {
-        isPrepared = true;
-        mp.start();
-    }
-
-    @Override
-    public boolean onError(MediaPlayer mp, int what, int extra) {
-        Toast.makeText(this, "播放失败", Toast.LENGTH_SHORT).show();
-        if (mp != null) {
-            mp.reset();
-        }
-        unregisterTimeSeek();
-        return true;
-    }
-
-
     private void registerTimeSeek() {
         //只允许一个timeSeek
         unregisterTimeSeek();
@@ -262,11 +274,6 @@ public class MusicServerService extends AbsMusicService implements MediaPlayer.O
         }
     }
 
-
-    @Override
-    public void onCompletion(MediaPlayer mp) {
-        unregisterTimeSeek();
-    }
 
     private long getCurrentPlayTime() {
         if (mMediaPlayer != null && isPrepared) {

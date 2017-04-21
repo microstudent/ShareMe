@@ -254,7 +254,7 @@ public class MainActivity extends AppCompatActivity implements
 
     @Override
     public void onBackPressed() {
-//        super.onBackPressed();
-        moveTaskToBack(true);
+        super.onBackPressed();
+//        moveTaskToBack(true);
     }
 }

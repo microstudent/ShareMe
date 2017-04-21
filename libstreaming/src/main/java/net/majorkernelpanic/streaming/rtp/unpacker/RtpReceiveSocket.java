@@ -5,8 +5,10 @@ import android.util.SparseArray;
 
 import net.majorkernelpanic.streaming.BuildConfig;
 import net.majorkernelpanic.streaming.ByteUtils;
+import net.majorkernelpanic.streaming.InputStream;
 import net.majorkernelpanic.streaming.rtcp.SenderReport;
 
+import java.io.OutputStream;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.util.concurrent.Semaphore;
@@ -21,10 +23,11 @@ public class RtpReceiveSocket implements Runnable{
     private static final String TAG = "RtpReceiveSocket";
     /** Use this to use UDP for the transport protocol. */
     public final static int TRANSPORT_UDP = 0x00;
+    public static final int TRANSPORT_TCP = 0x01;
 
     public static final int MTU = 1300;
-    private static final long FIRST_RUN_DELAY = 10000;//2sec
-    private static final boolean DEBUG = true;
+    public static final long FIRST_RUN_DELAY = 6000;//2sec
+    private static final boolean DEBUG = false;
 
     private final byte[][] mBuffers;
 
@@ -38,6 +41,7 @@ public class RtpReceiveSocket implements Runnable{
     private SparseArray<Object> mSortBuffers;
     private long mWaitingTimeout;
     private boolean isFirstRun = true;
+    private int mTransport;//传送方式
 
     public RtpReceiveSocket() {
         mBufferCount = 300;
@@ -168,6 +172,7 @@ public class RtpReceiveSocket implements Runnable{
         mReceiverThread.interrupt();
         reset();
     }
+
 
     /**
      * in millsec

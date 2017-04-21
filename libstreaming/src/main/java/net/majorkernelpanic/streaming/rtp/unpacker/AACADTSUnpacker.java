@@ -1,6 +1,7 @@
 package net.majorkernelpanic.streaming.rtp.unpacker;
 
 import android.media.MediaCodec;
+import android.os.Build;
 import android.util.Log;
 
 import net.majorkernelpanic.streaming.ByteUtils;
@@ -75,19 +76,20 @@ public class AACADTSUnpacker extends AbstractUnpacker implements Runnable {
             if (bitMark) {
                 int inputIndex = mDecoder.dequeueInputBuffer(-1);
                 if (inputIndex >= 0) {
-                    ByteBuffer inputBuffer = mInputBuffers[inputIndex];
-                    inputBuffer.clear();
-                    addADTStoPacket(mADTSHeader, AUSize + 7);
-                    inputBuffer.put(mADTSHeader);
-                    inputBuffer.put(rtpPacket, rtphl + 4, AUSize);
-//                    if (mCount++ < 100) {
-//                        inputBuffer.flip();
-//                        byte[] temp = new byte[200];
-//                        inputBuffer.get(temp, 0, AUSize + 7);
-//                        ByteUtils.logByte(temp, 0,  AUSize + 7);
-//                    }
-                    Log.d(TAG, "count:" + mSeq++);
-                    mDecoder.queueInputBuffer(inputIndex, 0, AUSize + 7, timeStamp, 0);
+                    ByteBuffer inputBuffer = null;
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                        inputBuffer = mDecoder.getInputBuffer(inputIndex);
+                    } else {
+                        inputBuffer = mInputBuffers[inputIndex];
+                    }
+                    if (inputBuffer != null) {
+                        inputBuffer.clear();
+                        addADTStoPacket(mADTSHeader, AUSize + 7);
+                        inputBuffer.put(mADTSHeader);
+                        inputBuffer.put(rtpPacket, rtphl + 4, AUSize);
+                        Log.d(TAG, "decoding timeStamp:" + timeStamp);
+                        mDecoder.queueInputBuffer(inputIndex, 0, AUSize + 7, timeStamp, 0);
+                    }
                 } else {
                     Log.v(TAG, "No buffer available...");
                 }

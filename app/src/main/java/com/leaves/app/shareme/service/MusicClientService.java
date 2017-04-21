@@ -6,7 +6,9 @@ import android.media.AudioManager;
 import android.media.AudioTrack;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
+import android.util.ArrayMap;
 import android.util.Log;
+import android.util.LongSparseArray;
 import android.widget.Toast;
 
 import com.google.gson.Gson;
@@ -23,7 +25,12 @@ import net.majorkernelpanic.streaming.rtcp.OnRTCPUpdateListener;
 import net.majorkernelpanic.streaming.rtp.OnPCMDataAvailableListener;
 import net.majorkernelpanic.streaming.rtsp.RtspClient;
 
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Queue;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.TimeUnit;
@@ -55,6 +62,7 @@ public class MusicClientService extends AbsMusicService implements Runnable, Rts
     private Gson mGson;
     private Thread mPlayThread;
     private long mSleepTimeout;
+    private Timer mSyncTimer;
 
     @Override
     public void onCreate() {
@@ -74,6 +82,7 @@ public class MusicClientService extends AbsMusicService implements Runnable, Rts
         mPlayThread.setName("playThread");
 
         mFrameQueue = new ConcurrentLinkedQueue<>();
+        mSyncTimer = new Timer("syncTimer");
     }
 
     @Override
@@ -109,6 +118,14 @@ public class MusicClientService extends AbsMusicService implements Runnable, Rts
                             return;
                         }
                         mConnectedWebSocket = webSocket;
+                        Observable.just(this)
+                                .observeOn(AndroidSchedulers.mainThread())
+                                .subscribe(new Consumer<AsyncHttpClient.WebSocketConnectCallback>() {
+                                    @Override
+                                    public void accept(AsyncHttpClient.WebSocketConnectCallback webSocketConnectCallback) throws Exception {
+                                        Toast.makeText(MusicClientService.this, "连接至WebSocket服务器成功", Toast.LENGTH_SHORT).show();
+                                    }
+                                });
                         Log.d(TAG, "clientConnect success");
                         webSocket.setStringCallback(MusicClientService.this);
                     }
@@ -207,7 +224,9 @@ public class MusicClientService extends AbsMusicService implements Runnable, Rts
 
     @Override
     public void onRtspUpdate(int message, Exception exception) {
-
+        if (exception != null) {
+            Toast.makeText(this, "RTSP无法连接至服务器，请重试！", Toast.LENGTH_SHORT).show();
+        }
     }
 
     @Override
@@ -221,12 +240,12 @@ public class MusicClientService extends AbsMusicService implements Runnable, Rts
         frame.setRtpTime(rtpTime);
         frame.setPCMData(data);
         mFrameQueue.add(frame);
-        if (DEBUG) Log.d(TAG, "onPCMDataAvailable");
+        if (DEBUG) Log.d(TAG, "onPCMDataAvailable" + ",timeStamp = " + rtpTime);
     }
 
     @Override
     public void onRTCPUpdate(long ntpTime, long rtpTime) {
-
+//        mSyncTimer.schedule(new SyncTask(rtpTime), new Date(ntpTime));
     }
 
     /**
@@ -246,8 +265,8 @@ public class MusicClientService extends AbsMusicService implements Runnable, Rts
             }
             Frame frame = mFrameQueue.poll();
             if (frame != null) {
-                if (DEBUG) Log.d(TAG, "writing audio track");
-                playSilentIfNeeded(frame.getRtpTime());
+//                playSilentIfNeeded(frame.getRtpTime());
+                if (DEBUG) Log.d(TAG, "writing audio track, mCurrent = " + mCurrentRtpTime + ",timeStamp = " + frame.getRtpTime());
                 mAudioTrack.write(frame.getPCMData(), 0, frame.getPCMData().length);
             } else {
 //                Log.e(TAG, "no buffer to playAsServer!");
@@ -273,9 +292,26 @@ public class MusicClientService extends AbsMusicService implements Runnable, Rts
 
         }
 
+        public Media getCurrentPlayMedia() {
+            return mMedia;
+        }
+
 
         public void sync(long currentRTPTime) {
             MusicClientService.this.sync(currentRTPTime);
+        }
+    }
+
+    private class SyncTask extends TimerTask {
+        private final long mRtpTime;
+
+        public SyncTask(long rtpTime) {
+            mRtpTime = rtpTime;
+        }
+
+        @Override
+        public void run() {
+            sync(mRtpTime);
         }
     }
 }

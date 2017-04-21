@@ -56,7 +56,7 @@ public class AACInputStream implements InputStream, Runnable {
      * 消费必须以一定的速率进行消费，否则可能导致下层异常
      */
     private void consumePCMData(long rtpTime, byte[] chunkPCM) {
-        if (mOnPCMDataAvailableListener != null) {
+        if (mOnPCMDataAvailableListener != null && chunkPCM != null && chunkPCM.length != 0) {
             mOnPCMDataAvailableListener.onPCMDataAvailable(rtpTime, chunkPCM);
         }
         try {

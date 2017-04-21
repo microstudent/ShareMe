@@ -2,6 +2,8 @@ package com.leaves.app.shareme;
 
 import com.leaves.app.shareme.bean.Media;
 
+import net.majorkernelpanic.streaming.rtp.unpacker.RtpReceiveSocket;
+
 import java.util.List;
 
 /**
@@ -14,7 +16,7 @@ public class Constant {
     public static final int TAG_QUERY_PLAYING_AUDIO = 0;
     public static final int TAG_MEDIA = 1;
     public volatile static List<Media> mPlayingMedias;
-    public static final int DEFAULT_PLAY_TIME_DELAY = 5000;//5sec
+    public static final long DEFAULT_PLAY_TIME_DELAY = RtpReceiveSocket.FIRST_RUN_DELAY;
 
     public interface WifiDirect {
         String INSTANCE_NAME = "ShareMe";
