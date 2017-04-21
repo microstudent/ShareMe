@@ -3,14 +3,13 @@ package net.majorkernelpanic.streaming.rtp.unpacker;
 import android.util.Log;
 import android.util.SparseArray;
 
-import net.majorkernelpanic.streaming.BuildConfig;
 import net.majorkernelpanic.streaming.ByteUtils;
-import net.majorkernelpanic.streaming.InputStream;
 import net.majorkernelpanic.streaming.rtcp.SenderReport;
 
-import java.io.OutputStream;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
+import java.util.Arrays;
+import java.util.Hashtable;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
@@ -41,7 +40,6 @@ public class RtpReceiveSocket implements Runnable{
     private SparseArray<Object> mSortBuffers;
     private long mWaitingTimeout;
     private boolean isFirstRun = true;
-    private int mTransport;//传送方式
 
     public RtpReceiveSocket() {
         mBufferCount = 300;
@@ -49,17 +47,16 @@ public class RtpReceiveSocket implements Runnable{
         mPackets = new DatagramPacket[mBufferCount];
         mReport = new SenderReport();
 
-        mSortBuffers = new SparseArray<Object>();
+        mSortBuffers = new SparseArray<>();
 
         reset();
 
-        for (int i=0; i<mBufferCount; i++) {
-
+        for (int i = 0; i < mBufferCount; i++) {
             mBuffers[i] = new byte[MTU];
             mPackets[i] = new DatagramPacket(mBuffers[i], MTU);
 
 			/*							     Version(2)  Padding(0)					 					*/
-			/*									 ^		  ^			Extension(0)						*/
+            /*									 ^		  ^			Extension(0)						*/
 			/*									 |		  |				^								*/
 			/*									 | --------				|								*/
 			/*									 | |---------------------								*/
@@ -95,19 +92,31 @@ public class RtpReceiveSocket implements Runnable{
         try {
             //等待时间最多只能是一帧的时间，一帧用多少时间由采样率决定，
             while (mSortBuffers.get(mSeq) == null) {
-                if (DEBUG) Log.d(TAG, "skipping seq" + mSeq);
                 Thread.sleep(mWaitingTimeout);
                 mSeq++;
             }
             result = (byte[]) mSortBuffers.get(mSeq);
-            if (DEBUG) Log.d(TAG, "reading seq: " + mSeq);
+//            if (mSeq - mLastReadSeq > 1) {
+//                if (DEBUG) Log.e(TAG, "skipping seq" + mSeq);
+//            }
+//            mLastReadSeq = mSeq;
+//            if (DEBUG) Log.d(TAG, "reading seq: " + mSeq);
             mSortBuffers.remove(mSeq);
 //            clearUpBuffers();
+//            assertSeqCorrect(mSeq, result);
             mSeq++;
         } catch (InterruptedException e) {
             e.printStackTrace();
+            Log.d(TAG, "e:" + e);
         }
         return result;
+    }
+
+    private void assertSeqCorrect(int seqShouldBe, byte[] result) {
+        int seq = (int) ByteUtils.byteToLong(result, 2, 2);
+        if (seqShouldBe != seq) {
+            Log.e(TAG, "found some seq wrong!!!,seq = " + seq + ",should be = " + seqShouldBe);
+        }
     }
 
 
@@ -138,7 +147,8 @@ public class RtpReceiveSocket implements Runnable{
     }
 
     public byte[] consumeData() throws InterruptedException {
-        byte[] result = mBuffers[mBufferOut];
+        //不能直接用，因为byte数组会回收利用！
+        byte[] result = Arrays.copyOf(mBuffers[mBufferOut], mBuffers[mBufferOut].length);
         if (++mBufferOut >= mBufferCount) mBufferOut = 0;
         mBufferRequested.release();
         return result;
@@ -153,7 +163,11 @@ public class RtpReceiveSocket implements Runnable{
                     if (++mBufferIn >= mBufferCount) mBufferIn = 0;
                     byte[] src = consumeData();
                     int seq = (int) ByteUtils.byteToLong(src, 2, 2);
-                    if (DEBUG) Log.d(TAG, "receiving seq: " + seq);
+//                    if (seq - mLastReceiveSeq > 1) {
+//                        Log.d(TAG, "receive skipping seq" + seq);
+//                    }
+//                    mLastReceiveSeq = seq;
+//                    if (DEBUG) Log.d(TAG, "receiving seq: " + seq);
                     mSortBuffers.put(seq, src);
                 }
             }

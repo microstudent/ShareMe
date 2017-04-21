@@ -66,12 +66,10 @@ public class RtpSocket implements Runnable {
 	private long mOldTimestamp = 0;
 	private int mSsrc, mSeq = 0, mPort = -1;
 	private int mBufferCount, mBufferIn, mBufferOut;
-	private int mCount = 0;
 	private byte mTcpHeader[];
 	protected OutputStream mOutputStream = null;
 	
 	private AverageBitrate mAverageBitrate;
-	private long mLastSendTimeStamp;
 
 	/**
 	 * This RTP socket implements a buffering mechanism relying on a FIFO of buffers and a Thread.
@@ -122,7 +120,6 @@ public class RtpSocket implements Runnable {
 	}
 
 	private void resetFifo() {
-		mCount = 0;
 		mBufferIn = 0;
 		mBufferOut = 0;
 		mTimestamps = new long[mBufferCount];
@@ -318,14 +315,15 @@ public class RtpSocket implements Runnable {
 		resetFifo();
 	}
 
-	private void logSendDetail(int bufferOut) {
-		long timeStamp = (mTimestamps[bufferOut] / 100L) * (mClock / 1000L) / 10000L;
-		int seq = mSeq;
-		if (timeStamp - mLastSendTimeStamp > 1) {
-			Log.d(TAG, "skipping seq:" + seq + "for timestamp" + mLastSendTimeStamp + 1);
-		}
-		mLastSendTimeStamp = timeStamp;
-	}
+//	private void logSendDetail(int bufferOut) {
+//		long timeStamp = (mTimestamps[bufferOut] / 100L) * (mClock / 1000L) / 10000L;
+//		int seq = mSeq;
+//		Log.d(TAG, "seq:" + seq + "for timestamp" + (timeStamp + 1));
+//		if (timeStamp - mLastSendTimeStamp > 1) {
+//			Log.d(TAG, "skipping seq:" + seq + "for timestamp" + mLastSendTimeStamp + 1);
+//		}
+//		mLastSendTimeStamp = timeStamp;
+//	}
 
 	private long getCurrentTimeStamp() {
 //		if (mCurrentTime != -1) {

@@ -145,7 +145,7 @@ public class MusicClientService extends AbsMusicService implements Runnable, Rts
         if (!mClient.isStreaming()) {
             Observable.just(mClient)
                     .subscribeOn(Schedulers.single())
-                    .delay(10, TimeUnit.MILLISECONDS)
+                    .delay(50, TimeUnit.MILLISECONDS)//延迟一点时间启动，因为服务器很可能没准备好
                     .subscribe(new Consumer<RtspClient>() {
                         @Override
                         public void accept(RtspClient rtspClient) throws Exception {

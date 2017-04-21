@@ -22,8 +22,8 @@ public class AACADTSUnpacker extends AbstractUnpacker implements Runnable {
     private ByteBuffer[] mInputBuffers;
     private byte[] mADTSHeader;
     private InputStream.Config mConfig;
-    private int mSeq = 0;
     private long mLastTimeStamp = 0;
+    private int mLastSeq;
 
     public AACADTSUnpacker(MediaCodec decoder) {
         if (decoder != null) {
@@ -68,12 +68,18 @@ public class AACADTSUnpacker extends AbstractUnpacker implements Runnable {
 
     private void parse(byte[] rtpPacket) {
         if (mDecoder != null) {
+            int seq = (int) ByteUtils.byteToLong(rtpPacket, 2, 2);
             long timeStamp = ByteUtils.byteToLong(rtpPacket, 4, 4);
             int AUHeaderLength = (int) ByteUtils.byteToLong(rtpPacket, rtphl, 2);
             int AUSize = (int) ByteUtils.byteToLong(rtpPacket, rtphl + 2, 2);
             AUSize >>= 3;
             int AUIndex = (int) ByteUtils.byteToLong(rtpPacket, rtphl + 3, 1);
             boolean bitMark = (rtpPacket[1] & 0x80) == 0x80;
+            if (seq - mLastSeq > 1) {
+                Log.d(TAG, "skipping frame seq = " + seq + ",its timeStamp = " + timeStamp + ",lastSeq = " + mLastSeq);
+            }
+            mLastSeq = seq;
+            mLastTimeStamp = timeStamp;
             if (bitMark) {
                 int inputIndex = mDecoder.dequeueInputBuffer(-1);
                 if (inputIndex >= 0) {
@@ -88,10 +94,6 @@ public class AACADTSUnpacker extends AbstractUnpacker implements Runnable {
                         addADTStoPacket(mADTSHeader, AUSize + 7);
                         inputBuffer.put(mADTSHeader);
                         inputBuffer.put(rtpPacket, rtphl + 4, AUSize);
-                        if (timeStamp - mLastTimeStamp > 1) {
-                            Log.d(TAG, "skipping some frame" + timeStamp + "last = " + mLastTimeStamp);
-                        }
-                        mLastTimeStamp = timeStamp;
                         mDecoder.queueInputBuffer(inputIndex, 0, AUSize + 7, timeStamp, 0);
                     }
                 } else {
