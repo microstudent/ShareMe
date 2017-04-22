@@ -50,6 +50,7 @@ public class AACInputStream implements InputStream, Runnable {
             mPlayThread.setName("PlayThread");
             mPlayThread.start();
         }
+        mRTCPReceiver.start();
     }
 
     /**

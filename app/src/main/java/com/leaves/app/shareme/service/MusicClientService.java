@@ -18,6 +18,8 @@ import com.koushikdutta.async.http.WebSocket;
 import com.leaves.app.shareme.Constant;
 import com.leaves.app.shareme.bean.Frame;
 import com.leaves.app.shareme.bean.Media;
+import com.leaves.app.shareme.eventbus.MediaEvent;
+import com.leaves.app.shareme.eventbus.RxBus;
 
 import net.majorkernelpanic.streaming.InputStream;
 import net.majorkernelpanic.streaming.ReceiveSession;
@@ -47,6 +49,10 @@ import io.reactivex.schedulers.Schedulers;
 
 public class MusicClientService extends AbsMusicService implements Runnable, RtspClient.Callback, OnPCMDataAvailableListener, OnRTCPUpdateListener, WebSocket.StringCallback {
     private static final String TAG = "MusicClientService";
+    public static final int ACTION_PLAY = 0;
+    public static final int ACTION_PAUSE = 1;
+    public static final int ACTION_STOP = 2;
+
     private static final boolean DEBUG = true;
     private static final long RETRY_DELAY = 3000;//3sec重试一次
     private AudioTrack mAudioTrack;
@@ -145,7 +151,7 @@ public class MusicClientService extends AbsMusicService implements Runnable, Rts
         if (!mClient.isStreaming()) {
             Observable.just(mClient)
                     .subscribeOn(Schedulers.single())
-                    .delay(50, TimeUnit.MILLISECONDS)//延迟一点时间启动，因为服务器很可能没准备好
+                    .delay(200, TimeUnit.MILLISECONDS)//延迟一点时间启动，因为服务器很可能没准备好
                     .subscribe(new Consumer<RtspClient>() {
                         @Override
                         public void accept(RtspClient rtspClient) throws Exception {
@@ -233,6 +239,10 @@ public class MusicClientService extends AbsMusicService implements Runnable, Rts
     public void onRtspUpdate(int message, Exception exception) {
         if (exception != null) {
             Toast.makeText(this, "RTSP无法连接至服务器，请重试！", Toast.LENGTH_SHORT).show();
+            //通知websocket服务器
+//            if (mConnectedWebSocket != null) {
+//                mConnectedWebSocket.send("");
+//            }
         }
     }
 
@@ -247,12 +257,16 @@ public class MusicClientService extends AbsMusicService implements Runnable, Rts
         frame.setRtpTime(rtpTime);
         frame.setPCMData(data);
         mFrameQueue.add(frame);
-        if (DEBUG) Log.d(TAG, "onPCMDataAvailable" + ",timeStamp = " + rtpTime);
+//        if (DEBUG) Log.d(TAG, "onPCMDataAvailable" + ",timeStamp = " + rtpTime);
     }
 
     @Override
     public void onRTCPUpdate(long ntpTime, long rtpTime) {
-//        mSyncTimer.schedule(new SyncTask(rtpTime), new Date(ntpTime));
+        //rtpTime换算
+        long rtpTs = (rtpTime / 100L) * (mConfig.sampleRate / 1000L) / 10000L;
+//        Log.d(TAG, "do sync after " + (ntpTime - System.currentTimeMillis()) + "millsec,while rtp ts = " + rtpTs + ",and current rtp ts = " + mCurrentRtpTime);
+        Log.d(TAG, "do sync ntp =  " + ntpTime + "millsec,while rtp ts = " + rtpTs + ",and current rtp ts = " + mCurrentRtpTime);
+//        mSyncTimer.schedule(new SyncTask(rtpTs), new Date(ntpTime));
     }
 
     /**
@@ -262,6 +276,8 @@ public class MusicClientService extends AbsMusicService implements Runnable, Rts
     public void onStringAvailable(String s) {
         mMedia = mGson.fromJson(s, Media.class);
         start(true);
+        MediaEvent event = new MediaEvent(ACTION_PLAY, mMedia);
+        RxBus.getDefault().post(event);
     }
 
     @Override
@@ -297,15 +313,6 @@ public class MusicClientService extends AbsMusicService implements Runnable, Rts
         @Override
         public void stop() {
 
-        }
-
-        public Media getCurrentPlayMedia() {
-            return mMedia;
-        }
-
-
-        public void sync(long currentRTPTime) {
-            MusicClientService.this.sync(currentRTPTime);
         }
     }
 

@@ -22,7 +22,7 @@ public class MP3Stream extends AudioStream {
 
     private String mMp3Path;
     private Mp3Wrapper mMp3Wrapper;
-    private PlaytimeProvider mPlaytimeProvider;
+    private PlaytimeProvider mPlayTimeProvider;
 
     public MP3Stream(String mp3Path) {
         mMp3Path = mp3Path;
@@ -130,6 +130,9 @@ public class MP3Stream extends AudioStream {
         mPacketizer = new AACADTSPacketizer();
         mPacketizer.setDestination(mDestination, mRtpPort, mRtcpPort);
         mPacketizer.getRtpSocket().setOutputStream(mOutputStream, mChannelIdentifier);
+        if (mPacketizer != null) {
+            ((AACADTSPacketizer) mPacketizer).setPlayTimeProvider(mPlayTimeProvider);
+        }
         mProfile = 2; // AAC LC
         mChannel = format.getInteger(MediaFormat.KEY_CHANNEL_COUNT);
 //        mQuality.bitRate = format.getInteger(MediaFormat.KEY_BIT_RATE);
@@ -207,9 +210,6 @@ public class MP3Stream extends AudioStream {
                             } else {
 //                                Log.v(TAG, "Pushing raw audio to the decoder: len=" + len + " bs: " + inputBuffers[bufferIndex].capacity());
                                 mMediaCodec.queueInputBuffer(bufferIndex, 0, len, mMp3Wrapper.getCurrentTime(), 0);
-                                if (mPlaytimeProvider != null) {
-                                    ((AACADTSPacketizer) mPacketizer).setCurrentPlayTime(mPlaytimeProvider.getCurrentPlayTime());
-                                }
                             }
                         } else if (bufferIndex == MediaCodec.INFO_OUTPUT_BUFFERS_CHANGED) {
                             inputBuffers = mMediaCodec.getOutputBuffers();
@@ -260,7 +260,7 @@ public class MP3Stream extends AudioStream {
     }
 
     public void setPlaytimeProvider(PlaytimeProvider playtimeProvider) {
-        mPlaytimeProvider = playtimeProvider;
+        mPlayTimeProvider = playtimeProvider;
     }
 
 //    /**

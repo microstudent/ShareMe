@@ -27,11 +27,14 @@ import java.net.InetAddress;
 import java.net.MulticastSocket;
 
 import android.os.SystemClock;
+import android.util.Log;
 
 /**
  * Implementation of Sender Report RTCP packets.
  */
 public class SenderReport {
+    private static final String TAG = "SenderReport";
+	private static final long OFFSET_1900_TO_1970 = ((365L * 70L) + 17L) * 24L * 60L * 60L;
 
 	public static final int MTU = 1500;
 
@@ -125,7 +128,8 @@ public class SenderReport {
 		oldnow = now;
 		if (interval > 0 && delta >= interval) {
 			// We send a Sender Report
-			send(ntpTime, rtpts);
+            Log.d(TAG, "send rtcp ntp = " + ntpTime);
+            send(ntpTime, rtpts);
 			delta = 0;
 		}
 
@@ -197,10 +201,11 @@ public class SenderReport {
 	 *            the RTP timestamp.
 	 */
 	private void send(long ntpts, long rtpts) throws IOException {
-		long hb = ntpts/1000000000;
-		long lb = ((ntpts - hb * 1000000000) * 4294967296L) / 1000000000;
-		setLong(hb, 8, 12);
-		setLong(lb, 12, 16);
+//		long hb = ntpts/1000000000;
+//		long lb = ((ntpts - hb * 1000000000) * 4294967296L) / 1000000000;
+//		setLong(hb, 8, 12);
+//		setLong(lb, 12, 16);
+		writeTimeStamp(mBuffer, 8, ntpts);
 		setLong(rtpts, 16, 20);
 		if (mTransport == TRANSPORT_UDP) {
 			upack.setLength(PACKET_LENGTH);
@@ -214,6 +219,28 @@ public class SenderReport {
 			}
 		}
 	}
-		
-	
+
+
+	/**
+	 * Writes system time (milliseconds since January 1, 1970) as an NTP time stamp
+	 * at the given offset in the buffer.
+	 */
+	private void writeTimeStamp(byte[] buffer, int offset, long time) {
+		long seconds = time / 1000L;
+		long milliseconds = time - seconds * 1000L;
+		seconds += OFFSET_1900_TO_1970;
+		// write seconds in big endian format
+		buffer[offset++] = (byte)(seconds >> 24);
+		buffer[offset++] = (byte)(seconds >> 16);
+		buffer[offset++] = (byte)(seconds >> 8);
+		buffer[offset++] = (byte)(seconds >> 0);
+		long fraction = milliseconds * 0x100000000L / 1000L;
+		// write fraction in big endian format
+		buffer[offset++] = (byte)(fraction >> 24);
+		buffer[offset++] = (byte)(fraction >> 16);
+		buffer[offset++] = (byte)(fraction >> 8);
+		// low order bits should be random data
+		buffer[offset++] = (byte)(Math.random() * 255.0);
+	}
+
 }

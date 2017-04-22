@@ -2,6 +2,7 @@ package com.leaves.app.shareme.service;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.media.MediaFormat;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.net.wifi.WifiManager;
@@ -24,6 +25,7 @@ import com.leaves.app.shareme.eventbus.RxBus;
 import com.leaves.app.shareme.eventbus.TimeSeekEvent;
 import com.leaves.app.shareme.ui.activity.MainActivity;
 
+import net.majorkernelpanic.streaming.PlaytimeProvider;
 import net.majorkernelpanic.streaming.SessionBuilder;
 import net.majorkernelpanic.streaming.rtsp.RtspServer;
 
@@ -42,7 +44,7 @@ import io.reactivex.schedulers.Schedulers;
  * Created by Leaves on 2016/11/7.
  */
 
-public class MusicServerService extends AbsMusicService implements WebSocket.StringCallback{
+public class MusicServerService extends AbsMusicService implements WebSocket.StringCallback, PlaytimeProvider {
     private MediaPlayer mMediaPlayer = null;
 
     private Disposable mTimeSeekDisposable;
@@ -198,7 +200,8 @@ public class MusicServerService extends AbsMusicService implements WebSocket.Str
                 .setContext(getApplicationContext())
                 .setVideoEncoder(SessionBuilder.VIDEO_NONE)
                 .setMp3Path(mMedia.getSrc())
-                .setAudioEncoder(SessionBuilder.AUDIO_MP3);
+                .setAudioEncoder(SessionBuilder.AUDIO_MP3)
+                .setPlaytimeProvider(this);
 
         // Starts the RTSP server
         this.startService(new Intent(this, RtspServer.class));
@@ -275,7 +278,8 @@ public class MusicServerService extends AbsMusicService implements WebSocket.Str
     }
 
 
-    private long getCurrentPlayTime() {
+    @Override
+    public long getCurrentPlayTime() {
         if (mMediaPlayer != null && isPrepared) {
             return mMediaPlayer.getCurrentPosition();
         }
@@ -300,10 +304,6 @@ public class MusicServerService extends AbsMusicService implements WebSocket.Str
         @Override
         public void stop() {
             MusicServerService.this.stop();
-        }
-
-        public long getCurrentPlayTime() {
-            return MusicServerService.this.getCurrentPlayTime();
         }
     }
 }

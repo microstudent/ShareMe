@@ -20,6 +20,8 @@ import android.widget.TextView;
 import com.bumptech.glide.Glide;
 import com.leaves.app.shareme.R;
 import com.leaves.app.shareme.bean.Media;
+import com.leaves.app.shareme.eventbus.MediaEvent;
+import com.leaves.app.shareme.eventbus.RxBus;
 import com.leaves.app.shareme.service.AbsMusicServiceBinder;
 import com.leaves.app.shareme.service.MusicClientService;
 import com.leaves.app.shareme.service.MusicServerService;
@@ -30,6 +32,7 @@ import butterknife.ButterKnife;
 import butterknife.OnClick;
 import io.reactivex.Observable;
 import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.Consumer;
 
 /**
@@ -65,6 +68,7 @@ public class MusicFragment extends Fragment {
     };
 
     private AbsMusicServiceBinder mBinder;
+    private Disposable mDisposable;
 
     public MusicFragment() {
         // Required empty public constructor
@@ -108,6 +112,15 @@ public class MusicFragment extends Fragment {
             } else {
                 Intent intent = new Intent(getContext(), MusicClientService.class);
                 getActivity().bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
+                mDisposable = RxBus.getDefault().toFlowable(MediaEvent.class)
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe(new Consumer<MediaEvent>() {
+                            @Override
+                            public void accept(MediaEvent mediaEvent) throws Exception {
+                                mMedia = mediaEvent.getMedia();
+                                setupView();
+                            }
+                        });
             }
         }
     }
@@ -133,6 +146,14 @@ public class MusicFragment extends Fragment {
             }
             mTitleView.setText(mMedia.getTitle());
             mAuthorView.setText(mMedia.getArtist());
+        }
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        if (mDisposable != null) {
+            mDisposable.dispose();
         }
     }
 }

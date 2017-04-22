@@ -23,10 +23,11 @@ import java.io.OutputStream;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
+import java.util.Calendar;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
-import net.majorkernelpanic.streaming.ByteUtils;
+import net.majorkernelpanic.streaming.PlaytimeProvider;
 import net.majorkernelpanic.streaming.rtcp.SenderReport;
 import android.os.SystemClock;
 import android.util.Log;
@@ -68,8 +69,12 @@ public class RtpSocket implements Runnable {
 	private int mBufferCount, mBufferIn, mBufferOut;
 	private byte mTcpHeader[];
 	protected OutputStream mOutputStream = null;
-	
+	private PlaytimeProvider mPlaytimeProvider;
+	private Calendar mCalendar = Calendar.getInstance();
+
+
 	private AverageBitrate mAverageBitrate;
+	private long mInitTs;
 
 	/**
 	 * This RTP socket implements a buffering mechanism relying on a FIFO of buffers and a Thread.
@@ -295,7 +300,7 @@ public class RtpSocket implements Runnable {
 						delta = 0;
 					}
 				}
-				mReport.update(mPackets[mBufferOut].getLength(), System.nanoTime(), getCurrentTimeStamp());
+				reportRtpTime();
 				mOldTimestamp = mTimestamps[mBufferOut];
 //				if (mCount++>30) {
 					if (mTransport == TRANSPORT_UDP) {
@@ -313,6 +318,23 @@ public class RtpSocket implements Runnable {
 		}
 		mThread = null;
 		resetFifo();
+	}
+
+	private void reportRtpTime() {
+		try {
+			if (mPlaytimeProvider != null) {
+				//计算3sec后的ntp时间
+				mCalendar.setTimeInMillis(System.currentTimeMillis());
+				mCalendar.set(Calendar.SECOND, mCalendar.get(Calendar.SECOND) + 3);
+				//计算3sec后的rtp时间,换算成nanosec
+				long currentPlayTime = (mPlaytimeProvider.getCurrentPlayTime() + 3000) * 1000000L;//nanasec
+				//3sec后
+				long rtpTime = currentPlayTime / mClock + mInitTs;
+				mReport.update(mPackets[mBufferOut].getLength(), mCalendar.getTimeInMillis(), rtpTime);
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 
 //	private void logSendDetail(int bufferOut) {
@@ -352,7 +374,15 @@ public class RtpSocket implements Runnable {
 		}
 	}
 
-	/** 
+	public void setInitTs(long ts) {
+		mInitTs = ts;
+	}
+
+	public void setPlaytimeProvider(PlaytimeProvider playtimeProvider) {
+		mPlaytimeProvider = playtimeProvider;
+	}
+
+	/**
 	 * Computes an average bit rate. 
 	 **/
 	protected static class AverageBitrate {

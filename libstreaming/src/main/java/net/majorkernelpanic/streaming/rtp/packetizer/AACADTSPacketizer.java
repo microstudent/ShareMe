@@ -21,6 +21,7 @@ package net.majorkernelpanic.streaming.rtp.packetizer;
 import java.io.IOException;
 
 import net.majorkernelpanic.streaming.ByteUtils;
+import net.majorkernelpanic.streaming.PlaytimeProvider;
 import net.majorkernelpanic.streaming.audio.AACStream;
 import net.majorkernelpanic.streaming.rtp.packetizer.AbstractPacketizer;
 
@@ -124,7 +125,7 @@ public class AACADTSPacketizer extends AbstractPacketizer implements Runnable {
 				profile = ( (header[2]&0xC0) >> 6 ) + 1 ;
 
 				// We update the RTP timestamp
-				ts +=  1000000000L/samplingRate; //stats.average();
+				ts +=  1000000000L/samplingRate; //stats.average();nanotime
 
 				//Log.d(TAG,"frameLength: "+frameLength+" protection: "+protection+" p: "+profile+" sr: "+samplingRate);
 
@@ -179,13 +180,6 @@ public class AACADTSPacketizer extends AbstractPacketizer implements Runnable {
 
 	}
 
-	/**
-	 * @param planToPlayTime 计划播放的时间，ntp时间
-	 */
-	public void setCurrentPlayTime(long planToPlayTime) {
-
-	}
-
 	private int fill(byte[] buffer, int offset,int length) throws IOException {
 		int sum = 0, len;
 		while (sum<length) {
@@ -197,4 +191,9 @@ public class AACADTSPacketizer extends AbstractPacketizer implements Runnable {
 		return sum;
 	}
 
+	public void setPlayTimeProvider(PlaytimeProvider playtimeProvider) {
+		if (socket != null) {
+			socket.setPlaytimeProvider(playtimeProvider);
+		}
+	}
 }

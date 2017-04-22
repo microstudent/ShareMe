@@ -34,7 +34,6 @@ abstract public class AbstractPacketizer {
 	
 	// Maximum size of RTP packets
 	protected final static int MAXPACKETSIZE = RtpSocket.MTU-28;
-	protected final long initTs;
 
 	protected RtpSocket socket = null;
 	protected InputStream is = null;//压包器从这里读数据
@@ -45,9 +44,9 @@ abstract public class AbstractPacketizer {
 	public AbstractPacketizer() {
 		int ssrc = new Random().nextInt();
 		ts = new Random().nextInt();
-		initTs = ts;
 		socket = new RtpSocket();
 		socket.setSSRC(ssrc);
+		socket.setInitTs(ts);
 	}
 
 	public RtpSocket getRtpSocket() {
