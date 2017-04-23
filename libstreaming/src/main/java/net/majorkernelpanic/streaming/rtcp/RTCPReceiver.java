@@ -1,5 +1,7 @@
 package net.majorkernelpanic.streaming.rtcp;
 
+import android.util.Log;
+
 import net.majorkernelpanic.streaming.ByteUtils;
 
 import java.io.IOException;
@@ -12,6 +14,7 @@ import java.net.SocketException;
  */
 
 public class RTCPReceiver implements Runnable{
+    private static final String TAG = "RTCPReceiver";
     private static final long OFFSET_1900_TO_1970 = ((365L * 70L) + 17L) * 24L * 60L * 60L;
 
     private static final int PACKET_LENGTH = 28;

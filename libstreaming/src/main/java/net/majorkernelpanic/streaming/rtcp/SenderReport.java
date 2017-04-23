@@ -29,6 +29,8 @@ import java.net.MulticastSocket;
 import android.os.SystemClock;
 import android.util.Log;
 
+import net.majorkernelpanic.streaming.ByteUtils;
+
 /**
  * Implementation of Sender Report RTCP packets.
  */
@@ -128,7 +130,6 @@ public class SenderReport {
 		oldnow = now;
 		if (interval > 0 && delta >= interval) {
 			// We send a Sender Report
-            Log.d(TAG, "send rtcp ntp = " + ntpTime);
             send(ntpTime, rtpts);
 			delta = 0;
 		}
@@ -205,8 +206,10 @@ public class SenderReport {
 //		long lb = ((ntpts - hb * 1000000000) * 4294967296L) / 1000000000;
 //		setLong(hb, 8, 12);
 //		setLong(lb, 12, 16);
-		writeTimeStamp(mBuffer, 8, ntpts);
+        Log.d(TAG, "send ntp time" + ntpts);
+        writeTimeStamp(mBuffer, 8, ntpts);
 		setLong(rtpts, 16, 20);
+		ByteUtils.logByte(mBuffer, 16, 4);
 		if (mTransport == TRANSPORT_UDP) {
 			upack.setLength(PACKET_LENGTH);
 			usock.send(upack);		

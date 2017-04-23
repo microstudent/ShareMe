@@ -48,6 +48,7 @@ public class Mp3Wrapper {
     private boolean isEndOfInputFile;
     private int mOutputBufferIndex = -1;
     private long mSendOffset;
+    private int mCount = 0;
 
     public Mp3Wrapper(String path) {
         mPath = path;
@@ -66,8 +67,8 @@ public class Mp3Wrapper {
                 }
             }
             mSendOffset = 1000000L / mMediaFormat.getInteger(MediaFormat.KEY_SAMPLE_RATE);
-            int minBufferSize = AudioTrack.getMinBufferSize(44100, AudioFormat.CHANNEL_CONFIGURATION_STEREO, AudioFormat.ENCODING_PCM_16BIT);
-            int bufferSize = 4 * minBufferSize;
+//            int minBufferSize = AudioTrack.getMinBufferSize(44100, AudioFormat.CHANNEL_CONFIGURATION_STEREO, AudioFormat.ENCODING_PCM_16BIT);
+//            int bufferSize = 4 * minBufferSize;
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -165,6 +166,7 @@ public class Mp3Wrapper {
 //                    if (chunk.length > 0) {
 //                        mAudioTrack.write(chunk, 0, chunk.length);
 //                    }
+                    Log.d(TAG, "decoding count = " + (mCount++) + "sampleTime = " + mMediaExtractor.getSampleTime() + "and sample Rate = " + mMediaFormat.getInteger(MediaFormat.KEY_SAMPLE_RATE));
                     audioBuffer.put(mDecodeOutputBuffers[mOutputBufferIndex]);
                     // Release the buffer so MediaCodec can use it again.
                     // The data should stay there until the next time we are called.

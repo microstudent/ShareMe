@@ -70,7 +70,6 @@ public class RtpSocket implements Runnable {
 	private byte mTcpHeader[];
 	protected OutputStream mOutputStream = null;
 	private PlaytimeProvider mPlaytimeProvider;
-	private Calendar mCalendar = Calendar.getInstance();
 
 
 	private AverageBitrate mAverageBitrate;
@@ -323,14 +322,7 @@ public class RtpSocket implements Runnable {
 	private void reportRtpTime() {
 		try {
 			if (mPlaytimeProvider != null) {
-				//计算3sec后的ntp时间
-				mCalendar.setTimeInMillis(System.currentTimeMillis());
-				mCalendar.set(Calendar.SECOND, mCalendar.get(Calendar.SECOND) + 3);
-				//计算3sec后的rtp时间,换算成nanosec
-				long currentPlayTime = (mPlaytimeProvider.getCurrentPlayTime() + 3000) * 1000000L;//nanasec
-				//3sec后
-				long rtpTime = currentPlayTime / mClock + mInitTs;
-				mReport.update(mPackets[mBufferOut].getLength(), mCalendar.getTimeInMillis(), rtpTime);
+				mReport.update(mPackets[mBufferOut].getLength(), System.currentTimeMillis(), mPlaytimeProvider.getCurrentPlayTime());
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
