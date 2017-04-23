@@ -114,6 +114,7 @@ public class MusicServerService extends AbsMusicService implements WebSocket.Str
             }
         }).observeOn(Schedulers.newThread()).repeat().observeOn(AndroidSchedulers.mainThread());
         isPrepared = false;
+        startRTSPServer();
     }
 
     @Override
@@ -145,8 +146,8 @@ public class MusicServerService extends AbsMusicService implements WebSocket.Str
             mConnectedWebSocket.send(mGson.toJson(mMedia));
         }
         if (invalidate) {
-            startRTSPServer();
             mMediaPlayer.reset();
+            SessionBuilder.getInstance().setMp3Path(mMedia.getSrc());
             Uri uri = Uri.parse(mMedia.getSrc());
             Observable.just(uri)
                     .observeOn(Schedulers.io())
@@ -199,7 +200,6 @@ public class MusicServerService extends AbsMusicService implements WebSocket.Str
         SessionBuilder.getInstance()
                 .setContext(getApplicationContext())
                 .setVideoEncoder(SessionBuilder.VIDEO_NONE)
-                .setMp3Path(mMedia.getSrc())
                 .setAudioEncoder(SessionBuilder.AUDIO_MP3)
                 .setPlaytimeProvider(this);
 
