@@ -3,9 +3,6 @@ package com.leaves.app.shareme.ui.activity;
 import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.support.annotation.IdRes;
-import android.support.annotation.NonNull;
-import android.support.design.widget.BottomSheetBehavior;
-import android.support.design.widget.CoordinatorLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
@@ -14,6 +11,7 @@ import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.Toast;
 
@@ -29,8 +27,6 @@ import com.leaves.app.shareme.R;
 import com.leaves.app.shareme.bean.Media;
 import com.leaves.app.shareme.contract.MainActivityContract;
 import com.leaves.app.shareme.presenter.MainPresenter;
-import com.leaves.app.shareme.ui.behavior.DockerBehavior;
-import com.leaves.app.shareme.ui.behavior.DodgeBottomSheetBehavior;
 import com.leaves.app.shareme.ui.fragment.AudioListFragment;
 import com.leaves.app.shareme.ui.fragment.BehaviorFragment;
 import com.leaves.app.shareme.ui.fragment.BottomSheetFragment;
@@ -39,9 +35,6 @@ import com.leaves.app.shareme.ui.fragment.MusicFragment;
 import com.leaves.app.shareme.ui.fragment.PasswordFragment;
 import com.leaves.app.shareme.ui.widget.dialpad.listener.OnNumberClickListener;
 import com.tbruyelle.rxpermissions2.RxPermissions;
-
-import static android.support.design.widget.BottomSheetBehavior.STATE_COLLAPSED;
-import static android.support.design.widget.BottomSheetBehavior.STATE_EXPANDED;
 
 
 public class MainActivity extends AppCompatActivity implements
@@ -54,7 +47,7 @@ public class MainActivity extends AppCompatActivity implements
     ImageView mImageView;
 
     @BindView(R.id.activity_main)
-    CoordinatorLayout mRootView;
+    ViewGroup mRootView;
 
     @BindView(R.id.view_content)
     View mContentView;
@@ -62,8 +55,6 @@ public class MainActivity extends AppCompatActivity implements
     @BindView(R.id.toolbar)
     Toolbar mToolbar;
 
-    private DodgeBottomSheetBehavior mBottomSheetBehavior;
-    private DockerBehavior mDockerBehavior;
     private PasswordFragment mPasswordFragment;
     private BehaviorFragment mBehaviorFragment;
     private AudioListFragment mAudioListFragment;
@@ -94,45 +85,38 @@ public class MainActivity extends AppCompatActivity implements
 
     private void initView() {
         mFragmentManager = getSupportFragmentManager();
-        View bottomSheet = mRootView.findViewById(R.id.bottom_sheet);
-        BottomSheetBehavior behavior = BottomSheetBehavior.from(bottomSheet);
-        if (behavior instanceof DodgeBottomSheetBehavior) {
-            mBottomSheetBehavior = (DodgeBottomSheetBehavior) behavior;
-        }
-        mDockerBehavior = DockerBehavior.from(mContentView);
         mPresenter = new MainPresenter(this, getSupportFragmentManager(), this);
     }
 
     private void setupView() {
-        mBottomSheetBehavior.setBottomSheetCallback(new BottomSheetBehavior.BottomSheetCallback() {
-            @Override
-            public void onStateChanged(@NonNull View bottomSheet, int newState) {
-                if (newState == STATE_EXPANDED) {
-//                    mDockerBehavior.setNeedMeasure(false);
-                    if (mAudioListFragment == null) {
-                        mAudioListFragment = AudioListFragment.newInstance();
-                    }
-                    switchFragment(BehaviorFragment.TAG, mAudioListFragment, AudioListFragment.TAG, R.id.bottom_sheet);
-                    mBottomSheetBehavior.setScrollable(true);
-                } else if (newState == STATE_COLLAPSED) {
-//                    mDockerBehavior.setNeedMeasure(false);
-                    if (mBehaviorFragment == null) {
-                        mBehaviorFragment = BehaviorFragment.newInstance();
-                    }
-                    switchFragment(AudioListFragment.TAG, mBehaviorFragment, BehaviorFragment.TAG, R.id.bottom_sheet);
-                    mBottomSheetBehavior.setScrollable(true);
-                }
-            }
-
-            @Override
-            public void onSlide(@NonNull View bottomSheet, float slideOffset) {
-
-            }
-        });
+//        mBottomSheetBehavior.setBottomSheetCallback(new BottomSheetBehavior.BottomSheetCallback() {
+//            @Override
+//            public void onStateChanged(@NonNull View bottomSheet, int newState) {
+//                if (newState == STATE_EXPANDED) {
+////                    mDockerBehavior.setNeedMeasure(false);
+//                    if (mAudioListFragment == null) {
+//                        mAudioListFragment = AudioListFragment.newInstance();
+//                    }
+//                    switchFragment(BehaviorFragment.TAG, mAudioListFragment, AudioListFragment.TAG, R.id.bottom_sheet);
+//                    mBottomSheetBehavior.setScrollable(true);
+//                } else if (newState == STATE_COLLAPSED) {
+////                    mDockerBehavior.setNeedMeasure(false);
+//                    if (mBehaviorFragment == null) {
+//                        mBehaviorFragment = BehaviorFragment.newInstance();
+//                    }
+//                    switchFragment(AudioListFragment.TAG, mBehaviorFragment, BehaviorFragment.TAG, R.id.bottom_sheet);
+//                    mBottomSheetBehavior.setScrollable(true);
+//                }
+//            }
+//
+//            @Override
+//            public void onSlide(@NonNull View bottomSheet, float slideOffset) {
+//
+//            }
+//        });
         setSupportActionBar(mToolbar);
         setTitle("");
-        mBottomSheetBehavior.setMinOffset(300);
-        mBottomSheetBehavior.setScrollable(false);
+//        mBottomSheetBehavior.setMinOffset(300);
 
         Glide.with(this).load(R.drawable.bg_piano).asBitmap().listener(new RequestListener<Integer, Bitmap>() {
             @Override
@@ -159,7 +143,7 @@ public class MainActivity extends AppCompatActivity implements
                             .replace(R.id.container_main, mPasswordFragment, PasswordFragment.TAG)
                             .commit();
                     fragment = DialpadFragment.newInstance();
-                    switchFragment(null, fragment, DialpadFragment.TAG, R.id.bottom_sheet);
+                    switchFragment(null, fragment, DialpadFragment.TAG, R.id.layout_bottom);
                     break;
                 case MainPresenter.MODE_CONNECTED:
                     mMusicFragment = MusicFragment.newInstance(mPresenter.isServer());
@@ -167,8 +151,7 @@ public class MainActivity extends AppCompatActivity implements
                             .replace(R.id.container_main, mMusicFragment, MusicFragment.TAG)
                             .commit();
                     fragment = BehaviorFragment.newInstance();
-                    switchFragment(DialpadFragment.TAG, fragment, BehaviorFragment.TAG, R.id.bottom_sheet);
-                    mBottomSheetBehavior.setScrollable(true);
+                    switchFragment(DialpadFragment.TAG, fragment, BehaviorFragment.TAG, R.id.layout_bottom);
                     break;
             }
         }
@@ -177,9 +160,6 @@ public class MainActivity extends AppCompatActivity implements
 
     @Override
     public void onFragmentMeasure(int width, int height) {
-        if (mBottomSheetBehavior != null) {
-            mBottomSheetBehavior.setPeekHeight(height);
-        }
     }
 
     @Override
@@ -195,8 +175,7 @@ public class MainActivity extends AppCompatActivity implements
      */
     @Override
     public void onSearchingDevice() {
-        switchFragment(DialpadFragment.TAG, BehaviorFragment.newInstance(), BehaviorFragment.TAG, R.id.bottom_sheet);
-        mBottomSheetBehavior.setScrollable(true);
+        switchFragment(DialpadFragment.TAG, BehaviorFragment.newInstance(), BehaviorFragment.TAG, R.id.layout_bottom);
     }
 
     private void switchFragment(String fromTag, Fragment to, String toTag, @IdRes int resId) {
@@ -222,7 +201,6 @@ public class MainActivity extends AppCompatActivity implements
 
     @Override
     public void onAudioClick(Media media) {
-        mBottomSheetBehavior.setState(STATE_COLLAPSED);
         mMusicFragment.play(media);
     }
 

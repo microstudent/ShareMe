@@ -2,14 +2,17 @@
                 xmlns:tools="http://schemas.android.com/tools"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:orientation="horizontal"
-                android:paddingBottom="@dimen/spacing_normal">
+                android:orientation="horizontal">
     <LinearLayout
+        android:id="@+id/bt_connection"
+        android:foreground="?android:attr/selectableItemBackground"
+        android:clickable="true"
         android:gravity="center"
         android:orientation="vertical"
+        android:paddingBottom="@dimen/spacing_normal"
         android:layout_width="0dp"
         android:layout_weight="1"
-        android:layout_height="match_parent">
+        android:layout_height="wrap_content">
         <ImageView
             android:src="@drawable/ic_connection"
             android:tint="@color/holo_green_light"
@@ -38,12 +41,22 @@
             <!--android:layout_width="wrap_content"-->
             <!--android:layout_height="wrap_content"/>-->
     <!--</LinearLayout>-->
+    <View
+        android:layout_marginTop="@dimen/spacing_small"
+        android:layout_marginBottom="@dimen/spacing_small"
+        android:background="@color/gray"
+        android:layout_width="1sp"
+        android:layout_height="match_parent"/>
     <LinearLayout
+        android:id="@+id/bt_list"
+        android:foreground="?android:attr/selectableItemBackground"
+        android:clickable="true"
+        android:paddingBottom="@dimen/spacing_normal"
         android:gravity="center"
         android:orientation="vertical"
         android:layout_width="0dp"
         android:layout_weight="1"
-        android:layout_height="match_parent">
+        android:layout_height="wrap_content">
         <ImageView
             android:src="@drawable/ic_list"
             android:tint="@color/holo_blue_light"

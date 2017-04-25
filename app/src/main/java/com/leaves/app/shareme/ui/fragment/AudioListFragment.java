@@ -2,6 +2,7 @@ package com.leaves.app.shareme.ui.fragment;
 
 import android.content.Context;
 import android.os.Bundle;
+import android.support.design.widget.BottomSheetDialogFragment;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -26,7 +27,7 @@ import butterknife.ButterKnife;
  * Use the {@link AudioListFragment#newInstance} factory method to
  * create an instance of this fragment.
  */
-public class AudioListFragment extends Fragment implements AudioListContract.View{
+public class AudioListFragment extends BottomSheetDialogFragment implements AudioListContract.View{
     public static final String TAG = "AudioListFragment";
     private OnAudioClickListener mListener;
     private AudioListAdapter mAdapter;

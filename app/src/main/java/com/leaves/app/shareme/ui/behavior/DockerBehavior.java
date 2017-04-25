@@ -14,6 +14,8 @@ import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.leaves.app.shareme.R;
+
 import java.util.List;
 
 /**
@@ -40,32 +42,33 @@ public class DockerBehavior extends CoordinatorLayout.Behavior<View> {
 
     @Override
     public boolean layoutDependsOn(CoordinatorLayout parent, View child, View dependency) {
-        return isViewHasBottomSheetBehavior(dependency);
+        return isViewBottomLayout(dependency);
     }
 
-    private boolean isViewHasBottomSheetBehavior(View dependency) {
-        ViewGroup.LayoutParams params = dependency.getLayoutParams();
-        if (!(params instanceof CoordinatorLayout.LayoutParams)) {
-            return false;
-        }
-        CoordinatorLayout.Behavior behavior = ((CoordinatorLayout.LayoutParams) params)
-                .getBehavior();
-        if (!(behavior instanceof BottomSheetBehavior)) {
-            return false;
-        }
-        return true;
+    private boolean isViewBottomLayout(View dependency) {
+//        ViewGroup.LayoutParams params = dependency.getLayoutParams();
+//        if (!(params instanceof CoordinatorLayout.LayoutParams)) {
+//            return false;
+//        }
+//        CoordinatorLayout.Behavior behavior = ((CoordinatorLayout.LayoutParams) params)
+//                .getBehavior();
+//        if (!(behavior instanceof BottomSheetBehavior)) {
+//            return false;
+//        }
+//        return true;
+        return dependency.getId() == R.id.layout_bottom;
     }
 
     @Override
     public boolean onDependentViewChanged(CoordinatorLayout parent, View child, View dependency) {
-        if (isViewHasBottomSheetBehavior(dependency)) {
-            BottomSheetBehavior behavior = getBottomSheetBehavior(dependency);
-            if (behavior.getState() == BottomSheetBehavior.STATE_DRAGGING || behavior.getState() == BottomSheetBehavior.STATE_SETTLING) {
-                offsetChildAsNeeded(parent, child, dependency);
-//            } else if (){
-//                     measureChildAsNeeded(parent, child, dependency);
-            }
-        }
+//        if (isViewBottomLayout(dependency)) {
+//            offsetChildAsNeeded(parent, child, dependency);
+//            BottomSheetBehavior behavior = getBottomSheetBehavior(dependency);
+//            if (behavior.getState() == BottomSheetBehavior.STATE_DRAGGING || behavior.getState() == BottomSheetBehavior.STATE_SETTLING) {
+////            } else if (){
+////                     measureChildAsNeeded(parent, child, dependency);
+//            }
+//        }
         return super.onDependentViewChanged(parent, child, dependency);
     }
 
@@ -99,7 +102,7 @@ public class DockerBehavior extends CoordinatorLayout.Behavior<View> {
 
         // Offset the child, pinning it to the bottom the header-dependency, maintaining
         // any vertical gap and overlap
-        if (isViewHasBottomSheetBehavior(dependency)) {
+        if (isViewBottomLayout(dependency)) {
             if (mAnimatorSet == null) {
                 initChildAnim(child);
             }
@@ -190,13 +193,13 @@ public class DockerBehavior extends CoordinatorLayout.Behavior<View> {
         });
     }
 
-    private int getScrollRange(View bottomSheet) {
-        if (mLastBottomSheetTop == 0) {
-            mLastBottomSheetTop = bottomSheet.getTop();
-        }
-        BottomSheetBehavior behavior = getBottomSheetBehavior(bottomSheet);
-        return bottomSheet.getMeasuredHeight() - behavior.getPeekHeight() + (bottomSheet.getTop() - mLastBottomSheetTop);
-    }
+//    private int getScrollRange(View bottomSheet) {
+//        if (mLastBottomSheetTop == 0) {
+//            mLastBottomSheetTop = bottomSheet.getTop();
+//        }
+//        BottomSheetBehavior behavior = getBottomSheetBehavior(bottomSheet);
+//        return bottomSheet.getMeasuredHeight() - behavior.getPeekHeight() + (bottomSheet.getTop() - mLastBottomSheetTop);
+//    }
 
 //
 //    @Override
@@ -242,7 +245,7 @@ public class DockerBehavior extends CoordinatorLayout.Behavior<View> {
 
     private View findFirstBottomSheet(List<View> dependencies) {
         for (View view : dependencies) {
-            if (isViewHasBottomSheetBehavior(view)) {
+            if (isViewBottomLayout(view)) {
                 return view;
             }
         }

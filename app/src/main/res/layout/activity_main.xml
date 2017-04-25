@@ -1,71 +1,66 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.design.widget.CoordinatorLayout
+<FrameLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/activity_main"
-    android:focusableInTouchMode="false"
-    android:clickable="false"
-    android:focusable="false"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context="com.leaves.app.shareme.ui.activity.MainActivity">
-
     <ImageView
         android:id="@+id/iv_bg"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:scaleType="centerCrop"
         />
-
     <android.support.v7.widget.Toolbar
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
         android:layout_marginTop="@dimen/status_bar_height"
-        app:layout_insetEdge="top"
         android:onClick="mock"
         app:theme="@style/ToolbarTheme"
         app:popupTheme="@style/ToolbarPopupTheme"
         app:logo="@drawable/ic_action">
         <TextView
-            android:text="ShareMe"
+            android:text="@string/app_name"
             android:textColor="@color/colorAccent"
             android:textSize="@dimen/font_larger"
             android:paddingLeft="@dimen/spacing_small"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"/>
     </android.support.v7.widget.Toolbar>
-
-    <android.support.v7.widget.CardView
-        android:id="@+id/view_content"
+    <android.support.design.widget.CoordinatorLayout
+        android:layout_marginTop="85dp"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_marginTop="80dp"
-        app:cardCornerRadius="10dp"
-        android:layout_marginLeft="@dimen/spacing_more_small"
-        android:layout_marginRight="@dimen/spacing_more_small"
-        app:layout_behavior="com.leaves.app.shareme.ui.behavior.DockerBehavior">
-        <FrameLayout
-            android:id="@+id/container_main"
+        android:layout_height="match_parent">
+        <android.support.v7.widget.CardView
+            android:id="@+id/view_content"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"/>
-    </android.support.v7.widget.CardView>
+            android:layout_height="match_parent"
+            app:cardCornerRadius="10dp"
+            android:layout_marginLeft="@dimen/spacing_more_small"
+            android:layout_marginRight="@dimen/spacing_more_small"
+            android:layout_marginBottom="@dimen/spacing_small"
+            app:layout_behavior="com.leaves.app.shareme.ui.behavior.DockerBehavior">
+            <FrameLayout
+                android:id="@+id/container_main"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"/>
+        </android.support.v7.widget.CardView>
 
-    <android.support.v7.widget.CardView
-        android:id="@+id/bottom_sheet"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/spacing_more_small"
-        android:layout_marginLeft="@dimen/spacing_more_small"
-        android:layout_marginRight="@dimen/spacing_more_small"
-        app:behavior_hideable="false"
-        app:layout_behavior="com.leaves.app.shareme.ui.behavior.DodgeBottomSheetBehavior"
-        app:cardPreventCornerOverlap="false"
-        app:cardCornerRadius="10dp">
-        <FrameLayout
-            android:id="@+id/container_bottom"
+        <android.support.v7.widget.CardView
+            android:id="@+id/layout_bottom"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"/>
-    </android.support.v7.widget.CardView>
-</android.support.design.widget.CoordinatorLayout>
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom"
+            android:layout_margin="@dimen/spacing_more_small"
+            app:cardPreventCornerOverlap="false"
+            app:cardCornerRadius="10dp">
+            <FrameLayout
+                android:id="@+id/container_bottom"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"/>
+        </android.support.v7.widget.CardView>
+    </android.support.design.widget.CoordinatorLayout>
+</FrameLayout>
