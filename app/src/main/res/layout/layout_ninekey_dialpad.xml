@@ -115,7 +115,9 @@
             android:layout_height="match_parent"
             android:background="?android:attr/selectableItemBackground"
             android:paddingBottom="20dp"
-            android:paddingTop="20dp"/>
+            android:paddingTop="20dp"
+            app:drawable="@drawable/ic_clear"
+            />
 
         <com.leaves.app.shareme.ui.widget.dialpad.ninekeybutton.NineKeyButton
             android:layout_width="match_parent"
@@ -133,6 +135,7 @@
             android:background="?android:attr/selectableItemBackground"
             android:paddingBottom="20dp"
             android:paddingTop="20dp"
+            app:drawable="@drawable/ic_backspace"
             />
     </TableRow>
 </TableLayout>

@@ -16,7 +16,7 @@ public interface MainActivityContract {
     }
 
     interface Presenter extends BasePresenter {
-        void appendPassword(String number);
+        void onDialpadClick(int position, String number);
 
         boolean isServer();
     }

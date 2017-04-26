@@ -39,7 +39,9 @@ import com.tbruyelle.rxpermissions2.RxPermissions;
 
 public class MainActivity extends AppCompatActivity implements
         OnNumberClickListener, BottomSheetFragment.OnFragmentMeasureListener,
-        PasswordFragment.MainFragmentCallback, AudioListFragment.OnAudioClickListener, MainActivityContract.View {
+        PasswordFragment.MainFragmentCallback, AudioListFragment.OnAudioClickListener,
+        BehaviorFragment.OnBehaviorClickListener,
+        MainActivityContract.View {
 
     private FragmentManager mFragmentManager;
 
@@ -143,7 +145,7 @@ public class MainActivity extends AppCompatActivity implements
                             .replace(R.id.container_main, mPasswordFragment, PasswordFragment.TAG)
                             .commit();
                     fragment = DialpadFragment.newInstance();
-                    switchFragment(null, fragment, DialpadFragment.TAG, R.id.layout_bottom);
+                    switchFragment(null, fragment, DialpadFragment.TAG, R.id.layout_bottom, false);
                     break;
                 case MainPresenter.MODE_CONNECTED:
                     mMusicFragment = MusicFragment.newInstance(mPresenter.isServer());
@@ -151,7 +153,7 @@ public class MainActivity extends AppCompatActivity implements
                             .replace(R.id.container_main, mMusicFragment, MusicFragment.TAG)
                             .commit();
                     fragment = BehaviorFragment.newInstance();
-                    switchFragment(DialpadFragment.TAG, fragment, BehaviorFragment.TAG, R.id.layout_bottom);
+                    switchFragment(DialpadFragment.TAG, fragment, BehaviorFragment.TAG, R.id.layout_bottom, false);
                     break;
             }
         }
@@ -163,11 +165,11 @@ public class MainActivity extends AppCompatActivity implements
     }
 
     @Override
-    public void onNumberClick(String number) {
+    public void onDialpadClick(int position, String number) {
         if (mPasswordFragment != null) {
-            mPasswordFragment.appendPassword(number);
+            mPasswordFragment.onDialpadClick(position, number);
         }
-        mPresenter.appendPassword(number);
+        mPresenter.onDialpadClick(position, number);
     }
 
     /**
@@ -175,10 +177,10 @@ public class MainActivity extends AppCompatActivity implements
      */
     @Override
     public void onSearchingDevice() {
-        switchFragment(DialpadFragment.TAG, BehaviorFragment.newInstance(), BehaviorFragment.TAG, R.id.layout_bottom);
+        switchFragment(DialpadFragment.TAG, BehaviorFragment.newInstance(), BehaviorFragment.TAG, R.id.layout_bottom, false);
     }
 
-    private void switchFragment(String fromTag, Fragment to, String toTag, @IdRes int resId) {
+    private void switchFragment(String fromTag, Fragment to, String toTag, @IdRes int resId, boolean addToBackStack) {
         FragmentTransaction transaction = mFragmentManager.beginTransaction();
         Fragment fromFragment = mFragmentManager.findFragmentByTag(fromTag);
         if (fromFragment == null) {
@@ -186,10 +188,16 @@ public class MainActivity extends AppCompatActivity implements
         } else if (to != fromFragment) {
             if (!to.isAdded()) {
                 transaction.hide(fromFragment)
-                        .add(resId, to, toTag).addToBackStack(null);
+                        .add(resId, to, toTag);
+                if (addToBackStack) {
+                    transaction.addToBackStack(null);
+                }
             } else {
                 transaction.hide(fromFragment)
-                        .show(to).addToBackStack(null);
+                        .show(to);
+                if (addToBackStack) {
+                    transaction.addToBackStack(null);
+                }
             }
         }
         transaction.commit();
@@ -234,5 +242,15 @@ public class MainActivity extends AppCompatActivity implements
     public void onBackPressed() {
         super.onBackPressed();
 //        moveTaskToBack(true);
+    }
+
+    @Override
+    public void onBehaviorClick(@IdRes int id, View view) {
+        if (id == R.id.bt_list) {
+            if (mAudioListFragment == null) {
+                mAudioListFragment = AudioListFragment.newInstance();
+            }
+            switchFragment(AudioListFragment.TAG, mAudioListFragment, AudioListFragment.TAG, 0, false);
+        }
     }
 }

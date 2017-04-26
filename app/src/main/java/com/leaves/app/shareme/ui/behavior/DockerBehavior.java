@@ -44,18 +44,18 @@ public class DockerBehavior extends CoordinatorLayout.Behavior<View> {
     public boolean layoutDependsOn(CoordinatorLayout parent, View child, View dependency) {
         return isViewBottomLayout(dependency);
     }
-
-    private boolean isViewBottomLayout(View dependency) {
-//        ViewGroup.LayoutParams params = dependency.getLayoutParams();
+//
+//    private boolean isViewHasBottomSheetBehavior(View view) {
+//        ViewGroup.LayoutParams params = view.getLayoutParams();
 //        if (!(params instanceof CoordinatorLayout.LayoutParams)) {
 //            return false;
 //        }
 //        CoordinatorLayout.Behavior behavior = ((CoordinatorLayout.LayoutParams) params)
 //                .getBehavior();
-//        if (!(behavior instanceof BottomSheetBehavior)) {
-//            return false;
-//        }
-//        return true;
+//        return behavior instanceof BottomSheetBehavior;
+//    }
+
+    private boolean isViewBottomLayout(View dependency) {
         return dependency.getId() == R.id.layout_bottom;
     }
 

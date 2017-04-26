@@ -139,4 +139,18 @@ public class PasswordTextView extends View{
             invalidate();
         }
     }
+
+    public void clear() {
+        mCurrentPwCount = 0;
+        invalidate();
+    }
+
+    public void backspace() {
+        if (mCurrentPwCount > 0) {
+            mCurrentPwCount--;
+        } else {
+            mCurrentPwCount = 0;
+        }
+        invalidate();
+    }
 }

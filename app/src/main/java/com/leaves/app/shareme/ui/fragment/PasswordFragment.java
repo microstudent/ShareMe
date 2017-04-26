@@ -83,8 +83,16 @@ public class PasswordFragment extends Fragment {
     }
 
 
-    public void appendPassword(String msg) {
-        mPasswordTextView.append(msg);
+    public void onDialpadClick(int position, String msg) {
+        if (position == 9) {
+            //clearPassword all
+            mPasswordTextView.clear();
+        } else if (position == 11) {
+            //backspace
+            mPasswordTextView.backspace();
+        } else {
+            mPasswordTextView.append(msg);
+        }
     }
 
     /**

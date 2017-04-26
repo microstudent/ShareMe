@@ -7,6 +7,8 @@ import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.View;
 
+import com.leaves.app.shareme.R;
+
 import java.lang.reflect.Field;
 
 /**

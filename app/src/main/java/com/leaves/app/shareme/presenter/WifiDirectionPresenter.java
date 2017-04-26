@@ -61,6 +61,20 @@ public class WifiDirectionPresenter implements WifiDirectionContract.Presenter, 
     }
 
     @Override
+    public void clearPassword() {
+        if (mPassword.length() >= 1) {
+            mPassword.delete(0, mPassword.length());
+        }
+    }
+
+    @Override
+    public void backspacePassword() {
+        if (mPassword.length() >= 1) {
+            mPassword.deleteCharAt(mPassword.length() - 1);
+        }
+    }
+
+    @Override
     public void cancelSearch() {
         if (mWifiDirect != null) {
             mWifiDirect.stopDiscover();

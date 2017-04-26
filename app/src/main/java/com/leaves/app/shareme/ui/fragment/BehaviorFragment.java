@@ -3,12 +3,17 @@ package com.leaves.app.shareme.ui.fragment;
 import android.content.Context;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.annotation.IdRes;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
 import com.leaves.app.shareme.R;
+
+import butterknife.BindView;
+import butterknife.ButterKnife;
+import butterknife.OnClick;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -18,7 +23,13 @@ import com.leaves.app.shareme.R;
 public class BehaviorFragment extends Fragment {
     public static final String TAG = "BehaviorFragment";
 
-//    private OnBehaviorClickListener mListener;
+    private OnBehaviorClickListener mListener;
+
+    @BindView(R.id.bt_list)
+    View mListView;
+
+    @BindView(R.id.bt_connection)
+    View mConnectionView;
 
     public BehaviorFragment() {
         // Required empty public constructor
@@ -32,36 +43,51 @@ public class BehaviorFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        if (getArguments() != null) {
-        }
+//        if (getArguments() != null) {
+//        }
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_behavior, container, false);
+        View view = inflater.inflate(R.layout.fragment_behavior, container, false);
+        ButterKnife.bind(this, view);
+        return view;
     }
 
+    @OnClick(R.id.bt_list)
+    public void onListClick() {
+        if (mListener != null) {
+            mListener.onBehaviorClick(R.id.bt_list, mListView);
+        }
+    }
 
-//    @Override
-//    public void onAttach(Context context) {
-//        super.onAttach(context);
-//        if (context instanceof OnBehaviorClickListener) {
-//            mListener = (OnBehaviorClickListener) context;
-//        } else {
-//            throw new RuntimeException(context.toString()
-//                    + " must implement OnBehaviorClickListener");
-//        }
-//    }
-//
-//    @Override
-//    public void onDetach() {
-//        super.onDetach();
-//        mListener = null;
-//    }
-//
-//    public interface OnBehaviorClickListener{
-//
-//    }
+    @OnClick(R.id.bt_connection)
+    public void onConnectionClick() {
+        if (mListener != null) {
+            mListener.onBehaviorClick(R.id.bt_connection, mConnectionView);
+        }
+    }
+
+    @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+        if (context instanceof OnBehaviorClickListener) {
+            mListener = (OnBehaviorClickListener) context;
+        } else {
+            throw new RuntimeException(context.toString()
+                    + " must implement OnBehaviorClickListener");
+        }
+    }
+
+    @Override
+    public void onDetach() {
+        super.onDetach();
+        mListener = null;
+    }
+
+    public interface OnBehaviorClickListener{
+        void onBehaviorClick(@IdRes int id, View view);
+    }
 }

@@ -7,5 +7,5 @@ public interface OnNumberClickListener {
     /**
      * 一个新的按钮被按下
      */
-    void onNumberClick(String number);
+    void onDialpadClick(int position, String number);
 }

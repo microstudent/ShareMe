@@ -5,6 +5,7 @@
         <attr name="search_view_id" format="reference"/>
         <attr name="keywords" format="string"/>
         <attr name="number" format="string" />
+        <attr name="drawable" format="reference"/>
     </declare-styleable>
     <declare-styleable name="NineKeyDialpad">
         <attr name="divider_color" format="color"/>

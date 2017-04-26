@@ -35,6 +35,7 @@ public class AudioListFragment extends BottomSheetDialogFragment implements Audi
     @BindView(R.id.rv)
     RecyclerView mRecyclerView;
     private AudioListPresenter mPresenter;
+    private boolean isFirstRun = true;
 
     public AudioListFragment() {
         // Required empty public constructor
@@ -54,10 +55,13 @@ public class AudioListFragment extends BottomSheetDialogFragment implements Audi
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mAdapter = new AudioListAdapter();
-        mAdapter.setOnAudioClickListener(mListener);
-        mPresenter = new AudioListPresenter(this, getContext().getApplicationContext());
-        mPresenter.start();
+        if (isFirstRun) {
+            mAdapter = new AudioListAdapter();
+            mAdapter.setOnAudioClickListener(mListener);
+            mPresenter = new AudioListPresenter(this, getContext().getApplicationContext());
+            mPresenter.start();
+            isFirstRun = false;
+        }
     }
 
     @Override

@@ -26,5 +26,9 @@ public interface WifiDirectionContract {
         void appendPassword(String number);
 
         void cancelSearch();
+
+        void clearPassword();
+
+        void backspacePassword();
     }
 }

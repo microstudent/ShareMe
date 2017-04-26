@@ -85,8 +85,16 @@ public class MainPresenter implements MainActivityContract.Presenter, WifiDirect
     }
 
     @Override
-    public void appendPassword(String number) {
-        mWifiDirectionPresenter.appendPassword(number);
+    public void onDialpadClick(int position, String number) {
+        if (position == 9) {
+            //clearPassword all
+            mWifiDirectionPresenter.clearPassword();
+        } else if (position == 11) {
+            //backspace
+            mWifiDirectionPresenter.backspacePassword();
+        } else {
+            mWifiDirectionPresenter.appendPassword(number);
+        }
     }
 
     @Override

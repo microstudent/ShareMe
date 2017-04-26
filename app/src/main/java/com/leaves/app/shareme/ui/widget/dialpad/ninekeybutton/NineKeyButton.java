@@ -5,6 +5,7 @@ import android.content.res.TypedArray;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Rect;
+import android.graphics.drawable.Drawable;
 import android.text.TextPaint;
 import android.util.AttributeSet;
 import android.view.View;
@@ -27,6 +28,7 @@ public class NineKeyButton extends View implements INineKeyButton {
     private int mNumberTextSize;
     private int mKeywordTextSize;
     private int mLineSpace;
+    private Drawable mDrawable;
 
     public NineKeyButton(Context context) {
         this(context, null);
@@ -60,15 +62,16 @@ public class NineKeyButton extends View implements INineKeyButton {
             }
             String title = array.getString(R.styleable.NineKeyButton_number);
             if (title != null&&!title.isEmpty()) {
-                setNumber(title.charAt(0));
+                setNumber(title);
             }
+            mDrawable = array.getDrawable(R.styleable.NineKeyButton_drawable);
             array.recycle();
         }
     }
 
 
     private void updateText() {
-        if (mKeywords == null && mNumber == null) {
+        if (mKeywords == null && mNumber == null && mDrawable == null) {
             setVisibility(INVISIBLE);
             return;
         }
@@ -122,17 +125,45 @@ public class NineKeyButton extends View implements INineKeyButton {
     @Override
     protected void onDraw(Canvas canvas) {
         int width = getWidth();
-        mTextPaint.setTextSize(mNumberTextSize);
-        Paint.FontMetricsInt fontMetricsInt = mTextPaint.getFontMetricsInt();
-        canvas.drawText(mNumber, 0, mNumber.length(), width / 2, getPaddingTop() - fontMetricsInt.ascent, mTextPaint);
-        mTextPaint.setTextSize(mKeywordTextSize);
-        fontMetricsInt = mTextPaint.getFontMetricsInt();
-        canvas.drawText(mKeywords, 0, mKeywords.length(), width / 2, mLineSpace + getPaddingTop() + mNumberRect.height() - fontMetricsInt.ascent, mTextPaint);
+        Paint.FontMetricsInt fontMetricsInt;
+        if (mNumber != null) {
+            mTextPaint.setTextSize(mNumberTextSize);
+            fontMetricsInt = mTextPaint.getFontMetricsInt();
+            canvas.drawText(mNumber, 0, mNumber.length(), width / 2, getPaddingTop() - fontMetricsInt.ascent, mTextPaint);
+        }
+        if (mKeywords != null) {
+            mTextPaint.setTextSize(mKeywordTextSize);
+            fontMetricsInt = mTextPaint.getFontMetricsInt();
+            canvas.drawText(mKeywords, 0, mKeywords.length(), width / 2, mLineSpace + getPaddingTop() + mNumberRect.height() - fontMetricsInt.ascent, mTextPaint);
+        }
+        if (mDrawable != null) {
+            Rect drawableRect = getDrawableRect(mDrawable);
+            if (drawableRect != null) {
+                mDrawable.setBounds(drawableRect);
+                mDrawable.draw(canvas);
+            }
+        }
+    }
+
+    private Rect getDrawableRect(Drawable drawable) {
+        if (drawable != null) {
+            int width = drawable.getIntrinsicWidth();
+            int height = drawable.getIntrinsicHeight();
+            int availableWidth = getWidth();
+            int availableHeight = getHeight();
+            Rect rect = new Rect();
+            rect.left = availableWidth / 2 - width / 2;
+            rect.top = availableHeight / 2 - height / 2;
+            rect.right = availableWidth / 2 + width / 2;
+            rect.bottom = availableHeight / 2 + height / 2;
+            return rect;
+        }
+        return null;
     }
 
     @Override
-    public void setNumber(char title) {
-        mNumber = String.valueOf(title);
+    public void setNumber(String title) {
+        mNumber = title;
     }
 
     @Override

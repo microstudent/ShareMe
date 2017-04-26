@@ -9,7 +9,7 @@ import android.view.View;
 public interface INineKeyButton {
     void setKeyWord(String keyWord);
 
-    void setNumber(char title);
+    void setNumber(String title);
 
     String getKeyWord();
 

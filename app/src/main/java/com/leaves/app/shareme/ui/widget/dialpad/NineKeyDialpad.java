@@ -246,16 +246,21 @@ public class NineKeyDialpad extends FrameLayout implements INineKeyDialpad, View
 
 
     private void handleNineKeyButtonOnClick(INineKeyButton button) {
+        String number = button.getNumber();
         if (mAppendingString == null) {
-            mAppendingString = new StringBuilder(button.getNumber());
-        } else {
-            mAppendingString.append(button.getNumber());
+            if (number != null) {
+                mAppendingString = new StringBuilder(button.getNumber());
+            } else {
+                mAppendingString = new StringBuilder();
+            }
+        } else if (number != null) {
+            mAppendingString.append(number);
         }
         if (mOnQueryTextListener != null) {
             mOnQueryTextListener.onQueryTextChange(mAppendingString.toString());
         }
         if (mOnNumberClickListener != null) {
-            mOnNumberClickListener.onNumberClick(button.getNumber());
+            mOnNumberClickListener.onDialpadClick(mNineKeyButtons.indexOf(button), button.getNumber());
         }
     }
 
