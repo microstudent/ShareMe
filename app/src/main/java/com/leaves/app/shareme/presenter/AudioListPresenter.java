@@ -60,6 +60,7 @@ public class AudioListPresenter implements AudioListContract.Presenter {
                             }
                             cursor.close();
                         }
+                        Collections.sort(medias);
                         return medias;
                     }
                 })

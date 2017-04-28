@@ -1,12 +1,14 @@
 package com.leaves.app.shareme.bean;
 
+import android.support.annotation.NonNull;
+
 import java.io.Serializable;
 
 /**
  * Created by Leaves on 2016/11/13.
  */
 
-public class Media implements Serializable {
+public class Media implements Serializable, Comparable<Media> {
     public static final int VIDEO = 0;
     public static final int AUDIO = 1;
     private String image;
@@ -81,5 +83,17 @@ public class Media implements Serializable {
 
     public void setType(int type) {
         this.type = type;
+    }
+
+    @Override
+    public int compareTo(@NonNull Media o) {
+        if (o.getTitle() == null) {
+            if (getTitle() == null) {
+                return 0;
+            } else {
+                return -1;
+            }
+        }
+        return getTitle().compareToIgnoreCase(o.getTitle());
     }
 }
