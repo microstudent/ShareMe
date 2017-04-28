@@ -7,13 +7,13 @@ import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.os.Handler;
 import android.support.v4.graphics.drawable.DrawableCompat;
+import android.support.v7.widget.AppCompatEditText;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
-import android.widget.EditText;
 import com.leaves.app.shareme.R;
 import com.leaves.app.shareme.ui.widget.dialpad.listener.OnQueryTextListener;
 
@@ -22,7 +22,7 @@ import com.leaves.app.shareme.ui.widget.dialpad.listener.OnQueryTextListener;
  * 一个带有删除键的EditText
  * Created by MicroStudent on 2016/5/19.
  */
-public class DeletableEditText extends EditText implements View.OnFocusChangeListener, TextWatcher {
+public class DeletableEditText extends AppCompatEditText implements View.OnFocusChangeListener, TextWatcher {
 
     private static final long DELAY_TIME = 600;//延迟一秒视为长按
 
