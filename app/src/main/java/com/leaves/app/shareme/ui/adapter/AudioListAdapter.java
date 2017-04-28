@@ -2,6 +2,7 @@ package com.leaves.app.shareme.ui.adapter;
 
 import android.content.Context;
 import android.support.v7.widget.RecyclerView;
+import android.text.TextUtils;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.SectionIndexer;
@@ -11,6 +12,9 @@ import com.leaves.app.shareme.R;
 import com.leaves.app.shareme.bean.Media;
 import com.leaves.app.shareme.ui.fragment.AudioListFragment;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import hugo.weaving.DebugLog;
 
 /**
@@ -19,6 +23,8 @@ import hugo.weaving.DebugLog;
 
 public class AudioListAdapter extends BaseAdapter<Media> implements BaseViewHolder.OnItemClickListener, SectionIndexer {
     private AudioListFragment.OnAudioClickListener mOnAudioClickListener;
+
+    private List<Media> mSecetions;
 
     public AudioListAdapter() {
         super(R.layout.item_audio);
@@ -58,12 +64,33 @@ public class AudioListAdapter extends BaseAdapter<Media> implements BaseViewHold
 
     @Override
     public Object[] getSections() {
-        return new Object[0];
+        if (mSecetions == null) {
+            updateSelections();
+        }
+        return mSecetions.toArray();
+    }
+
+    /**
+     * 前提是data有序
+     */
+    private void updateSelections() {
+        mSecetions = new ArrayList<>();
+        char lastChar = '#';
+        for (Media media : mData) {
+            String title = media.getTitle();
+            if (!TextUtils.isEmpty(title)) {
+                char c0 = title.charAt(0);
+                if (Character.toLowerCase(lastChar) != Character.toLowerCase(c0)) {
+                    mSecetions.add(media);
+                }
+                lastChar = c0;
+            }
+        }
     }
 
     @Override
     public int getPositionForSection(int sectionIndex) {
-        return 0;
+        return mData.indexOf(mSecetions.get(sectionIndex));
     }
 
     @Override

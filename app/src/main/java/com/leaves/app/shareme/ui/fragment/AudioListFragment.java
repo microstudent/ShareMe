@@ -16,6 +16,8 @@ import com.leaves.app.shareme.bean.Media;
 import com.leaves.app.shareme.contract.AudioListContract;
 import com.leaves.app.shareme.presenter.AudioListPresenter;
 import com.leaves.app.shareme.ui.adapter.AudioListAdapter;
+import com.microstudent.app.bouncyfastscroller.RecyclerViewScroller;
+import com.microstudent.app.bouncyfastscroller.vertical.VerticalBouncyFastScroller;
 
 import java.util.List;
 
@@ -29,13 +31,18 @@ import butterknife.ButterKnife;
  */
 public class AudioListFragment extends BottomSheetDialogFragment implements AudioListContract.View{
     public static final String TAG = "AudioListFragment";
+    private static final int MIN_DATA_SIZE_FOR_FAST_SCROLLER = 15;
     private OnAudioClickListener mListener;
     private AudioListAdapter mAdapter;
+    @BindView(R.id.vbfs)
+    VerticalBouncyFastScroller mVerticalBouncyFastScroller;
 
     @BindView(R.id.rv)
     RecyclerView mRecyclerView;
     private AudioListPresenter mPresenter;
     private boolean isFirstRun = true;
+    private List<Media> mMedia;
+    private boolean isFastScrollEnable = false;
 
     public AudioListFragment() {
         // Required empty public constructor
@@ -48,8 +55,7 @@ public class AudioListFragment extends BottomSheetDialogFragment implements Audi
      * @return A new instance of fragment AudioListFragment.
      */
     public static AudioListFragment newInstance() {
-        AudioListFragment fragment = new AudioListFragment();
-        return fragment;
+        return new AudioListFragment();
     }
 
     @Override
@@ -72,6 +78,7 @@ public class AudioListFragment extends BottomSheetDialogFragment implements Audi
         ButterKnife.bind(this, view);
         mRecyclerView.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.VERTICAL, false));
         mRecyclerView.setAdapter(mAdapter);
+        setupFastScroll();
         return view;
     }
 
@@ -83,6 +90,25 @@ public class AudioListFragment extends BottomSheetDialogFragment implements Audi
     @Override
     public void setData(List<Media> medias) {
         mAdapter.setData(medias);
+        mMedia = medias;
+        if (medias.size() > MIN_DATA_SIZE_FOR_FAST_SCROLLER) {
+            isFastScrollEnable = true;
+            setupFastScroll();
+        } else {
+            isFastScrollEnable = false;
+        }
+    }
+
+    private void setupFastScroll() {
+        if (isFastScrollEnable) {
+            mVerticalBouncyFastScroller.setEnabled(true);
+            if (mMedia != null) {
+                mVerticalBouncyFastScroller.setData(mMedia);
+            }
+            mVerticalBouncyFastScroller.setRecyclerView(mRecyclerView, RecyclerViewScroller.SHOW_INDEX_IN_NEED);
+        } else {
+            mVerticalBouncyFastScroller.setEnabled(false);
+        }
     }
 
     @Override

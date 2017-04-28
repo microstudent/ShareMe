@@ -93,4 +93,14 @@ public class VerticalBouncyFastScroller extends AbsRecyclerViewScroller {
     protected int getLayoutResourceId() {
         return R.layout.vertical_bouncy_fast_scroller_layout;
     }
+
+    @Override
+    public void setEnabled(boolean enabled) {
+        super.setEnabled(enabled);
+        if (enabled) {
+            setVisibility(VISIBLE);
+        } else {
+            setVisibility(INVISIBLE);
+        }
+    }
 }

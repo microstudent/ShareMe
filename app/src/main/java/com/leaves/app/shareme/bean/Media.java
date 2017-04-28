@@ -96,4 +96,9 @@ public class Media implements Serializable, Comparable<Media> {
         }
         return getTitle().compareToIgnoreCase(o.getTitle());
     }
+
+    @Override
+    public String toString() {
+        return title;
+    }
 }

@@ -22,6 +22,7 @@ import com.microstudent.app.bouncyfastscroller.indexer.IndexCursor;
 import com.microstudent.app.bouncyfastscroller.thumb.Thumb;
 
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * an abstract class that almost implement all feature in the scroller.
@@ -52,7 +53,7 @@ public abstract class AbsRecyclerViewScroller extends FrameLayout implements Rec
     //the indexer for indexBar.
     private AlphabetIndexer mAlphabetIndexer;
 
-    private ArrayList<String> mData;
+    private List<?> mData;
     /**
      *  when is touching, the handle or thumb will NOT move the position
      *  which is calculated according to recyclerView.
@@ -126,7 +127,7 @@ public abstract class AbsRecyclerViewScroller extends FrameLayout implements Rec
         }
     }
 
-    protected ArrayList<String> getData(){
+    protected List<?> getData(){
         if (mData != null) {
             return mData;
         } else {
@@ -136,9 +137,10 @@ public abstract class AbsRecyclerViewScroller extends FrameLayout implements Rec
 
     /**
      * setting the data from recyclerView, the data is responsible to sort by alphabet.
+     *
      * @param Data data from recyclerView
      */
-    public void setData(ArrayList<String> Data) {
+    public void setData(List<?> Data) {
         this.mData = Data;
     }
 
@@ -289,6 +291,9 @@ public abstract class AbsRecyclerViewScroller extends FrameLayout implements Rec
      */
     @Override
     public boolean onTouch(View v, MotionEvent event) {
+        if (!isEnabled()) {
+            return false;
+        }
 
         mIsTouching = event.getActionMasked() != MotionEvent.ACTION_UP;
 
@@ -298,7 +303,8 @@ public abstract class AbsRecyclerViewScroller extends FrameLayout implements Rec
             //INDEX
             showOrHideHandle(event);
             if (mIsTouching) {
-                mIndexBar.setVisitable(true);
+                mIndexBar.showIndexBar();
+//                mIndexBar.setVisitable(true);
             }
             int section = getTouchingSection(event.getY());
             scrollRecyclerViewTo(section, true);
@@ -321,12 +327,10 @@ public abstract class AbsRecyclerViewScroller extends FrameLayout implements Rec
     }
 
     private int getPositionFromSection(int section) {
-        if (mAlphabetIndexer != null) {
-            return mAlphabetIndexer.getPositionForSection(section);
-        } else {
+        if (mAlphabetIndexer == null) {
             mAlphabetIndexer = new AlphabetIndexer(new IndexCursor(getData()), 0, getIndexBarKeyword());
-            return mAlphabetIndexer.getPositionForSection(section);
         }
+        return mAlphabetIndexer.getPositionForSection(section);
     }
 
     /**
