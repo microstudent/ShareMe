@@ -6,13 +6,10 @@ import android.media.AudioManager;
 import android.media.AudioTrack;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
-import android.util.ArrayMap;
 import android.util.Log;
-import android.util.LongSparseArray;
 import android.widget.Toast;
 
 import com.google.gson.Gson;
-import com.koushikdutta.async.future.Future;
 import com.koushikdutta.async.http.AsyncHttpClient;
 import com.koushikdutta.async.http.WebSocket;
 import com.leaves.app.shareme.Constant;
@@ -27,19 +24,13 @@ import net.majorkernelpanic.streaming.rtcp.OnRTCPUpdateListener;
 import net.majorkernelpanic.streaming.rtp.OnPCMDataAvailableListener;
 import net.majorkernelpanic.streaming.rtsp.RtspClient;
 
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Queue;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.TimeUnit;
 
 import io.reactivex.Observable;
 import io.reactivex.android.schedulers.AndroidSchedulers;
-import io.reactivex.functions.BooleanSupplier;
 import io.reactivex.functions.Consumer;
 import io.reactivex.schedulers.Schedulers;
 
@@ -55,6 +46,8 @@ public class MusicClientService extends AbsMusicService implements Runnable, Rts
 
     private static final boolean DEBUG = true;
     private static final long RETRY_DELAY = 3000;//3sec重试一次
+    private static final long MIN_SYNC_DELAY = 20;//最小可忍受的延迟，millsec
+    private static final long MAX_SYNC_DELAY = 100;//最大不可忍受延迟，millsec
     private AudioTrack mAudioTrack;
     private ClientBinder mBinder;
     private ReceiveSession mSession;
@@ -72,6 +65,7 @@ public class MusicClientService extends AbsMusicService implements Runnable, Rts
     private long mDelay;
     private int mByteHasWrite;
     private int mBytePerSecond;
+    private boolean needSync = true;
 
     @Override
     public void onCreate() {
@@ -247,7 +241,7 @@ public class MusicClientService extends AbsMusicService implements Runnable, Rts
         frame.setRtpTime(rtpTime);
         frame.setPCMData(data);
         mFrameQueue.add(frame);
-//        if (DEBUG) Log.d(TAG, "onPCMDataAvailable" + ",timeStamp = " + rtpTime);
+        if (DEBUG) Log.d(TAG, "onPCMDataAvailable" + ",timeStamp = " + rtpTime);
     }
 
     @Override
@@ -255,6 +249,9 @@ public class MusicClientService extends AbsMusicService implements Runnable, Rts
         //rtpTime换算
 //        Log.d(TAG, "do sync ntp =  " + ntpTime + "millsec,while rtp ts = " + rtpTs + ",and current rtp ts = " + mCurrentRtpTime);
         mDelay = getCurrentPosition() - rtpTime;
+        if (mDelay > MAX_SYNC_DELAY) {
+            needSync = true;
+        }
 //        mSyncTimer.schedule(new SyncTask(rtpTime), new Date(ntpTime));
     }
 
@@ -280,7 +277,7 @@ public class MusicClientService extends AbsMusicService implements Runnable, Rts
             if (mAudioTrack != null && mAudioTrack.getPlayState() != AudioTrack.PLAYSTATE_PLAYING) {
                 mAudioTrack.play();
             }
-            doSync();
+            doSyncIfNeeded();
             Frame frame = mFrameQueue.poll();
             if (frame != null) {
                 mByteHasWrite += frame.getPCMData().length;
@@ -288,35 +285,39 @@ public class MusicClientService extends AbsMusicService implements Runnable, Rts
                 if (DEBUG) Log.d(TAG, "writing audio track, mCurrent = " + mCurrentRtpTime + ",timeStamp = " + frame.getRtpTime());
                 mAudioTrack.write(frame.getPCMData(), 0, frame.getPCMData().length);
             } else {
+                needSync = true;
 //                Log.e(TAG, "no buffer to playAsServer!");
             }
         }
     }
 
-    private void doSync() {
-        if (mDelay > 0) {
-            //播放进度比服务端快，沉睡一段时间以同步
-            try {
-                Thread.sleep(mDelay);
-                Log.d(TAG, "sleep " + mDelay + " millsec for sync");
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        } else if (mDelay < 0) {
-            Log.d(TAG, "skipping " + mDelay + " millsec for sync");
-            //播放速度比服务器慢，要快进
-            int bytesToSkip = (int) (((double) mBytePerSecond * Math.abs(mDelay)) / 1000);
-            while (bytesToSkip > 0) {
-                if (!mFrameQueue.isEmpty()) {
-                    Frame frame = mFrameQueue.poll();
-                    if (frame != null) {
-                        mByteHasWrite += frame.getPCMData().length;
-                        bytesToSkip -= frame.getPCMData().length;
+    private void doSyncIfNeeded() {
+        if (needSync) {
+            if (mDelay > 0) {
+                //播放进度比服务端快，沉睡一段时间以同步
+                try {
+                    Thread.sleep(mDelay);
+                    Log.d(TAG, "sleep " + mDelay + " millsec for sync");
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            } else if (mDelay < 0) {
+                Log.d(TAG, "skipping " + mDelay + " millsec for sync");
+                //播放速度比服务器慢，要快进
+                int bytesToSkip = (int) (((double) mBytePerSecond * Math.abs(mDelay)) / 1000);
+                while (bytesToSkip > 0) {
+                    if (!mFrameQueue.isEmpty()) {
+                        Frame frame = mFrameQueue.poll();
+                        if (frame != null) {
+                            mByteHasWrite += frame.getPCMData().length;
+                            bytesToSkip -= frame.getPCMData().length;
+                        }
                     }
                 }
             }
+            needSync = mDelay < MIN_SYNC_DELAY;
+            mDelay = 0;
         }
-        mDelay = 0;
     }
 
     @Override

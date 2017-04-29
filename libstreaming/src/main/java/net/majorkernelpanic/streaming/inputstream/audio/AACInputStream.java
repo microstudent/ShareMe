@@ -4,7 +4,6 @@ import android.media.MediaCodec;
 import android.media.MediaCodecInfo;
 import android.media.MediaFormat;
 import android.os.Build;
-import android.util.Log;
 
 import net.majorkernelpanic.streaming.InputStream;
 import net.majorkernelpanic.streaming.rtcp.OnRTCPUpdateListener;
@@ -31,7 +30,7 @@ public class AACInputStream implements InputStream, Runnable {
     private MediaCodec.BufferInfo mDecodeBufferInfo;
 
 //    private AudioTrack mAudioTrack;
-    private Thread mPlayThread;
+    private Thread mInputThread;
     private Config mConfig;
     private long mCurrentTimeStamp = 0;
     private RTCPReceiver mRTCPReceiver;
@@ -45,10 +44,10 @@ public class AACInputStream implements InputStream, Runnable {
     @Override
     public void start() throws IllegalStateException, IOException {
         mAACADTSUnpacker.start();
-        if (mPlayThread == null) {
-            mPlayThread = new Thread(this);
-            mPlayThread.setName("PlayThread");
-            mPlayThread.start();
+        if (mInputThread == null) {
+            mInputThread = new Thread(this);
+            mInputThread.setName("InputThread");
+            mInputThread.start();
         }
         mRTCPReceiver.start();
     }
@@ -149,7 +148,7 @@ public class AACInputStream implements InputStream, Runnable {
 
     @Override
     public void run() {
-        while (!mPlayThread.isInterrupted()) {
+        while (!mInputThread.isInterrupted()) {
             int outputIndex = mMediaDecode.dequeueOutputBuffer(mDecodeBufferInfo, 10000);
             ByteBuffer outputBuffer;
             byte[] chunkPCM;

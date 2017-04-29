@@ -93,6 +93,7 @@ public class RtpReceiveSocket implements Runnable{
             //等待时间最多只能是一帧的时间，一帧用多少时间由采样率决定，
             while (mSortBuffers.get(mSeq) == null) {
                 Thread.sleep(mWaitingTimeout);
+                Log.d(TAG, "sleep for waiting,mSortBuffers size = " + mSortBuffers.size() + ",is send rate too slow?");
                 mSeq++;
             }
             result = (byte[]) mSortBuffers.get(mSeq);
@@ -100,7 +101,7 @@ public class RtpReceiveSocket implements Runnable{
 //                if (DEBUG) Log.e(TAG, "skipping seq" + mSeq);
 //            }
 //            mLastReadSeq = mSeq;
-//            if (DEBUG) Log.d(TAG, "reading seq: " + mSeq);
+            if (DEBUG) Log.d(TAG, "reading seq: " + mSeq);
             mSortBuffers.remove(mSeq);
 //            clearUpBuffers();
 //            assertSeqCorrect(mSeq, result);

@@ -66,7 +66,7 @@ public class Mp3Wrapper {
                     break;
                 }
             }
-            mSendOffset = 1000000L / mMediaFormat.getInteger(MediaFormat.KEY_SAMPLE_RATE);
+            mSendOffset = 1000000L / mMediaFormat.getInteger(MediaFormat.KEY_SAMPLE_RATE) - 10;
 //            int minBufferSize = AudioTrack.getMinBufferSize(44100, AudioFormat.CHANNEL_CONFIGURATION_STEREO, AudioFormat.ENCODING_PCM_16BIT);
 //            int bufferSize = 4 * minBufferSize;
         } catch (IOException e) {
