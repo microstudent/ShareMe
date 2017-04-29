@@ -53,6 +53,9 @@ public class MusicFragment extends Fragment {
     @BindView(R.id.tv_author)
     TextView mAuthorView;
 
+    @BindView(R.id.tv_hint)
+    TextView mHintView;
+
     private Media mMedia;
     private boolean isServer;
     private ServiceConnection mConnection = new ServiceConnection() {
@@ -141,12 +144,21 @@ public class MusicFragment extends Fragment {
                     transform(new GlideCircleTransform(getContext())).into(mCoverView);
         } else {
             if (!TextUtils.isEmpty(mMedia.getImage())) {
-                Glide.with(this).load(mMedia.getImage()).asBitmap().
+                Glide.with(this).load(mMedia.getImage()).asBitmap().error(R.drawable.bg_piano).
                         transform(new GlideCircleTransform(getContext())).into(mCoverView);
             }
             mTitleView.setText(mMedia.getTitle());
             mAuthorView.setText(mMedia.getArtist());
         }
+        if (isServer) {
+            mHintView.setText(R.string.hint_host);
+        } else {
+            mHintView.setText(R.string.hint_guest);
+        }
+    }
+
+    public boolean isConnectionAlive() {
+        return mBinder.isConnectionAlive();
     }
 
     @Override

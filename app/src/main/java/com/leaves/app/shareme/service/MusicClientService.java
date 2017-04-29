@@ -46,8 +46,8 @@ public class MusicClientService extends AbsMusicService implements Runnable, Rts
 
     private static final boolean DEBUG = true;
     private static final long RETRY_DELAY = 3000;//3sec重试一次
-    private static final long MIN_SYNC_DELAY = 20;//最小可忍受的延迟，millsec
-    private static final long MAX_SYNC_DELAY = 100;//最大不可忍受延迟，millsec
+    private static final long MIN_SYNC_DELAY = 10;//最小可忍受的延迟，millsec
+    private static final long MAX_SYNC_DELAY = 60;//最大不可忍受延迟，millsec
     private AudioTrack mAudioTrack;
     private ClientBinder mBinder;
     private ReceiveSession mSession;
@@ -346,6 +346,11 @@ public class MusicClientService extends AbsMusicService implements Runnable, Rts
         @Override
         public void stop() {
 
+        }
+
+        @Override
+        public boolean isConnectionAlive() {
+            return mConnectedWebSocket != null;
         }
     }
 

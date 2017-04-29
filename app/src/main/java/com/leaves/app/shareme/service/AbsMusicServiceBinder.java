@@ -16,4 +16,6 @@ public abstract class AbsMusicServiceBinder extends Binder{
     public abstract void pause();
 
     public abstract void stop();
+
+    public abstract boolean isConnectionAlive();
 }

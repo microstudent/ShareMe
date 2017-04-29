@@ -17,6 +17,8 @@ import android.widget.Toast;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import io.reactivex.Observable;
+import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.functions.Consumer;
 import jp.wasabeef.blurry.Blurry;
 
@@ -247,10 +249,16 @@ public class MainActivity extends AppCompatActivity implements
     @Override
     public void onBehaviorClick(@IdRes int id, View view) {
         if (id == R.id.bt_list) {
-            if (mAudioListFragment == null) {
-                mAudioListFragment = AudioListFragment.newInstance();
+            if (mMusicFragment != null) {
+                if (mMusicFragment.isConnectionAlive()) {
+                    if (mAudioListFragment == null) {
+                        mAudioListFragment = AudioListFragment.newInstance();
+                    }
+                    switchFragment(AudioListFragment.TAG, mAudioListFragment, AudioListFragment.TAG, 0, false);
+                } else {
+                    Toast.makeText(MainActivity.this, "未能连接服务端/客户端", Toast.LENGTH_SHORT).show();
+                }
             }
-            switchFragment(AudioListFragment.TAG, mAudioListFragment, AudioListFragment.TAG, 0, false);
         }
     }
 }

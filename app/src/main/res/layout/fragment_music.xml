@@ -3,6 +3,24 @@
              android:layout_width="match_parent"
              android:layout_height="match_parent"
              tools:context="com.leaves.app.shareme.ui.fragment.MusicFragment">
+    <FrameLayout
+        android:id="@+id/layout_title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <View
+            android:background="@color/colorAccent"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/list_item_height_normal"/>
+        <TextView
+            android:id="@+id/tv_hint"
+            tools:text="@string/hint_host"
+            android:textColor="@color/white"
+            android:layout_marginLeft="@dimen/spacing_normal"
+            android:layout_gravity="center_vertical"
+            android:textSize="@dimen/font_normal"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
+    </FrameLayout>
     <LinearLayout
         android:id="@+id/layout_info"
         android:gravity="center"

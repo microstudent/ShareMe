@@ -305,5 +305,10 @@ public class MusicServerService extends AbsMusicService implements WebSocket.Str
         public void stop() {
             MusicServerService.this.stop();
         }
+
+        @Override
+        public boolean isConnectionAlive() {
+            return mConnectedWebSocket != null;
+        }
     }
 }
