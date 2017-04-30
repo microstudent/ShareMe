@@ -220,6 +220,7 @@ public class MainActivity extends AppCompatActivity implements
     @Override
     public void onAudioClick(Media media) {
         mMusicFragment.play(media);
+        mAudioListFragment.dismiss();
     }
 
     @Override
@@ -257,15 +258,13 @@ public class MainActivity extends AppCompatActivity implements
     @Override
     public void onBehaviorClick(@IdRes int id, View view) {
         if (id == R.id.bt_list) {
-            if (mMusicFragment != null) {
-                if (mMusicFragment.isConnectionAlive()) {
-                    if (mAudioListFragment == null) {
-                        mAudioListFragment = AudioListFragment.newInstance();
-                    }
-                    switchFragment(AudioListFragment.TAG, mAudioListFragment, AudioListFragment.TAG, 0, false);
-                } else {
-                    Toast.makeText(MainActivity.this, "未能连接服务端/客户端", Toast.LENGTH_SHORT).show();
+            if (mMusicFragment != null && mMusicFragment.isConnectionAlive()) {
+                if (mAudioListFragment == null) {
+                    mAudioListFragment = AudioListFragment.newInstance();
                 }
+                switchFragment(AudioListFragment.TAG, mAudioListFragment, AudioListFragment.TAG, 0, false);
+            } else {
+                showToast("未能连接服务端/客户端");
             }
         }
     }
