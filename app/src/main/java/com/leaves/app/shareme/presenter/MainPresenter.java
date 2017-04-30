@@ -102,4 +102,10 @@ public class MainPresenter implements MainActivityContract.Presenter, WifiDirect
         return isServer;
     }
 
+    @Override
+    public void cancelSearch() {
+        mWifiDirectionPresenter.clearPassword();
+        mWifiDirectionPresenter.cancelSearch();
+    }
+
 }

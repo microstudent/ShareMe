@@ -56,6 +56,9 @@ public class MusicFragment extends Fragment {
     @BindView(R.id.tv_hint)
     TextView mHintView;
 
+    @BindView(R.id.bt_play_pause)
+    ImageView mPlayPuaseView;
+
     private Media mMedia;
     private boolean isServer;
     private ServiceConnection mConnection = new ServiceConnection() {
@@ -155,6 +158,12 @@ public class MusicFragment extends Fragment {
         } else {
             mHintView.setText(R.string.hint_guest);
         }
+        mPlayPuaseView.setSelected(true);
+    }
+
+    @OnClick(R.id.bt_play_pause)
+    public void onPlayPauseClick() {
+        mPlayPuaseView.setSelected(!mPlayPuaseView.isSelected());
     }
 
     public boolean isConnectionAlive() {

@@ -248,7 +248,7 @@ public class MusicClientService extends AbsMusicService implements Runnable, Rts
     public void onRTCPUpdate(long ntpTime, long rtpTime) {
         //rtpTime换算
 //        Log.d(TAG, "do sync ntp =  " + ntpTime + "millsec,while rtp ts = " + rtpTs + ",and current rtp ts = " + mCurrentRtpTime);
-        mDelay = getCurrentPosition() - rtpTime;
+        mDelay = getCurrentPosition() - rtpTime - 20;//10ms是对传输耗时的假设判断
         if (mDelay > MAX_SYNC_DELAY) {
             needSync = true;
         }

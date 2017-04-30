@@ -61,15 +61,25 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content">
         <ImageView
+            android:id="@+id/bt_prev"
+            android:background="@drawable/bg_ripple_dark"
+            android:clickable="true"
             android:src="@drawable/ic_move_to_prev"
             android:layout_width="@dimen/image_normal"
             android:layout_height="@dimen/image_normal"/>
         <ImageView
+            android:id="@+id/bt_play_pause"
             android:layout_margin="@dimen/spacing_large"
-            android:src="@drawable/ic_play"
+            android:clickable="true"
+            android:background="@drawable/bg_ripple"
+            android:padding="@dimen/spacing_tiny"
+            android:src="@drawable/ic_select_play_pause"
             android:layout_width="@dimen/image_more_large"
             android:layout_height="@dimen/image_more_large"/>
         <ImageView
+            android:id="@+id/bt_next"
+            android:background="@drawable/bg_ripple_dark"
+            android:clickable="true"
             android:src="@drawable/ic_move_to_next"
             android:layout_width="@dimen/image_normal"
             android:layout_height="@dimen/image_normal"/>

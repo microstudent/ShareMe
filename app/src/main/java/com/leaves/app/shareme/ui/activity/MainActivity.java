@@ -147,7 +147,7 @@ public class MainActivity extends AppCompatActivity implements
                             .replace(R.id.container_main, mPasswordFragment, PasswordFragment.TAG)
                             .commit();
                     fragment = DialpadFragment.newInstance();
-                    switchFragment(null, fragment, DialpadFragment.TAG, R.id.layout_bottom, false);
+                    switchFragment(null, fragment, DialpadFragment.TAG, R.id.container_bottom, false);
                     break;
                 case MainPresenter.MODE_CONNECTED:
                     mMusicFragment = MusicFragment.newInstance(mPresenter.isServer());
@@ -155,7 +155,7 @@ public class MainActivity extends AppCompatActivity implements
                             .replace(R.id.container_main, mMusicFragment, MusicFragment.TAG)
                             .commit();
                     fragment = BehaviorFragment.newInstance();
-                    switchFragment(DialpadFragment.TAG, fragment, BehaviorFragment.TAG, R.id.layout_bottom, false);
+                    switchFragment(DialpadFragment.TAG, fragment, BehaviorFragment.TAG, R.id.container_bottom, false);
                     break;
             }
         }
@@ -179,7 +179,15 @@ public class MainActivity extends AppCompatActivity implements
      */
     @Override
     public void onSearchingDevice() {
-        switchFragment(DialpadFragment.TAG, BehaviorFragment.newInstance(), BehaviorFragment.TAG, R.id.layout_bottom, false);
+        switchFragment(DialpadFragment.TAG, BehaviorFragment.newInstance(), BehaviorFragment.TAG, R.id.container_bottom, false);
+    }
+
+    @Override
+    public void cancelSearch() {
+        if (mPresenter != null) {
+            mPresenter.cancelSearch();
+        }
+        switchFragment(BehaviorFragment.TAG, DialpadFragment.newInstance(), DialpadFragment.TAG, R.id.container_bottom, false);
     }
 
     private void switchFragment(String fromTag, Fragment to, String toTag, @IdRes int resId, boolean addToBackStack) {

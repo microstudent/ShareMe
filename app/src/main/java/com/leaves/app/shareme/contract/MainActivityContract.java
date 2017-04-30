@@ -19,5 +19,7 @@ public interface MainActivityContract {
         void onDialpadClick(int position, String number);
 
         boolean isServer();
+
+        void cancelSearch();
     }
 }

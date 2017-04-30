@@ -137,6 +137,10 @@ public class PasswordFragment extends Fragment {
     @OnClick(R.id.bt_cancel)
     public void cancelSearch() {
         switchToMode(MODE_PASSWORD);
+        if (mListener != null) {
+            mListener.cancelSearch();
+        }
+        mPasswordTextView.clear();
     }
 
 
@@ -159,5 +163,7 @@ public class PasswordFragment extends Fragment {
 
     public interface MainFragmentCallback {
         void onSearchingDevice();
+
+        void cancelSearch();
     }
 }
