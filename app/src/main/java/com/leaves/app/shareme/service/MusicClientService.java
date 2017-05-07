@@ -266,6 +266,7 @@ public class MusicClientService extends AbsMusicService implements Runnable, Rts
     @Override
     public void onStringAvailable(String s) {
         mMedia = mGson.fromJson(s, Media.class);
+        mMedia.setImage("http://" + mServerIp + ":" + Constant.WebSocket.PORT + "/cover");
         start(true);
         MediaEvent event = new MediaEvent(ACTION_PLAY, mMedia);
         RxBus.getDefault().post(event);

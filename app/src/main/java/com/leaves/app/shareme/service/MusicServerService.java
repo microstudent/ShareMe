@@ -2,10 +2,8 @@ package com.leaves.app.shareme.service;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.media.MediaFormat;
 import android.media.MediaPlayer;
 import android.net.Uri;
-import android.net.wifi.WifiManager;
 import android.os.IBinder;
 import android.os.PowerManager;
 import android.preference.PreferenceManager;
@@ -15,11 +13,13 @@ import android.widget.Toast;
 
 
 import com.google.gson.Gson;
+import com.koushikdutta.async.http.AsyncHttpGet;
 import com.koushikdutta.async.http.WebSocket;
 import com.koushikdutta.async.http.server.AsyncHttpServer;
 import com.koushikdutta.async.http.server.AsyncHttpServerRequest;
+import com.koushikdutta.async.http.server.AsyncHttpServerResponse;
+import com.koushikdutta.async.http.server.HttpServerRequestCallback;
 import com.leaves.app.shareme.Constant;
-import com.leaves.app.shareme.bean.Frame;
 import com.leaves.app.shareme.bean.Media;
 import com.leaves.app.shareme.eventbus.RxBus;
 import com.leaves.app.shareme.eventbus.TimeSeekEvent;
@@ -29,7 +29,7 @@ import net.majorkernelpanic.streaming.PlaytimeProvider;
 import net.majorkernelpanic.streaming.SessionBuilder;
 import net.majorkernelpanic.streaming.rtsp.RtspServer;
 
-import java.io.IOException;
+import java.io.File;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 
@@ -50,13 +50,12 @@ public class MusicServerService extends AbsMusicService implements WebSocket.Str
     private Disposable mTimeSeekDisposable;
     private CompositeDisposable mCompositeDisposable;
 
-
     private Observable<Long> timeSeek;
 
     private boolean isPrepared = false;
     private ServerBinder mBinder;
 
-    private AsyncHttpServer mWebSocketServer;
+    private AsyncHttpServer mAsyncHttpServer;
     private WebSocket mConnectedWebSocket;
     private Gson mGson;
 
@@ -66,8 +65,8 @@ public class MusicServerService extends AbsMusicService implements WebSocket.Str
             mCompositeDisposable = new CompositeDisposable();
         }
         //先建立webSocket服务器，通知client连接
-        mWebSocketServer = new AsyncHttpServer();
-        mWebSocketServer.websocket(Constant.WebSocket.REGEX, null, new AsyncHttpServer.WebSocketRequestCallback() {
+        mAsyncHttpServer = new AsyncHttpServer();
+        mAsyncHttpServer.websocket(Constant.WebSocket.REGEX, null, new AsyncHttpServer.WebSocketRequestCallback() {
             @Override
             public void onConnected(WebSocket webSocket, AsyncHttpServerRequest request) {
                 Log.d("MusicServerService", "server connect success");
@@ -75,8 +74,13 @@ public class MusicServerService extends AbsMusicService implements WebSocket.Str
                 webSocket.setStringCallback(MusicServerService.this);
             }
         });
-        mWebSocketServer.listen(Constant.WebSocket.PORT);
-        Log.d("MusicServerService", "listen on" + Constant.WebSocket.PORT);
+        mAsyncHttpServer.addAction(AsyncHttpGet.METHOD, "/cover", new HttpServerRequestCallback() {
+            @Override
+            public void onRequest(AsyncHttpServerRequest request, AsyncHttpServerResponse response) {
+                response.sendFile(new File(mMedia.getImage()));
+            }
+        });
+        mAsyncHttpServer.listen(Constant.WebSocket.PORT);
         return START_STICKY;
     }
 
@@ -144,6 +148,7 @@ public class MusicServerService extends AbsMusicService implements WebSocket.Str
         //notifyThe client
         if (mConnectedWebSocket != null) {
             mConnectedWebSocket.send(mGson.toJson(mMedia));
+
         }
         if (invalidate) {
             mMediaPlayer.reset();

@@ -18,6 +18,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.leaves.app.shareme.R;
 import com.leaves.app.shareme.bean.Media;
 import com.leaves.app.shareme.eventbus.MediaEvent;
@@ -147,7 +148,7 @@ public class MusicFragment extends Fragment {
                     transform(new GlideCircleTransform(getContext())).into(mCoverView);
         } else {
             if (!TextUtils.isEmpty(mMedia.getImage())) {
-                Glide.with(this).load(mMedia.getImage()).asBitmap().error(R.drawable.bg_piano).
+                Glide.with(this).load(mMedia.getImage()).skipMemoryCache(true).diskCacheStrategy(DiskCacheStrategy.NONE).error(R.drawable.bg_piano).
                         transform(new GlideCircleTransform(getContext())).into(mCoverView);
             }
             mTitleView.setText(mMedia.getTitle());
