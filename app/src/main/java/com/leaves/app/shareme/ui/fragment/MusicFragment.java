@@ -4,13 +4,10 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
-import android.net.Uri;
 import android.os.Bundle;
 import android.os.IBinder;
-import android.os.Looper;
 import android.support.v4.app.Fragment;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -25,6 +22,7 @@ import com.leaves.app.shareme.eventbus.MediaEvent;
 import com.leaves.app.shareme.eventbus.RxBus;
 import com.leaves.app.shareme.service.AbsMusicServiceBinder;
 import com.leaves.app.shareme.service.MusicClientService;
+import com.leaves.app.shareme.service.MusicPlayerListener;
 import com.leaves.app.shareme.service.MusicServerService;
 import com.leaves.app.shareme.util.GlideCircleTransform;
 
@@ -41,7 +39,7 @@ import io.reactivex.functions.Consumer;
  * Use the {@link MusicFragment#newInstance} factory method to
  * create an instance of this fragment.
  */
-public class MusicFragment extends Fragment {
+public class MusicFragment extends Fragment implements MusicPlayerListener{
     public static final String TAG = "MusicFragment";
     public static final String IS_SERVER = "is_server";
 
@@ -58,7 +56,7 @@ public class MusicFragment extends Fragment {
     TextView mHintView;
 
     @BindView(R.id.bt_play_pause)
-    ImageView mPlayPuaseView;
+    ImageView mPlayPauseView;
 
     private Media mMedia;
     private boolean isServer;
@@ -66,6 +64,7 @@ public class MusicFragment extends Fragment {
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
             mBinder = (AbsMusicServiceBinder) service;
+            mBinder.setMusicPlayerListener(MusicFragment.this);
         }
 
         @Override
@@ -96,9 +95,8 @@ public class MusicFragment extends Fragment {
     public void play(Media media) {
         mMedia = media;
         if (mBinder != null) {
-            mBinder.play(media);
+            mBinder.play(media, true);
         }
-        setupView();
     }
 
     @Override
@@ -119,15 +117,6 @@ public class MusicFragment extends Fragment {
             } else {
                 Intent intent = new Intent(getContext(), MusicClientService.class);
                 getActivity().bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
-                mDisposable = RxBus.getDefault().toFlowable(MediaEvent.class)
-                        .observeOn(AndroidSchedulers.mainThread())
-                        .subscribe(new Consumer<MediaEvent>() {
-                            @Override
-                            public void accept(MediaEvent mediaEvent) throws Exception {
-                                mMedia = mediaEvent.getMedia();
-                                setupView();
-                            }
-                        });
             }
         }
     }
@@ -139,6 +128,7 @@ public class MusicFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_music, container, false);
         ButterKnife.bind(this, view);
         setupView();
+        mPlayPauseView.setSelected(true);
         return view;
     }
 
@@ -159,14 +149,16 @@ public class MusicFragment extends Fragment {
         } else {
             mHintView.setText(R.string.hint_guest);
         }
-        mPlayPuaseView.setSelected(true);
     }
 
     @OnClick(R.id.bt_play_pause)
     public void onPlayPauseClick() {
-        mPlayPuaseView.setSelected(!mPlayPuaseView.isSelected());
         if (mBinder != null) {
-            mBinder.pause();
+            if (mPlayPauseView.isSelected()) {
+                mBinder.play(mMedia, false);
+            } else {
+                mBinder.pause();
+            }
         }
     }
 
@@ -180,5 +172,33 @@ public class MusicFragment extends Fragment {
         if (mDisposable != null) {
             mDisposable.dispose();
         }
+    }
+
+
+    @Override
+    public void onMusicPause() {
+        Observable.just(1)
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Consumer<Integer>() {
+                    @Override
+                    public void accept(Integer integer) throws Exception {
+                        mPlayPauseView.setSelected(true);
+                    }
+                });
+    }
+
+    @Override
+    public void onMusicStart(Media media) {
+        //非主线程
+        Observable.just(media)
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Consumer<Media>() {
+                    @Override
+                    public void accept(Media media) throws Exception {
+                        mMedia = media;
+                        setupView();
+                        mPlayPauseView.setSelected(false);
+                    }
+                });
     }
 }

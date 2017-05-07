@@ -56,6 +56,7 @@ public class MusicServerService extends AbsMusicService implements WebSocket.Str
     private AsyncHttpServer mAsyncHttpServer;
     private WebSocket mConnectedWebSocket;
     private Gson mGson;
+    private MusicPlayerListener mMusicPlayerListener;
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
@@ -131,13 +132,20 @@ public class MusicServerService extends AbsMusicService implements WebSocket.Str
         if (mConnectedWebSocket != null) {
             mConnectedWebSocket.send(mGson.toJson(new Message<>(Message.TYPE_PAUSE, null)));
         }
+        if (mMusicPlayerListener != null) {
+            mMusicPlayerListener.onMusicPause();
+        }
     }
 
     @Override
     protected void start(boolean invalidate) {
         //notifyThe client
         if (mConnectedWebSocket != null) {
-            mConnectedWebSocket.send(mGson.toJson(new Message<>(Message.TYPE_MEDIA, mMedia)));
+            if (invalidate) {
+                mConnectedWebSocket.send(mGson.toJson(new Message<>(Message.TYPE_MEDIA, mMedia)));
+            } else {
+                mConnectedWebSocket.send(mGson.toJson(new Message<>(Message.TYPE_RESUME, null)));
+            }
         }
         if (invalidate) {
             mMediaPlayer.reset();
@@ -182,6 +190,9 @@ public class MusicServerService extends AbsMusicService implements WebSocket.Str
             if (mMediaPlayer != null && isPrepared) {
                 mMediaPlayer.start();
             }
+        }
+        if (mMusicPlayerListener != null) {
+            mMusicPlayerListener.onMusicStart(mMedia);
         }
     }
 
@@ -262,13 +273,10 @@ public class MusicServerService extends AbsMusicService implements WebSocket.Str
     }
 
     public class ServerBinder extends AbsMusicServiceBinder {
+
         @Override
-        public void play(Media media) {
-            if (mMedia != null && mMedia.getSrc().equals(media.getSrc())) {
-                MusicServerService.this.play(media, false);
-            } else {
-                MusicServerService.this.play(media, true);
-            }
+        public void play(Media media, boolean invalidate) {
+            MusicServerService.this.play(media, invalidate);
         }
 
         @Override
@@ -284,6 +292,11 @@ public class MusicServerService extends AbsMusicService implements WebSocket.Str
         @Override
         public boolean isConnectionAlive() {
             return mConnectedWebSocket != null;
+        }
+
+        @Override
+        public void setMusicPlayerListener(MusicPlayerListener musicPlayerListener) {
+            mMusicPlayerListener = musicPlayerListener;
         }
     }
 }

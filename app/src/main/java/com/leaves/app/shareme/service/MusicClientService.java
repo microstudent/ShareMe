@@ -60,17 +60,16 @@ public class MusicClientService extends AbsMusicService implements Runnable, Rts
     private RtspClient mClient;
     private String mServerIp;
     private Queue<Frame> mFrameQueue;
-    private volatile long mCurrentRtpTime;
     private InputStream.Config mConfig;
     private WebSocket mConnectedWebSocket;
     private Gson mGson;
     private Thread mPlayThread;
-    private long mSleepTimeout;
     private Timer mSyncTimer;
     private long mDelay;
     private int mByteHasWrite;
     private int mBytePerSecond;
     private boolean needSync = true;
+    private MusicPlayerListener mMusicPlayerListener;
 
     @Override
     public void onCreate() {
@@ -83,6 +82,10 @@ public class MusicClientService extends AbsMusicService implements Runnable, Rts
                 .setRTCPListener(this)
                 .setOnPCMDataAvailableListener(this)
                 .build();
+        init();
+    }
+
+    private void init() {
         mClient = new RtspClient();
         mClient.setSession(mSession);
         mClient.setCallback(this);
@@ -144,6 +147,9 @@ public class MusicClientService extends AbsMusicService implements Runnable, Rts
         if (mAudioTrack != null) {
             mAudioTrack.pause();
         }
+        if (mMusicPlayerListener != null) {
+            mMusicPlayerListener.onMusicPause();
+        }
     }
 
     @Override
@@ -158,7 +164,15 @@ public class MusicClientService extends AbsMusicService implements Runnable, Rts
                         }
                     });
         }
-        mPlayThread.start();
+        if (!mPlayThread.isAlive()) {
+            mPlayThread.start();
+        }
+        if (mAudioTrack != null) {
+            mAudioTrack.play();
+        }
+        if (mMusicPlayerListener != null) {
+            mMusicPlayerListener.onMusicStart(mMedia);
+        }
     }
 
     @Override
@@ -176,24 +190,36 @@ public class MusicClientService extends AbsMusicService implements Runnable, Rts
 
     @Override
     protected void reset() {
-
+        if (mPlayThread != null) {
+            mPlayThread.interrupt();
+            mPlayThread = new Thread(this);
+        }
+        if (mAudioTrack != null) {
+            mAudioTrack.stop();
+        }
+        if (mClient != null) {
+            mClient.stopStream();
+        }
+        if (mSyncTimer != null) {
+            mSyncTimer.cancel();
+        }
     }
 
-    private void playSilentIfNeeded(long timeStamp) {
-        if (mCurrentRtpTime == 0) {
-            mCurrentRtpTime = timeStamp;
-        }
-        while (mCurrentRtpTime + 1 != timeStamp && timeStamp > mCurrentRtpTime) {
-            try {
-                Log.d(TAG, "sleep for sync, mCurrent = " + mCurrentRtpTime + ",timeStamp = " + timeStamp);
-                Thread.sleep(mSleepTimeout);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-            mCurrentRtpTime++;
-        }
-        mCurrentRtpTime = timeStamp;
-    }
+//    private void playSilentIfNeeded(long timeStamp) {
+//        if (mCurrentRtpTime == 0) {
+//            mCurrentRtpTime = timeStamp;
+//        }
+//        while (mCurrentRtpTime + 1 != timeStamp && timeStamp > mCurrentRtpTime) {
+//            try {
+//                Log.d(TAG, "sleep for sync, mCurrent = " + mCurrentRtpTime + ",timeStamp = " + timeStamp);
+//                Thread.sleep(mSleepTimeout);
+//            } catch (InterruptedException e) {
+//                e.printStackTrace();
+//            }
+//            mCurrentRtpTime++;
+//        }
+//        mCurrentRtpTime = timeStamp;
+//    }
 
 
     @Nullable
@@ -206,7 +232,6 @@ public class MusicClientService extends AbsMusicService implements Runnable, Rts
     }
 
     private void setConfig(InputStream.Config config) {
-        mSleepTimeout = 1000000L / config.sampleRate;
         mAudioTrack = new AudioTrack(
                 AudioManager.STREAM_MUSIC,
                 config.sampleRate,
@@ -282,11 +307,13 @@ public class MusicClientService extends AbsMusicService implements Runnable, Rts
                         mMedia = message.getObject();
                         mMedia.setImage("http://" + mServerIp + ":" + Constant.WebSocket.PORT + "/cover");
                         play(mMedia, true);
-                        MediaEvent event = new MediaEvent(ACTION_PLAY, mMedia);
-                        RxBus.getDefault().post(event);
                     }
+                    break;
                 case Message.TYPE_PAUSE:
                     pause();
+                    break;
+                case Message.TYPE_RESUME:
+                    play(mMedia, false);
                     break;
             }
         }
@@ -301,8 +328,6 @@ public class MusicClientService extends AbsMusicService implements Runnable, Rts
                 if (frame != null) {
                     mByteHasWrite += frame.getPCMData().length;
 //                playSilentIfNeeded(frame.getRtpTime());
-                    if (DEBUG)
-                        Log.d(TAG, "writing audio track, mCurrent = " + mCurrentRtpTime + ",timeStamp = " + frame.getRtpTime());
                     mAudioTrack.write(frame.getPCMData(), 0, frame.getPCMData().length);
                 } else {
                     needSync = true;
@@ -354,8 +379,8 @@ public class MusicClientService extends AbsMusicService implements Runnable, Rts
     public class ClientBinder extends AbsMusicServiceBinder {
 
         @Override
-        public void play(Media media) {
-
+        public void play(Media media, boolean invalidate) {
+            MusicClientService.this.play(media, invalidate);
         }
 
         @Override
@@ -371,6 +396,11 @@ public class MusicClientService extends AbsMusicService implements Runnable, Rts
         @Override
         public boolean isConnectionAlive() {
             return mConnectedWebSocket != null;
+        }
+
+        @Override
+        public void setMusicPlayerListener(MusicPlayerListener musicPlayerListener) {
+            mMusicPlayerListener = musicPlayerListener;
         }
     }
 

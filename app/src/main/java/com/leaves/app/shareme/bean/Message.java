@@ -12,6 +12,8 @@ public class Message<T> {
     public static final int TYPE_PREV = 3;
     public static final int TYPE_LIST = 4;
     public static final int TYPE_MEDIA = 5;
+    public static final int TYPE_RESUME = 6;
+
     private int type;
     private T object;
 
