@@ -20,6 +20,7 @@ import com.koushikdutta.async.http.server.AsyncHttpServerRequest;
 import com.koushikdutta.async.http.server.AsyncHttpServerResponse;
 import com.koushikdutta.async.http.server.HttpServerRequestCallback;
 import com.leaves.app.shareme.Constant;
+import com.leaves.app.shareme.bean.Message;
 import com.leaves.app.shareme.bean.Media;
 import com.leaves.app.shareme.eventbus.RxBus;
 import com.leaves.app.shareme.eventbus.TimeSeekEvent;
@@ -47,10 +48,7 @@ import io.reactivex.schedulers.Schedulers;
 public class MusicServerService extends AbsMusicService implements WebSocket.StringCallback, PlaytimeProvider {
     private MediaPlayer mMediaPlayer = null;
 
-    private Disposable mTimeSeekDisposable;
     private CompositeDisposable mCompositeDisposable;
-
-    private Observable<Long> timeSeek;
 
     private boolean isPrepared = false;
     private ServerBinder mBinder;
@@ -92,7 +90,6 @@ public class MusicServerService extends AbsMusicService implements WebSocket.Str
             mMediaPlayer.release();
             mMediaPlayer = null;
         }
-        unregisterTimeSeek();
         stopForeground(true);
     }
 
@@ -108,15 +105,6 @@ public class MusicServerService extends AbsMusicService implements WebSocket.Str
 //        mMediaPlayer.setOnErrorListener(this);
 //        mMediaPlayer.setOnCompletionListener(this);
         mMediaPlayer.setWakeMode(getApplicationContext(), PowerManager.PARTIAL_WAKE_LOCK);
-        timeSeek = Observable.fromCallable(new Callable<Long>() {
-            @Override
-            public Long call() throws Exception {
-                if (mMediaPlayer != null) {
-                    return (long) mMediaPlayer.getCurrentPosition() * 1000L;
-                }
-                return 0L;
-            }
-        }).observeOn(Schedulers.newThread()).repeat().observeOn(AndroidSchedulers.mainThread());
         isPrepared = false;
         startRTSPServer();
     }
@@ -140,15 +128,16 @@ public class MusicServerService extends AbsMusicService implements WebSocket.Str
         if (mMediaPlayer != null && mMediaPlayer.isPlaying()) {
             mMediaPlayer.pause();
         }
-        unregisterTimeSeek();
+        if (mConnectedWebSocket != null) {
+            mConnectedWebSocket.send(mGson.toJson(new Message<>(Message.TYPE_PAUSE, null)));
+        }
     }
 
     @Override
     protected void start(boolean invalidate) {
         //notifyThe client
         if (mConnectedWebSocket != null) {
-            mConnectedWebSocket.send(mGson.toJson(mMedia));
-
+            mConnectedWebSocket.send(mGson.toJson(new Message<>(Message.TYPE_MEDIA, mMedia)));
         }
         if (invalidate) {
             mMediaPlayer.reset();
@@ -261,25 +250,6 @@ public class MusicServerService extends AbsMusicService implements WebSocket.Str
             mBinder = new ServerBinder();
         }
         return mBinder;
-    }
-
-    private void registerTimeSeek() {
-        //只允许一个timeSeek
-        unregisterTimeSeek();
-
-        mTimeSeekDisposable = timeSeek.subscribe(new Consumer<Long>() {
-            @Override
-            public void accept(Long aLong) throws Exception {
-                TimeSeekEvent e = new TimeSeekEvent(aLong, mMedia.getDuration());
-                RxBus.getDefault().post(e);
-            }
-        });
-    }
-
-    private void unregisterTimeSeek() {
-        if (mTimeSeekDisposable != null) {
-            mTimeSeekDisposable.dispose();
-        }
     }
 
 

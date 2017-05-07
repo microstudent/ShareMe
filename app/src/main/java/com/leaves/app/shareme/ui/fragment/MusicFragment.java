@@ -165,6 +165,9 @@ public class MusicFragment extends Fragment {
     @OnClick(R.id.bt_play_pause)
     public void onPlayPauseClick() {
         mPlayPuaseView.setSelected(!mPlayPuaseView.isSelected());
+        if (mBinder != null) {
+            mBinder.pause();
+        }
     }
 
     public boolean isConnectionAlive() {

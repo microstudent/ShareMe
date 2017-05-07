@@ -10,13 +10,19 @@ import android.util.Log;
 import android.widget.Toast;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.reflect.TypeToken;
 import com.koushikdutta.async.http.AsyncHttpClient;
 import com.koushikdutta.async.http.WebSocket;
 import com.leaves.app.shareme.Constant;
+import com.leaves.app.shareme.bean.Message;
 import com.leaves.app.shareme.bean.Frame;
 import com.leaves.app.shareme.bean.Media;
 import com.leaves.app.shareme.eventbus.MediaEvent;
 import com.leaves.app.shareme.eventbus.RxBus;
+import com.leaves.app.shareme.gson.GsonUtils;
+import com.leaves.app.shareme.ui.activity.MainActivity;
 
 import net.majorkernelpanic.streaming.InputStream;
 import net.majorkernelpanic.streaming.ReceiveSession;
@@ -54,7 +60,6 @@ public class MusicClientService extends AbsMusicService implements Runnable, Rts
     private RtspClient mClient;
     private String mServerIp;
     private Queue<Frame> mFrameQueue;
-    private boolean isPlaying = false;
     private volatile long mCurrentRtpTime;
     private InputStream.Config mConfig;
     private WebSocket mConnectedWebSocket;
@@ -138,13 +143,11 @@ public class MusicClientService extends AbsMusicService implements Runnable, Rts
     protected void pause() {
         if (mAudioTrack != null) {
             mAudioTrack.pause();
-            isPlaying = false;
         }
     }
 
     @Override
     protected void start(boolean invalidate) {
-        isPlaying = true;
         if (!mClient.isStreaming()) {
             Observable.just(mClient)
                     .subscribeOn(Schedulers.single())
@@ -163,13 +166,12 @@ public class MusicClientService extends AbsMusicService implements Runnable, Rts
         mClient.stopStream();
         if (mAudioTrack != null) {
             mAudioTrack.stop();
-            isPlaying = false;
         }
     }
 
     @Override
     protected Intent getNotificationIntent() {
-        return null;
+        return new Intent(this, MainActivity.class);
     }
 
     @Override
@@ -213,6 +215,7 @@ public class MusicClientService extends AbsMusicService implements Runnable, Rts
                 1300,
                 AudioTrack.MODE_STREAM
         );
+        mAudioTrack.play();
         mAudioTrack.setPlaybackPositionUpdateListener(this);
         mAudioTrack.setPositionNotificationPeriod(1);
         mConfig = config;
@@ -265,29 +268,45 @@ public class MusicClientService extends AbsMusicService implements Runnable, Rts
      */
     @Override
     public void onStringAvailable(String s) {
-        mMedia = mGson.fromJson(s, Media.class);
-        mMedia.setImage("http://" + mServerIp + ":" + Constant.WebSocket.PORT + "/cover");
-        start(true);
-        MediaEvent event = new MediaEvent(ACTION_PLAY, mMedia);
-        RxBus.getDefault().post(event);
+        handleMessage(s);
+    }
+
+    private void handleMessage(String s) {
+        JsonObject object = mGson.fromJson(s, JsonObject.class);
+        JsonElement type = object.get("type");
+        if (type != null) {
+            switch (type.getAsInt()) {
+                case Message.TYPE_MEDIA:
+                    Message<Media> message = GsonUtils.fromJsonObject(mGson, s, Media.class);
+                    if (message != null) {
+                        mMedia = message.getObject();
+                        mMedia.setImage("http://" + mServerIp + ":" + Constant.WebSocket.PORT + "/cover");
+                        play(mMedia, true);
+                        MediaEvent event = new MediaEvent(ACTION_PLAY, mMedia);
+                        RxBus.getDefault().post(event);
+                    }
+                case Message.TYPE_PAUSE:
+                    pause();
+                    break;
+            }
+        }
     }
 
     @Override
     public void run() {
         while (!mPlayThread.isInterrupted()) {
-            if (mAudioTrack != null && mAudioTrack.getPlayState() != AudioTrack.PLAYSTATE_PLAYING) {
-                mAudioTrack.play();
-            }
-            doSyncIfNeeded();
-            Frame frame = mFrameQueue.poll();
-            if (frame != null) {
-                mByteHasWrite += frame.getPCMData().length;
+            if (mAudioTrack != null && mAudioTrack.getPlayState() == AudioTrack.PLAYSTATE_PLAYING) {
+                doSyncIfNeeded();
+                Frame frame = mFrameQueue.poll();
+                if (frame != null) {
+                    mByteHasWrite += frame.getPCMData().length;
 //                playSilentIfNeeded(frame.getRtpTime());
-                if (DEBUG) Log.d(TAG, "writing audio track, mCurrent = " + mCurrentRtpTime + ",timeStamp = " + frame.getRtpTime());
-                mAudioTrack.write(frame.getPCMData(), 0, frame.getPCMData().length);
-            } else {
-                needSync = true;
-//                Log.e(TAG, "no buffer to playAsServer!");
+                    if (DEBUG)
+                        Log.d(TAG, "writing audio track, mCurrent = " + mCurrentRtpTime + ",timeStamp = " + frame.getRtpTime());
+                    mAudioTrack.write(frame.getPCMData(), 0, frame.getPCMData().length);
+                } else {
+                    needSync = true;
+                }
             }
         }
     }

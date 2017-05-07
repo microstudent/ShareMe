@@ -8,12 +8,17 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.net.wifi.WifiManager;
 import android.support.v4.app.NotificationCompat;
+import android.widget.RemoteViews;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.RequestListener;
 import com.bumptech.glide.request.target.Target;
 import com.leaves.app.shareme.R;
 import com.leaves.app.shareme.bean.Media;
+
+import io.reactivex.Observable;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.functions.Consumer;
 
 /**
  * Created by Leaves on 2017/4/17.
@@ -48,19 +53,26 @@ public abstract class AbsMusicService extends Service {
         mWifiLock.acquire();
 
         mMedia = media;
-        Glide.with(this).load(media.getImage()).asBitmap().listener(new RequestListener<String, Bitmap>() {
-            @Override
-            public boolean onException(Exception e, String model, Target<Bitmap> target, boolean isFirstResource) {
-                showNotification(null);
-                return false;
-            }
 
-            @Override
-            public boolean onResourceReady(Bitmap resource, String model, Target<Bitmap> target, boolean isFromMemoryCache, boolean isFirstResource) {
-                showNotification(resource);
-                return false;
-            }
-        }).preload();
+        Observable.just(mMedia)
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Consumer<Media>() {
+                    @Override
+                    public void accept(Media media) throws Exception {
+                        Glide.with(AbsMusicService.this).load(media.getImage()).asBitmap().listener(new RequestListener<String, Bitmap>() {
+                            @Override
+                            public boolean onException(Exception e, String model, Target<Bitmap> target, boolean isFirstResource) {
+                                showNotification(null);
+                                return false;
+                            }
+                            @Override
+                            public boolean onResourceReady(Bitmap resource, String model, Target<Bitmap> target, boolean isFromMemoryCache, boolean isFirstResource) {
+                                showNotification(resource);
+                                return false;
+                            }
+                        }).preload();
+                    }
+                });
         //notify Client
         start(invalidate);
     }
@@ -75,12 +87,15 @@ public abstract class AbsMusicService extends Service {
         PendingIntent pi = PendingIntent.getActivity(getApplicationContext(), 0,
                 getNotificationIntent(),
                 PendingIntent.FLAG_UPDATE_CURRENT);
+        RemoteViews remoteViews = new RemoteViews(getPackageName(), R.layout.layout_notification);
+        remoteViews.setTextViewText(R.id.tv_title, mMedia.getTitle());
+        remoteViews.setTextViewText(R.id.tv_sub_title, mMedia.getArtist());
+        remoteViews.setImageViewBitmap(R.id.iv_cover, cover);
         Notification notification = new NotificationCompat.Builder(this)
                 .setContentIntent(pi)
-                .setLargeIcon(cover)
+                .setCustomContentView(remoteViews)
+                .setAutoCancel(false)
                 .setSmallIcon(R.drawable.ic_notification)
-                .setContentText(mMedia.getTitle())
-                .setSubText(mMedia.getArtist())
                 .build();
         startForeground(22, notification);
     }
