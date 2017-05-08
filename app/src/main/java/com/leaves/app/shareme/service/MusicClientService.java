@@ -51,7 +51,7 @@ public class MusicClientService extends AbsMusicService implements Runnable, Rts
     public static final int ACTION_PAUSE = 1;
     public static final int ACTION_STOP = 2;
 
-    private static final boolean DEBUG = true;
+    private static final boolean DEBUG = false;
     private static final long RETRY_DELAY = 3000;//3sec重试一次
     private static final long MIN_SYNC_DELAY = 10;//最小可忍受的延迟，millsec
     private static final long MAX_SYNC_DELAY = 60;//最大不可忍受延迟，millsec

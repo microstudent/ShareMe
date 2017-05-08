@@ -166,7 +166,7 @@ public class Mp3Wrapper {
 //                    if (chunk.length > 0) {
 //                        mAudioTrack.write(chunk, 0, chunk.length);
 //                    }
-                    Log.d(TAG, "decoding count = " + (mCount++) + "sampleTime = " + mMediaExtractor.getSampleTime() + "and sample Rate = " + mMediaFormat.getInteger(MediaFormat.KEY_SAMPLE_RATE));
+//                    Log.d(TAG, "decoding count = " + (mCount++) + "sampleTime = " + mMediaExtractor.getSampleTime() + "and sample Rate = " + mMediaFormat.getInteger(MediaFormat.KEY_SAMPLE_RATE));
                     audioBuffer.put(mDecodeOutputBuffers[mOutputBufferIndex]);
                     // Release the buffer so MediaCodec can use it again.
                     // The data should stay there until the next time we are called.
