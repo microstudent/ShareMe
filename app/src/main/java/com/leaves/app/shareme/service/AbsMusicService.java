@@ -49,9 +49,10 @@ public abstract class AbsMusicService extends Service {
             reset();
         }
         //开wifiLock
-        mWifiLock.setReferenceCounted(false);
-        mWifiLock.acquire();
-
+        if (!mWifiLock.isHeld()) {
+            mWifiLock.setReferenceCounted(false);
+            mWifiLock.acquire();
+        }
         mMedia = media;
 
         Observable.just(mMedia)
