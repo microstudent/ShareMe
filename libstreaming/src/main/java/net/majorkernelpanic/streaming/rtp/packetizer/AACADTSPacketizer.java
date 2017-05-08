@@ -190,10 +190,4 @@ public class AACADTSPacketizer extends AbstractPacketizer implements Runnable {
 		}
 		return sum;
 	}
-
-	public void setPlayTimeProvider(PlaytimeProvider playtimeProvider) {
-		if (socket != null) {
-			socket.setPlaytimeProvider(playtimeProvider);
-		}
-	}
 }

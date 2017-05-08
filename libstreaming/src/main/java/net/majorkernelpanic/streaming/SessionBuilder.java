@@ -88,7 +88,6 @@ public class SessionBuilder {
     private String mDestination = null;
     private Session.Callback mCallback = null;
     private String mMp3Path;
-    private PlaytimeProvider mPlaytimeProvider;
 
     // Removes the default public constructor
     private SessionBuilder() {
@@ -140,9 +139,6 @@ public class SessionBuilder {
                 break;
             case AUDIO_MP3:
                 MP3Stream mp3Stream = new MP3Stream(mMp3Path);
-                if (mPlaytimeProvider != null) {
-                    mp3Stream.setPlaytimeProvider(mPlaytimeProvider);
-                }
                 session.addAudioTrack(mp3Stream);
                 break;
         }
@@ -288,11 +284,6 @@ public class SessionBuilder {
         return mContext;
     }
 
-    public SessionBuilder setPlaytimeProvider(PlaytimeProvider playtimeProvider) {
-        mPlaytimeProvider = playtimeProvider;
-        return this;
-    }
-
     /**
      * Returns the destination ip address set with {@link #setDestination(String)}.
      */
@@ -382,7 +373,6 @@ public class SessionBuilder {
                 .setAudioQuality(mAudioQuality)
                 .setContext(mContext)
                 .setCallback(mCallback)
-                .setPlaytimeProvider(mPlaytimeProvider)
                 .setMp3Path(mMp3Path);
     }
 }

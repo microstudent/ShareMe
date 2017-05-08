@@ -13,6 +13,7 @@ public class Message<T> {
     public static final int TYPE_LIST = 4;
     public static final int TYPE_MEDIA = 5;
     public static final int TYPE_RESUME = 6;
+    public static final int TYPE_SYNC = 7;
 
     private int type;
     private T object;

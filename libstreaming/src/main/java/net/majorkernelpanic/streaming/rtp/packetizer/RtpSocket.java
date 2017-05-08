@@ -69,8 +69,6 @@ public class RtpSocket implements Runnable {
 	private int mBufferCount, mBufferIn, mBufferOut;
 	private byte mTcpHeader[];
 	protected OutputStream mOutputStream = null;
-	private PlaytimeProvider mPlaytimeProvider;
-
 
 	private AverageBitrate mAverageBitrate;
 	private long mInitTs;
@@ -299,7 +297,7 @@ public class RtpSocket implements Runnable {
 						delta = 0;
 					}
 				}
-				reportRtpTime();
+//				reportRtpTime();
 				mOldTimestamp = mTimestamps[mBufferOut];
 //				if (mCount++>30) {
 					if (mTransport == TRANSPORT_UDP) {
@@ -320,13 +318,13 @@ public class RtpSocket implements Runnable {
 	}
 
 	private void reportRtpTime() {
-		try {
-			if (mPlaytimeProvider != null) {
-				mReport.update(mPackets[mBufferOut].getLength(), System.currentTimeMillis(), mPlaytimeProvider.getCurrentPlayTime());
-			}
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+//		try {
+//			if (mPlaytimeProvider != null) {
+//				mReport.update(mPackets[mBufferOut].getLength(), System.currentTimeMillis(), mPlaytimeProvider.getCurrentPlayTime());
+//			}
+//		} catch (IOException e) {
+//			e.printStackTrace();
+//		}
 	}
 
 //	private void logSendDetail(int bufferOut) {
@@ -370,9 +368,6 @@ public class RtpSocket implements Runnable {
 		mInitTs = ts;
 	}
 
-	public void setPlaytimeProvider(PlaytimeProvider playtimeProvider) {
-		mPlaytimeProvider = playtimeProvider;
-	}
 
 	/**
 	 * Computes an average bit rate. 

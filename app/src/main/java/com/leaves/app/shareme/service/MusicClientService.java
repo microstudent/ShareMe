@@ -30,6 +30,7 @@ import net.majorkernelpanic.streaming.rtcp.OnRTCPUpdateListener;
 import net.majorkernelpanic.streaming.rtp.OnPCMDataAvailableListener;
 import net.majorkernelpanic.streaming.rtsp.RtspClient;
 
+import java.util.List;
 import java.util.Queue;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -44,7 +45,7 @@ import io.reactivex.schedulers.Schedulers;
  * Created by Leaves on 2017/4/18.
  */
 
-public class MusicClientService extends AbsMusicService implements Runnable, RtspClient.Callback, OnPCMDataAvailableListener, OnRTCPUpdateListener, WebSocket.StringCallback, AudioTrack.OnPlaybackPositionUpdateListener {
+public class MusicClientService extends AbsMusicService implements Runnable, RtspClient.Callback, OnPCMDataAvailableListener, WebSocket.StringCallback, AudioTrack.OnPlaybackPositionUpdateListener {
     private static final String TAG = "MusicClientService";
     public static final int ACTION_PLAY = 0;
     public static final int ACTION_PAUSE = 1;
@@ -64,7 +65,6 @@ public class MusicClientService extends AbsMusicService implements Runnable, Rts
     private WebSocket mConnectedWebSocket;
     private Gson mGson;
     private Thread mPlayThread;
-    private Timer mSyncTimer;
     private long mDelay;
     private int mByteHasWrite;
     private int mBytePerSecond;
@@ -79,7 +79,6 @@ public class MusicClientService extends AbsMusicService implements Runnable, Rts
         mSession = new ReceiveSession.Builder()
                 .setAudioDecoder(ReceiveSession.Builder.AUDIO_AAC)
                 .setVideoDecoder(ReceiveSession.Builder.VIDEO_NONE)
-                .setRTCPListener(this)
                 .setOnPCMDataAvailableListener(this)
                 .build();
         init();
@@ -93,7 +92,6 @@ public class MusicClientService extends AbsMusicService implements Runnable, Rts
         mPlayThread.setName("playThread");
 
         mFrameQueue = new ConcurrentLinkedQueue<>();
-        mSyncTimer = new Timer("syncTimer");
     }
 
     @Override
@@ -118,7 +116,7 @@ public class MusicClientService extends AbsMusicService implements Runnable, Rts
                     @Override
                     public void onCompleted(Exception ex, WebSocket webSocket) {
                         if (ex != null) {
-                            Log.d(TAG, "ex:" + ex.getMessage());
+                            Log.e(TAG, "ex:" + ex.getMessage());
                             ex.printStackTrace();
                             try {
                                 Thread.sleep(RETRY_DELAY);
@@ -201,9 +199,6 @@ public class MusicClientService extends AbsMusicService implements Runnable, Rts
         if (mClient != null) {
             mClient.stopStream();
         }
-        if (mSyncTimer != null) {
-            mSyncTimer.cancel();
-        }
     }
 
 //    private void playSilentIfNeeded(long timeStamp) {
@@ -273,11 +268,11 @@ public class MusicClientService extends AbsMusicService implements Runnable, Rts
         if (DEBUG) Log.d(TAG, "onPCMDataAvailable" + ",timeStamp = " + rtpTime);
     }
 
-    @Override
-    public void onRTCPUpdate(long ntpTime, long rtpTime) {
+
+    public void onSyncDataAvailable(long ntpTime, long playTime) {
         //rtpTime换算
 //        Log.d(TAG, "do sync ntp =  " + ntpTime + "millsec,while rtp ts = " + rtpTs + ",and current rtp ts = " + mCurrentRtpTime);
-        mDelay = getCurrentPosition() - rtpTime - 20;//10ms是对传输耗时的假设判断
+        mDelay = getCurrentPosition() - playTime - 20;//10ms是对传输耗时的假设判断
         if (mDelay > MAX_SYNC_DELAY) {
             needSync = true;
         }
@@ -303,9 +298,9 @@ public class MusicClientService extends AbsMusicService implements Runnable, Rts
         if (type != null) {
             switch (type.getAsInt()) {
                 case Message.TYPE_MEDIA:
-                    Message<Media> message = GsonUtils.fromJsonObject(mGson, s, Media.class);
-                    if (message != null) {
-                        mMedia = message.getObject();
+                    Message<Media> mediaMessage = GsonUtils.fromJsonObject(mGson, s, Media.class);
+                    if (mediaMessage != null) {
+                        mMedia = mediaMessage.getObject();
                         mMedia.setImage("http://" + mServerIp + ":" + Constant.WebSocket.PORT + "/cover");
                         play(mMedia, true);
                     }
@@ -315,6 +310,13 @@ public class MusicClientService extends AbsMusicService implements Runnable, Rts
                     break;
                 case Message.TYPE_RESUME:
                     play(mMedia, false);
+                    break;
+                case Message.TYPE_SYNC:
+                    Message<List<Long>> syncMessage = GsonUtils.fromJsonArray(mGson, s, Long.class);
+                    List<Long> times = syncMessage.getObject();
+                    long ntpTime = times.get(0);
+                    long playTime = times.get(1);
+                    onSyncDataAvailable(ntpTime, playTime);
                     break;
             }
         }
@@ -343,12 +345,12 @@ public class MusicClientService extends AbsMusicService implements Runnable, Rts
                 //播放进度比服务端快，沉睡一段时间以同步
                 try {
                     Thread.sleep(mDelay);
-                    Log.d(TAG, "sleep " + mDelay + " millsec for sync");
+                    Log.w(TAG, "sleep " + mDelay + " millsec for sync");
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
             } else if (mDelay < 0) {
-                Log.d(TAG, "skipping " + mDelay + " millsec for sync");
+                Log.w(TAG, "skipping " + mDelay + " millsec for sync");
                 //播放速度比服务器慢，要快进
                 int bytesToSkip = (int) (((double) mBytePerSecond * Math.abs(mDelay)) / 1000);
                 while (bytesToSkip > 0) {

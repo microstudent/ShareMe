@@ -31,6 +31,8 @@ import net.majorkernelpanic.streaming.SessionBuilder;
 import net.majorkernelpanic.streaming.rtsp.RtspServer;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 
@@ -46,6 +48,8 @@ import io.reactivex.schedulers.Schedulers;
  */
 
 public class MusicServerService extends AbsMusicService implements WebSocket.StringCallback, PlaytimeProvider {
+    private static final String TAG = "MusicServerService";
+    public static final int SYNC_SIGNAL_OFFSET = 3;//同步信号发送的间隔，sec
     private MediaPlayer mMediaPlayer = null;
 
     private CompositeDisposable mCompositeDisposable;
@@ -57,6 +61,7 @@ public class MusicServerService extends AbsMusicService implements WebSocket.Str
     private WebSocket mConnectedWebSocket;
     private Gson mGson;
     private MusicPlayerListener mMusicPlayerListener;
+    private Observable<Message<List<Long>>> mSyncSignalSender;
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
@@ -80,6 +85,27 @@ public class MusicServerService extends AbsMusicService implements WebSocket.Str
             }
         });
         mAsyncHttpServer.listen(Constant.WebSocket.PORT);
+        mSyncSignalSender = Observable.fromCallable(new Callable<Message<List<Long>>>() {
+            @Override
+            public Message<List<Long>> call() throws Exception {
+                List<Long> times = new ArrayList<>(2);//ntp time and play time
+                times.add(System.currentTimeMillis());
+                times.add(getCurrentPlayTime());
+                return new Message<>(Message.TYPE_SYNC, times);
+            }
+        })
+                .subscribeOn(Schedulers.io())
+                .observeOn(Schedulers.io())
+                .repeat()
+                .sample(SYNC_SIGNAL_OFFSET, TimeUnit.SECONDS)
+                .doOnNext(new Consumer<Message<List<Long>>>() {
+                    @Override
+                    public void accept(Message<List<Long>> message) throws Exception {
+                        if (mConnectedWebSocket != null) {
+                            mConnectedWebSocket.send(mGson.toJson(message));
+                        }
+                    }
+                });
         return START_STICKY;
     }
 
@@ -164,10 +190,7 @@ public class MusicServerService extends AbsMusicService implements WebSocket.Str
                         @Override
                         public void accept(Throwable throwable) throws Exception {
                             throwable.printStackTrace();
-                            Toast.makeText(MusicServerService.this, "播放失败", Toast.LENGTH_SHORT).show();
-                            if (mMediaPlayer != null) {
-                                mMediaPlayer.reset();
-                            }
+                            onMusicPlayError();
                         }
                     });
             Observable.just(uri)
@@ -178,12 +201,25 @@ public class MusicServerService extends AbsMusicService implements WebSocket.Str
                         public void accept(Uri uri) throws Exception {
                             if (isPrepared) {
                                 mMediaPlayer.start();
+                                mSyncSignalSender.subscribe(new Consumer<Message<List<Long>>>() {
+                                    @Override
+                                    public void accept(Message<List<Long>> message) throws Exception {
+                                    }
+                                }, new Consumer<Throwable>() {
+                                    @Override
+                                    public void accept(Throwable throwable) throws Exception {
+                                        Log.e(TAG, "accept: ", throwable);
+                                    }
+                                });
+                            } else {
+                                throw new Exception("the music player is not prepared!");
                             }
                         }
                     }, new Consumer<Throwable>() {
                         @Override
                         public void accept(Throwable throwable) throws Exception {
                             throwable.printStackTrace();
+                            onMusicPlayError();
                         }
                     });
         } else {
@@ -196,6 +232,13 @@ public class MusicServerService extends AbsMusicService implements WebSocket.Str
         }
     }
 
+    private void onMusicPlayError() {
+        Toast.makeText(MusicServerService.this, "播放失败", Toast.LENGTH_SHORT).show();
+        if (mMediaPlayer != null) {
+            mMediaPlayer.reset();
+        }
+    }
+
     private void startRTSPServer() {
         // Sets the port of the RTSP server to 1234
         SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(this).edit();
@@ -205,8 +248,7 @@ public class MusicServerService extends AbsMusicService implements WebSocket.Str
         SessionBuilder.getInstance()
                 .setContext(getApplicationContext())
                 .setVideoEncoder(SessionBuilder.VIDEO_NONE)
-                .setAudioEncoder(SessionBuilder.AUDIO_MP3)
-                .setPlaytimeProvider(this);
+                .setAudioEncoder(SessionBuilder.AUDIO_MP3);
 
         // Starts the RTSP server
         this.startService(new Intent(this, RtspServer.class));

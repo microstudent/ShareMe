@@ -26,7 +26,7 @@ public class RtpReceiveSocket implements Runnable{
 
     public static final int MTU = 1300;
     public static final long FIRST_RUN_DELAY = 6000;//2sec
-    private static final boolean DEBUG = true;
+    private static final boolean DEBUG = false;
 
     private final byte[][] mBuffers;
 
@@ -93,7 +93,7 @@ public class RtpReceiveSocket implements Runnable{
             //等待时间最多只能是一帧的时间，一帧用多少时间由采样率决定，
             while (mSortBuffers.get(mSeq) == null) {
                 Thread.sleep(mWaitingTimeout);
-                Log.d(TAG, "sleep for waiting,mSortBuffers size = " + mSortBuffers.size() + ",is send rate too slow?");
+                Log.w(TAG, "sleep for waiting,mSortBuffers size = " + mSortBuffers.size() + ",is send rate too slow?");
                 mSeq++;
             }
             result = (byte[]) mSortBuffers.get(mSeq);
@@ -108,7 +108,7 @@ public class RtpReceiveSocket implements Runnable{
             mSeq++;
         } catch (InterruptedException e) {
             e.printStackTrace();
-            Log.d(TAG, "e:" + e);
+            Log.e(TAG, "e:" + e);
         }
         return result;
     }

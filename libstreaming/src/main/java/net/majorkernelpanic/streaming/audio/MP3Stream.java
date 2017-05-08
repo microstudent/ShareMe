@@ -22,7 +22,6 @@ public class MP3Stream extends AudioStream {
 
     private String mMp3Path;
     private Mp3Wrapper mMp3Wrapper;
-    private PlaytimeProvider mPlayTimeProvider;
 
     public MP3Stream(String mp3Path) {
         mMp3Path = mp3Path;
@@ -130,9 +129,6 @@ public class MP3Stream extends AudioStream {
         mPacketizer = new AACADTSPacketizer();
         mPacketizer.setDestination(mDestination, mRtpPort, mRtcpPort);
         mPacketizer.getRtpSocket().setOutputStream(mOutputStream, mChannelIdentifier);
-        if (mPacketizer != null) {
-            ((AACADTSPacketizer) mPacketizer).setPlayTimeProvider(mPlayTimeProvider);
-        }
         mProfile = 2; // AAC LC
         mChannel = format.getInteger(MediaFormat.KEY_CHANNEL_COUNT);
 //        mQuality.bitRate = format.getInteger(MediaFormat.KEY_BIT_RATE);
@@ -257,10 +253,6 @@ public class MP3Stream extends AudioStream {
     public String getSessionDescription() throws IllegalStateException {
         if (mSessionDescription == null) throw new IllegalStateException("You need to call configure() first !");
         return mSessionDescription;
-    }
-
-    public void setPlaytimeProvider(PlaytimeProvider playtimeProvider) {
-        mPlayTimeProvider = playtimeProvider;
     }
 
 //    /**
