@@ -49,7 +49,7 @@ import io.reactivex.schedulers.Schedulers;
 
 public class MusicServerService extends AbsMusicService implements WebSocket.StringCallback, PlaytimeProvider {
     private static final String TAG = "MusicServerService";
-    public static final int SYNC_SIGNAL_OFFSET = 3;//同步信号发送的间隔，sec
+    public static final int SYNC_SIGNAL_OFFSET = 500;//同步信号发送的间隔，millsec
     private MediaPlayer mMediaPlayer = null;
 
     private CompositeDisposable mCompositeDisposable;
@@ -97,7 +97,7 @@ public class MusicServerService extends AbsMusicService implements WebSocket.Str
                 .subscribeOn(Schedulers.io())
                 .observeOn(Schedulers.io())
                 .repeat()
-                .sample(SYNC_SIGNAL_OFFSET, TimeUnit.SECONDS)
+                .sample(SYNC_SIGNAL_OFFSET, TimeUnit.MILLISECONDS)
                 .doOnNext(new Consumer<Message<List<Long>>>() {
                     @Override
                     public void accept(Message<List<Long>> message) throws Exception {

@@ -70,6 +70,7 @@ public class MusicClientService extends AbsMusicService implements Runnable, Rts
     private int mBytePerSecond;
     private boolean needSync = true;
     private MusicPlayerListener mMusicPlayerListener;
+    private long mInitDelay = -1;//服务器端与本地的ntp时间初始差距
 
     @Override
     public void onCreate() {
@@ -272,8 +273,14 @@ public class MusicClientService extends AbsMusicService implements Runnable, Rts
     public void onSyncDataAvailable(long ntpTime, long playTime) {
         //rtpTime换算
 //        Log.d(TAG, "do sync ntp =  " + ntpTime + "millsec,while rtp ts = " + rtpTs + ",and current rtp ts = " + mCurrentRtpTime);
-        mDelay = getCurrentPosition() - playTime - 20;//10ms是对传输耗时的假设判断
-        if (mDelay > MAX_SYNC_DELAY) {
+
+        if (mInitDelay == -1) {
+            mInitDelay =  System.currentTimeMillis() - ntpTime - 20;
+            mDelay = getCurrentPosition() - playTime - 20;//20ms是对传输耗时的假设判断
+        } else {
+            mDelay = getCurrentPosition() - (playTime + (System.currentTimeMillis() - mInitDelay - ntpTime));
+        }
+        if (Math.abs(mDelay) > MAX_SYNC_DELAY) {
             needSync = true;
         }
 //        mSyncTimer.schedule(new SyncTask(rtpTime), new Date(ntpTime));
@@ -363,7 +370,7 @@ public class MusicClientService extends AbsMusicService implements Runnable, Rts
                     }
                 }
             }
-            needSync = mDelay < MIN_SYNC_DELAY;
+            needSync = Math.abs(mDelay) < MIN_SYNC_DELAY;
             mDelay = 0;
         }
     }
