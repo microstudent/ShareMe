@@ -113,7 +113,10 @@ public class WifiDirectionPresenter implements WifiDirectionContract.Presenter, 
     public void onServiceFound(WifiP2pDevice device, WifiDirect.ServiceResponse response) {
         if (isPasswordCorrect(response)) {
             mView.onDeviceFound(response.wifiP2pDevice);
-            mWifiDirect.connectTo(device, getGroupIntent(response.txtRecordMap.get(Constant.WifiDirect.KEY_TIMESTAMP)));
+            //时间晚的去连接早的
+            if (mLocalTimeStamp > Long.parseLong(response.txtRecordMap.get(Constant.WifiDirect.KEY_TIMESTAMP))) {
+                mWifiDirect.connectTo(device, getGroupIntent(response.txtRecordMap.get(Constant.WifiDirect.KEY_TIMESTAMP)));
+            }
         }
     }
 

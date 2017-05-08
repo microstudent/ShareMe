@@ -173,6 +173,7 @@ public class MusicClientService extends AbsMusicService implements Runnable, Rts
         if (mMusicPlayerListener != null) {
             mMusicPlayerListener.onMusicStart(mMedia);
         }
+        needSync = true;
     }
 
     @Override
