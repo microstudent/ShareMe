@@ -25,7 +25,7 @@ public class RtpReceiveSocket implements Runnable{
     public static final int TRANSPORT_TCP = 0x01;
 
     public static final int MTU = 1300;
-    public static final long FIRST_RUN_DELAY = 6000;//2sec
+    public static final long FIRST_RUN_DELAY = 5000;//缓冲时间
     private static final boolean DEBUG = false;
 
     private final byte[][] mBuffers;

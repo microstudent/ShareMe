@@ -16,7 +16,7 @@ public class Constant {
     public static final int TAG_QUERY_PLAYING_AUDIO = 0;
     public static final int TAG_MEDIA = 1;
     public volatile static List<Media> mPlayingMedias;
-    public static final long DEFAULT_PLAY_TIME_DELAY = RtpReceiveSocket.FIRST_RUN_DELAY;
+    public static final long DEFAULT_PLAY_TIME_DELAY = RtpReceiveSocket.FIRST_RUN_DELAY + 1000;
 
     public interface WifiDirect {
         String INSTANCE_NAME = "ShareMe";

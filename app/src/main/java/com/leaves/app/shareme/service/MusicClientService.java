@@ -35,6 +35,7 @@ import java.util.Queue;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.TimeUnit;
 
 import io.reactivex.Observable;
 import io.reactivex.android.schedulers.AndroidSchedulers;
@@ -166,7 +167,7 @@ public class MusicClientService extends AbsMusicService implements Runnable, Rts
         if (!mPlayThread.isAlive()) {
             mPlayThread.start();
         }
-        if (mAudioTrack != null) {
+        if (mAudioTrack != null && !invalidate) {
             mAudioTrack.play();
         }
         if (mMusicPlayerListener != null) {
@@ -237,7 +238,15 @@ public class MusicClientService extends AbsMusicService implements Runnable, Rts
                 1300,
                 AudioTrack.MODE_STREAM
         );
-        mAudioTrack.play();
+        Observable.just(mAudioTrack)
+                .subscribeOn(Schedulers.io())
+                .delay(Constant.DEFAULT_PLAY_TIME_DELAY, TimeUnit.MILLISECONDS)
+                .subscribe(new Consumer<AudioTrack>() {
+                    @Override
+                    public void accept(AudioTrack audioTrack) throws Exception {
+                        audioTrack.play();
+                    }
+                });
         mAudioTrack.setPlaybackPositionUpdateListener(this);
         mAudioTrack.setPositionNotificationPeriod(1);
         mConfig = config;
