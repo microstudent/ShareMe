@@ -13,6 +13,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
+import com.koushikdutta.async.callback.CompletedCallback;
 import com.koushikdutta.async.http.AsyncHttpClient;
 import com.koushikdutta.async.http.WebSocket;
 import com.leaves.app.shareme.Constant;
@@ -46,7 +47,7 @@ import io.reactivex.schedulers.Schedulers;
  * Created by Leaves on 2017/4/18.
  */
 
-public class MusicClientService extends AbsMusicService implements Runnable, RtspClient.Callback, OnPCMDataAvailableListener, WebSocket.StringCallback, AudioTrack.OnPlaybackPositionUpdateListener {
+public class MusicClientService extends AbsMusicService implements Runnable, RtspClient.Callback, OnPCMDataAvailableListener, WebSocket.StringCallback, AudioTrack.OnPlaybackPositionUpdateListener, CompletedCallback {
     private static final String TAG = "MusicClientService";
     public static final int ACTION_PLAY = 0;
     public static final int ACTION_PAUSE = 1;
@@ -129,6 +130,7 @@ public class MusicClientService extends AbsMusicService implements Runnable, Rts
                             return;
                         }
                         mConnectedWebSocket = webSocket;
+                        mConnectedWebSocket.setClosedCallback(MusicClientService.this);
                         Observable.just(this)
                                 .observeOn(AndroidSchedulers.mainThread())
                                 .subscribe(new Consumer<AsyncHttpClient.WebSocketConnectCallback>() {
@@ -409,6 +411,11 @@ public class MusicClientService extends AbsMusicService implements Runnable, Rts
     @Override
     public void onPeriodicNotification(AudioTrack track) {
 
+    }
+
+    @Override
+    public void onCompleted(Exception ex) {
+        tryConnectToWebSocketServer();
     }
 
 
