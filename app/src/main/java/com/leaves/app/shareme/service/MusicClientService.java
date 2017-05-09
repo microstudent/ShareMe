@@ -295,14 +295,16 @@ public class MusicClientService extends AbsMusicService implements Runnable, Rts
         //rtpTime换算
 //        Log.d(TAG, "do sync ntp =  " + ntpTime + "millsec,while rtp ts = " + rtpTs + ",and current rtp ts = " + mCurrentRtpTime);
 
-        if (mInitDelay == -1) {
-            mInitDelay =  System.currentTimeMillis() - ntpTime - 10;
-            mDelay = getCurrentPosition() - playTime - 10;//10ms是对传输耗时的假设判断
-        } else {
-            mDelay = getCurrentPosition() - (playTime + (System.currentTimeMillis() - mInitDelay - ntpTime));
-        }
-        if (Math.abs(mDelay) > MAX_SYNC_DELAY) {
-            needSync = true;
+        if (playTime > 0) {
+            if (mInitDelay == -1) {
+                mInitDelay =  System.currentTimeMillis() - ntpTime - 10;
+                mDelay = getCurrentPosition() - playTime - 10;//10ms是对传输耗时的假设判断
+            } else {
+                mDelay = getCurrentPosition() - (playTime + (System.currentTimeMillis() - mInitDelay - ntpTime));
+            }
+            if (Math.abs(mDelay) > MAX_SYNC_DELAY) {
+                needSync = true;
+            }
         }
 //        mSyncTimer.schedule(new SyncTask(rtpTime), new Date(ntpTime));
     }
@@ -372,8 +374,8 @@ public class MusicClientService extends AbsMusicService implements Runnable, Rts
             if (mDelay > 0) {
                 //播放进度比服务端快，沉睡一段时间以同步
                 try {
-                    Thread.sleep(mDelay);
                     Log.w(TAG, "sleep " + mDelay + " millsec for sync");
+                    Thread.sleep(mDelay);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
@@ -388,9 +390,10 @@ public class MusicClientService extends AbsMusicService implements Runnable, Rts
                             mByteHasWrite += frame.getPCMData().length;
                             bytesToSkip -= frame.getPCMData().length;
                         }
-                    } else {
-                        Log.w(TAG, "doSyncIfNeeded: nothing to skip");
                     }
+//                    else {
+//                        Log.w(TAG, "doSyncIfNeeded: nothing to skip");
+//                    }
                 }
             }
             needSync = Math.abs(mDelay) < MIN_SYNC_DELAY;
