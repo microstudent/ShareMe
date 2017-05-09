@@ -148,6 +148,10 @@ public class MusicServerService extends AbsMusicService implements WebSocket.Str
 
     }
 
+    private void resetRTSPServer() {
+
+    }
+
     private void resetMediaPlayer() {
         if (mMediaPlayer != null && mMediaPlayer.isPlaying()) {
             mMediaPlayer.stop();
@@ -182,7 +186,7 @@ public class MusicServerService extends AbsMusicService implements WebSocket.Str
         if (invalidate) {
             SessionBuilder.getInstance().setMp3Path(mMedia.getSrc());
             Uri uri = Uri.parse(mMedia.getSrc());
-            Observable.just(uri)
+            mCompositeDisposable.add(Observable.just(uri)
                     .observeOn(Schedulers.io())
                     .subscribe(new Consumer<Uri>() {
                         @Override
@@ -197,8 +201,8 @@ public class MusicServerService extends AbsMusicService implements WebSocket.Str
                         public void accept(Throwable throwable) throws Exception {
                             onMusicPlayError(throwable);
                         }
-                    });
-            Observable.just(uri)
+                    }));
+            mCompositeDisposable.add(Observable.just(uri)
                     .observeOn(Schedulers.io())
                     .delay(Constant.DEFAULT_PLAY_TIME_DELAY, TimeUnit.MILLISECONDS)
                     .subscribe(new Consumer<Uri>() {
@@ -206,7 +210,7 @@ public class MusicServerService extends AbsMusicService implements WebSocket.Str
                         public void accept(Uri uri) throws Exception {
                             if (isPrepared) {
                                 mMediaPlayer.start();
-                                mSyncSignalSender.subscribe(new Consumer<Message<List<Long>>>() {
+                                mCompositeDisposable.add(mSyncSignalSender.subscribe(new Consumer<Message<List<Long>>>() {
                                     @Override
                                     public void accept(Message<List<Long>> message) throws Exception {
                                     }
@@ -215,7 +219,7 @@ public class MusicServerService extends AbsMusicService implements WebSocket.Str
                                     public void accept(Throwable throwable) throws Exception {
                                         Log.e(TAG, "accept: ", throwable);
                                     }
-                                });
+                                }));
                             } else {
                                 throw new Exception("the music player is not prepared!");
                             }
@@ -225,7 +229,7 @@ public class MusicServerService extends AbsMusicService implements WebSocket.Str
                         public void accept(Throwable throwable) throws Exception {
                             onMusicPlayError(throwable);
                         }
-                    });
+                    }));
         } else {
             if (mMediaPlayer != null && isPrepared) {
                 mMediaPlayer.start();
@@ -237,14 +241,14 @@ public class MusicServerService extends AbsMusicService implements WebSocket.Str
     }
 
     private void onMusicPlayError(Throwable throwable) {
-        Observable.just("播放失败: " + throwable.toString())
+        mCompositeDisposable.add(Observable.just("播放失败: " + throwable.toString())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Consumer<String>() {
                     @Override
                     public void accept(String s) throws Exception {
                         Toast.makeText(MusicServerService.this, s, Toast.LENGTH_SHORT).show();
                     }
-                });
+                }));
         throwable.printStackTrace();
         if (mMediaPlayer != null) {
             mMediaPlayer.reset();

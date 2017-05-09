@@ -7,15 +7,14 @@ import android.provider.MediaStore;
 
 import com.leaves.app.shareme.bean.Media;
 import com.leaves.app.shareme.contract.AudioListContract;
-import com.tbruyelle.rxpermissions2.RxPermissions;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
 import io.reactivex.Observable;
-import io.reactivex.ObservableSource;
 import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.Consumer;
 import io.reactivex.functions.Function;
 import io.reactivex.schedulers.Schedulers;
@@ -28,6 +27,7 @@ public class AudioListPresenter implements AudioListContract.Presenter {
     private final Context mContext;
     private AudioListContract.View mView;
     private ContentResolver mResolver;
+    private Disposable mDisposable;
 
     public AudioListPresenter(AudioListContract.View view, Context context) {
         mContext = context;
@@ -37,7 +37,7 @@ public class AudioListPresenter implements AudioListContract.Presenter {
     @Override
     public void start() {
         mResolver = mContext.getContentResolver();
-        Observable.just(mResolver)
+        mDisposable = Observable.just(mResolver)
                 .subscribeOn(Schedulers.io())
                 .observeOn(Schedulers.io())
                 .map(new Function<ContentResolver, List<Media>>() {
@@ -85,6 +85,12 @@ public class AudioListPresenter implements AudioListContract.Presenter {
             return path;
         }
         return null;
+    }
+
+    public void onDestroy() {
+        if (mDisposable != null) {
+            mDisposable.dispose();
+        }
     }
 }
 

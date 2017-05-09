@@ -12,23 +12,18 @@ import java.io.IOException;
  */
 
 public class ReceiveSession {
-    private Callback mCallback;
     private Object mVideoStream;
     private InputStream mAudioStream;
 
     private ReceiveSession() {
     }
 
-    void setAudioDecoder(AACInputStream stream) {
+    private void setAudioDecoder(AACInputStream stream) {
         mAudioStream = stream;
    }
 
     public void setVideoStream(Object videoStream) {
         mVideoStream = videoStream;
-    }
-
-    public void setCallback(Callback callback) {
-        mCallback = callback;
     }
 
     public void syncStart() {
@@ -40,7 +35,7 @@ public class ReceiveSession {
     }
 
     public void stop() {
-
+        mAudioStream.stop();
     }
 
     public InputStream getTrack(int id) {
@@ -61,7 +56,6 @@ public class ReceiveSession {
 
         private int mAudioDecoder;
         private int mVideoDecoder;
-        private Callback mCallback;
         private OnRTCPUpdateListener mRTCPListener;
         private OnPCMDataAvailableListener mRTPListener;
 
@@ -75,10 +69,6 @@ public class ReceiveSession {
             return this;
         }
 
-        public Builder setCallback(Callback callback) {
-            mCallback = callback;
-            return this;
-        }
 
         public Builder setRTCPListener(OnRTCPUpdateListener listener) {
             mRTCPListener = listener;
@@ -104,7 +94,6 @@ public class ReceiveSession {
                 case VIDEO_NONE:
                     session.setVideoStream(null);
             }
-            session.setCallback(mCallback);
 //            if (session.getVideoTrack() != null) {
 //                VideoStream video = session.getVideoTrack();
 //                video.setFlashState(mFlash);
@@ -121,6 +110,7 @@ public class ReceiveSession {
             return session;
         }
     }
+
 
     private InputStream getAudioTrack() {
         return mAudioStream;

@@ -4,6 +4,8 @@ import android.media.MediaCodec;
 import android.media.MediaCodecInfo;
 import android.media.MediaFormat;
 import android.os.Build;
+import android.os.Looper;
+import android.util.Log;
 
 import net.majorkernelpanic.streaming.InputStream;
 import net.majorkernelpanic.streaming.rtcp.OnRTCPUpdateListener;
@@ -29,16 +31,15 @@ public class AACInputStream implements InputStream, Runnable {
     private ByteBuffer[] mOutputBuffer;
     private MediaCodec.BufferInfo mDecodeBufferInfo;
 
-//    private AudioTrack mAudioTrack;
     private Thread mInputThread;
     private Config mConfig;
-    private long mCurrentTimeStamp = 0;
-    private RTCPReceiver mRTCPReceiver;
+//    private RTCPReceiver mRTCPReceiver;
     private OnPCMDataAvailableListener mOnPCMDataAvailableListener;
     private long mConsumeOffset;
+    private boolean isStop = false;
 
     public AACInputStream() {
-        mRTCPReceiver = new RTCPReceiver();
+//        mRTCPReceiver = new RTCPReceiver();
     }
 
     @Override
@@ -49,7 +50,7 @@ public class AACInputStream implements InputStream, Runnable {
             mInputThread.setName("InputThread");
             mInputThread.start();
         }
-        mRTCPReceiver.start();
+//        mRTCPReceiver.start();
     }
 
     /**
@@ -68,7 +69,18 @@ public class AACInputStream implements InputStream, Runnable {
 
     @Override
     public void stop() {
-        mAACADTSUnpacker.stop();
+        if (mAACADTSUnpacker != null) {
+            mAACADTSUnpacker.stop();
+            Log.d("AACInputStream", "unpacker is stopped");
+        }
+        if (mInputThread != null) {
+            mInputThread.interrupt();
+        }
+        if (mMediaDecode != null) {
+            mMediaDecode.stop();
+            Log.d("AACInputStream", "decoder is stopped");
+        }
+        isStop = true;
     }
 
     @Override
@@ -111,7 +123,7 @@ public class AACInputStream implements InputStream, Runnable {
     @Override
     public void setListeningPorts(int rtpPort, int rtcpPort) {
         mAACADTSUnpacker.setDestination(rtpPort, rtcpPort);
-        mRTCPReceiver.setDestination(rtcpPort);
+//        mRTCPReceiver.setDestination(rtcpPort);
     }
 
 
@@ -142,29 +154,33 @@ public class AACInputStream implements InputStream, Runnable {
 
     @Override
     public boolean isStreaming() {
-        return false;
+        return mInputThread != null && mInputThread.isAlive();
     }
 
 
     @Override
     public void run() {
-        while (!mInputThread.isInterrupted()) {
-            int outputIndex = mMediaDecode.dequeueOutputBuffer(mDecodeBufferInfo, 10000);
-            ByteBuffer outputBuffer;
-            byte[] chunkPCM;
-            if (outputIndex >= 0) {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                    outputBuffer = mMediaDecode.getOutputBuffer(outputIndex);
-                } else {
-                    outputBuffer = mOutputBuffer[outputIndex];//拿到用于存放PCM数据的Buffer
+        while (!mInputThread.isInterrupted() && !isStop) {
+            try {
+                int outputIndex = mMediaDecode.dequeueOutputBuffer(mDecodeBufferInfo, 10000);
+                ByteBuffer outputBuffer;
+                byte[] chunkPCM;
+                if (outputIndex >= 0) {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                        outputBuffer = mMediaDecode.getOutputBuffer(outputIndex);
+                    } else {
+                        outputBuffer = mOutputBuffer[outputIndex];//拿到用于存放PCM数据的Buffer
+                    }
+                    chunkPCM = new byte[mDecodeBufferInfo.size];//BufferInfo内定义了此数据块的大小
+                    if (outputBuffer != null) {
+                        outputBuffer.get(chunkPCM);//将Buffer内的数据取出到字节数组中
+                        outputBuffer.clear();//数据取出后一定记得清空此Buffer MediaCodec是循环使用这些Buffer的，不清空下次会得到同样的数据
+                    }
+                    consumePCMData(mDecodeBufferInfo.presentationTimeUs, chunkPCM);//自己定义的方法，供编码器所在的线程获取数据,下面会贴出代码
+                    mMediaDecode.releaseOutputBuffer(outputIndex, false);//此操作一定要做，不然MediaCodec用完所有的Buffer后 将不能向外输出数据
                 }
-                chunkPCM = new byte[mDecodeBufferInfo.size];//BufferInfo内定义了此数据块的大小
-                if (outputBuffer != null) {
-                    outputBuffer.get(chunkPCM);//将Buffer内的数据取出到字节数组中
-                    outputBuffer.clear();//数据取出后一定记得清空此Buffer MediaCodec是循环使用这些Buffer的，不清空下次会得到同样的数据
-                }
-                consumePCMData(mDecodeBufferInfo.presentationTimeUs, chunkPCM);//自己定义的方法，供编码器所在的线程获取数据,下面会贴出代码
-                mMediaDecode.releaseOutputBuffer(outputIndex, false);//此操作一定要做，不然MediaCodec用完所有的Buffer后 将不能向外输出数据
+            } catch (IllegalStateException e) {
+                e.printStackTrace();
             }
         }
     }
@@ -173,7 +189,7 @@ public class AACInputStream implements InputStream, Runnable {
 
     @Override
     public void setOnRTCPUpdateListener(OnRTCPUpdateListener onRTCPUpdateListener) {
-        mRTCPReceiver.setOnRTCPUpdateListener(onRTCPUpdateListener);
+//        mRTCPReceiver.setOnRTCPUpdateListener(onRTCPUpdateListener);
     }
 
     public void setOnPCMDataAvailableListener(OnPCMDataAvailableListener onPCMDataAvailableListener) {

@@ -131,4 +131,12 @@ public class AudioListFragment extends BottomSheetDialogFragment implements Audi
     public interface OnAudioClickListener {
         void onAudioClick(Media media);
     }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        if (mPresenter != null) {
+            mPresenter.onDestroy();
+        }
+    }
 }

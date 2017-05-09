@@ -12,7 +12,7 @@ import java.util.List;
 
 public interface AudioListContract {
     interface Presenter extends BasePresenter {
-
+        void onDestroy();
     }
 
     interface View extends BaseView {

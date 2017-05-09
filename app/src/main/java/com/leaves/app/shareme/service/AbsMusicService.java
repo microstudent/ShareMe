@@ -18,6 +18,7 @@ import com.leaves.app.shareme.bean.Media;
 
 import io.reactivex.Observable;
 import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.CompositeDisposable;
 import io.reactivex.functions.Consumer;
 
 /**
@@ -31,12 +32,16 @@ public abstract class AbsMusicService extends Service {
     private int mMode;
     private WifiManager.WifiLock mWifiLock;
     protected Media mMedia;
+    private boolean isFirstRun = true;
+
+    protected CompositeDisposable mCompositeDisposable;
 
     @Override
     public void onCreate() {
         super.onCreate();
         mWifiLock = ((WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE))
                 .createWifiLock(WifiManager.WIFI_MODE_FULL, "musicLock");
+        mCompositeDisposable = new CompositeDisposable();
     }
 
     public void play(Media media, boolean invalidate) {
@@ -45,7 +50,7 @@ public abstract class AbsMusicService extends Service {
         } else {
             mMode = MODE_REMOTE;
         }
-        if (invalidate) {
+        if (invalidate && !isFirstRun) {
             reset();
         }
         //开wifiLock
@@ -55,7 +60,7 @@ public abstract class AbsMusicService extends Service {
         }
         mMedia = media;
 
-        Observable.just(mMedia)
+        mCompositeDisposable.add(Observable.just(mMedia)
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Consumer<Media>() {
                     @Override
@@ -66,6 +71,7 @@ public abstract class AbsMusicService extends Service {
                                 showNotification(null);
                                 return false;
                             }
+
                             @Override
                             public boolean onResourceReady(Bitmap resource, String model, Target<Bitmap> target, boolean isFromMemoryCache, boolean isFirstResource) {
                                 showNotification(resource);
@@ -73,9 +79,10 @@ public abstract class AbsMusicService extends Service {
                             }
                         }).preload();
                     }
-                });
+                }));
         //notify Client
         start(invalidate);
+        isFirstRun = false;
     }
 
     protected abstract void pause();
@@ -119,5 +126,6 @@ public abstract class AbsMusicService extends Service {
         if (mWifiLock != null) {
             mWifiLock.release();
         }
+        mCompositeDisposable.dispose();
     }
 }

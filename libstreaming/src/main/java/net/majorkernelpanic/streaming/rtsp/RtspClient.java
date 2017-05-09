@@ -85,6 +85,7 @@ public class RtspClient {
 	private final static int STATE_STOPPING = 0x02;
 	private final static int STATE_STOPPED = 0x03;
 	private int mState = 0;
+	private boolean isReleased = false;
 
 	private class Parameters {
 		public String host; 
@@ -273,13 +274,16 @@ public class RtspClient {
 					mState = STATE_STOPPING;
 					abort();
 				}
+				if (isReleased) {
+					mHandler.getLooper().quit();
+				}
 			}
 		});
 	}
 
 	public void release() {
 		stopStream();
-		mHandler.getLooper().quit();
+		isReleased = true;
 	}
 	
 	private void abort() {

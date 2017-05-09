@@ -30,6 +30,7 @@ public class WifiDirectionPresenter implements WifiDirectionContract.Presenter, 
 
     private StringBuilder mPassword;
     private long mLocalTimeStamp;
+    private WifiP2pDeviceList mDeviceList;
 
     public WifiDirectionPresenter(WifiDirectionContract.View view, AppCompatActivity rootActivity) {
         this(view, rootActivity.getSupportFragmentManager(), rootActivity.getApplicationContext());
@@ -102,6 +103,11 @@ public class WifiDirectionPresenter implements WifiDirectionContract.Presenter, 
                 mView.startAsUndefined();
             }
         }
+        mDeviceList = deviceList;
+    }
+
+    public WifiP2pDeviceList getDeviceList() {
+        return mDeviceList;
     }
 
     @Override

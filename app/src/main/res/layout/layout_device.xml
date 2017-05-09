@@ -1,21 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
               xmlns:tools="http://schemas.android.com/tools"
-              android:gravity="center"
+              android:gravity="center_vertical"
               android:padding="@dimen/spacing_small"
-              android:orientation="vertical"
-              android:layout_width="wrap_content"
-              android:layout_height="wrap_content">
+              android:orientation="horizontal"
+              android:layout_width="match_parent"
+              android:layout_height="@dimen/list_item_height_large">
     <ImageView
         android:src="@drawable/ic_phone"
         android:tint="@color/colorAccent"
-        android:layout_width="@dimen/image_small"
-        android:layout_height="@dimen/image_small"/>
+        android:layout_width="@dimen/image_normal"
+        android:layout_height="@dimen/image_normal"/>
     <TextView
         android:id="@+id/tv_name"
         tools:text="Galaxy s8 +"
         android:layout_margin="@dimen/spacing_tiny"
-        android:textSize="@dimen/font_more_small"
+        android:textSize="@dimen/font_normal"
         android:textStyle="bold"
         android:ellipsize="end"
         android:layout_width="wrap_content"

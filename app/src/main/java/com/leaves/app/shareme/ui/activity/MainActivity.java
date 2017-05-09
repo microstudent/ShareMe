@@ -32,6 +32,7 @@ import com.leaves.app.shareme.presenter.MainPresenter;
 import com.leaves.app.shareme.ui.fragment.AudioListFragment;
 import com.leaves.app.shareme.ui.fragment.BehaviorFragment;
 import com.leaves.app.shareme.ui.fragment.BottomSheetFragment;
+import com.leaves.app.shareme.ui.fragment.ConnectionFragment;
 import com.leaves.app.shareme.ui.fragment.DialpadFragment;
 import com.leaves.app.shareme.ui.fragment.MusicFragment;
 import com.leaves.app.shareme.ui.fragment.PasswordFragment;
@@ -60,11 +61,11 @@ public class MainActivity extends AppCompatActivity implements
     Toolbar mToolbar;
 
     private PasswordFragment mPasswordFragment;
-    private BehaviorFragment mBehaviorFragment;
     private AudioListFragment mAudioListFragment;
     private MainActivityContract.Presenter mPresenter;
     private int mMode = -1;
     private MusicFragment mMusicFragment;
+    private ConnectionFragment mConnectionFragment;
 
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -266,6 +267,16 @@ public class MainActivity extends AppCompatActivity implements
             } else {
                 showToast("未能连接服务端/客户端");
             }
+        } else if (id == R.id.bt_connection) {
+            if (mMusicFragment != null && mMusicFragment.isConnectionAlive()) {
+                if (mConnectionFragment == null) {
+                    mConnectionFragment = ConnectionFragment.newInstance(mPresenter.getDeviceList());
+                }
+                switchFragment(MusicFragment.TAG, mConnectionFragment, ConnectionFragment.TAG, R.id.container_main, true);
+            } else {
+                showToast("未能连接服务端/客户端");
+            }
+
         }
     }
 }

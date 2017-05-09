@@ -158,8 +158,8 @@ public class RtpReceiveSocket implements Runnable{
     @Override
     public void run() {
         try {
-            while (mBufferRequested.tryAcquire(4, TimeUnit.SECONDS)) {
-                if (mSocket != null) {
+            while (!mReceiverThread.isInterrupted() && mBufferRequested.tryAcquire(4, TimeUnit.SECONDS)) {
+                if (mSocket != null && !mSocket.isClosed()) {
                     mSocket.receive(mPackets[mBufferIn]);
                     if (++mBufferIn >= mBufferCount) mBufferIn = 0;
                     byte[] src = consumeData();
@@ -168,7 +168,7 @@ public class RtpReceiveSocket implements Runnable{
 //                        Log.d(TAG, "receive skipping seq" + seq);
 //                    }
 //                    mLastReceiveSeq = seq;
-//                    if (DEBUG) Log.d(TAG, "receiving seq: " + seq);
+                    if (DEBUG) Log.d(TAG, "receiving seq: " + seq);
                     mSortBuffers.put(seq, src);
                 }
             }
@@ -178,8 +178,14 @@ public class RtpReceiveSocket implements Runnable{
     }
 
     public void close() {
-        mSocket.close();
-        mReceiverThread.interrupt();
+        if (mSocket != null) {
+            mSocket.close();
+            Log.e(TAG, "socket is close ");
+        }
+        if (mReceiverThread != null) {
+            mReceiverThread.interrupt();
+            Log.e(TAG, "thread is interrupted ");
+        }
         reset();
     }
 

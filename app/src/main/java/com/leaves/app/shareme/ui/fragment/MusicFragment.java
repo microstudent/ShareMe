@@ -31,6 +31,7 @@ import butterknife.ButterKnife;
 import butterknife.OnClick;
 import io.reactivex.Observable;
 import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.CompositeDisposable;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.Consumer;
 
@@ -58,6 +59,8 @@ public class MusicFragment extends Fragment implements MusicPlayerListener{
     @BindView(R.id.bt_play_pause)
     ImageView mPlayPauseView;
 
+    private CompositeDisposable mCompositeDisposable;
+
     private Media mMedia;
     private boolean isServer;
     private ServiceConnection mConnection = new ServiceConnection() {
@@ -74,7 +77,6 @@ public class MusicFragment extends Fragment implements MusicPlayerListener{
     };
 
     private AbsMusicServiceBinder mBinder;
-    private Disposable mDisposable;
 
     public MusicFragment() {
         // Required empty public constructor
@@ -106,6 +108,7 @@ public class MusicFragment extends Fragment implements MusicPlayerListener{
         if (bundle != null) {
             isServer = bundle.getBoolean(IS_SERVER);
         }
+        mCompositeDisposable = new CompositeDisposable();
         bindServer();
     }
 
@@ -162,6 +165,13 @@ public class MusicFragment extends Fragment implements MusicPlayerListener{
         }
     }
 
+    @OnClick(R.id.bt_prev)
+    public void onPrevClick() {
+        //TODO remove it
+         mBinder.stop();
+    }
+
+
     public boolean isConnectionAlive() {
         return mBinder.isConnectionAlive();
     }
@@ -169,28 +179,28 @@ public class MusicFragment extends Fragment implements MusicPlayerListener{
     @Override
     public void onDestroy() {
         super.onDestroy();
-        if (mDisposable != null) {
-            mDisposable.dispose();
+        if (mCompositeDisposable != null) {
+            mCompositeDisposable.dispose();
         }
     }
 
 
     @Override
     public void onMusicPause() {
-        Observable.just(1)
+        mCompositeDisposable.add(Observable.just(1)
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Consumer<Integer>() {
                     @Override
                     public void accept(Integer integer) throws Exception {
                         mPlayPauseView.setSelected(true);
                     }
-                });
+                }));
     }
 
     @Override
     public void onMusicStart(Media media) {
         //非主线程
-        Observable.just(media)
+        mCompositeDisposable.add(Observable.just(media)
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Consumer<Media>() {
                     @Override
@@ -199,6 +209,6 @@ public class MusicFragment extends Fragment implements MusicPlayerListener{
                         setupView();
                         mPlayPauseView.setSelected(false);
                     }
-                });
+                }));
     }
 }

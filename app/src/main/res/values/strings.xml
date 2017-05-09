@@ -10,4 +10,5 @@
     <string name="exit">退出</string>
     <string name="hint_host">你是房主，尽情分享资源吧！</string>
     <string name="hint_guest">你是成员，聆听房主分享的资源吧！</string>
+    <string name="disconnect">断开连接</string>
 </resources>

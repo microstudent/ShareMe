@@ -22,7 +22,6 @@ public class AACADTSUnpacker extends AbstractUnpacker implements Runnable {
     private ByteBuffer[] mInputBuffers;
     private byte[] mADTSHeader;
     private InputStream.Config mConfig;
-    private long mLastTimeStamp = 0;
     private int mLastSeq;
 
     public AACADTSUnpacker(MediaCodec decoder) {
@@ -44,16 +43,14 @@ public class AACADTSUnpacker extends AbstractUnpacker implements Runnable {
 
     @Override
     public void stop() {
-        if (mThread != null) {
+        if (mSocket != null) {
             mSocket.close();
+        }
+        if (mThread != null) {
             mThread.interrupt();
-            try {
-                mThread.join();
-            } catch (InterruptedException e) {
-            }
-            mThread = null;
         }
     }
+
 
     @Override
     public void run() {
@@ -79,25 +76,28 @@ public class AACADTSUnpacker extends AbstractUnpacker implements Runnable {
                 Log.d(TAG, "skipping frame seq = " + seq + ",its timeStamp = " + timeStamp + ",lastSeq = " + mLastSeq);
             }
             mLastSeq = seq;
-            mLastTimeStamp = timeStamp;
             if (bitMark) {
-                int inputIndex = mDecoder.dequeueInputBuffer(-1);
-                if (inputIndex >= 0) {
-                    ByteBuffer inputBuffer = null;
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                        inputBuffer = mDecoder.getInputBuffer(inputIndex);
+                try {
+                    int inputIndex = mDecoder.dequeueInputBuffer(-1);
+                    if (inputIndex >= 0) {
+                        ByteBuffer inputBuffer;
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                            inputBuffer = mDecoder.getInputBuffer(inputIndex);
+                        } else {
+                            inputBuffer = mInputBuffers[inputIndex];
+                        }
+                        if (inputBuffer != null) {
+                            inputBuffer.clear();
+                            addADTStoPacket(mADTSHeader, AUSize + 7);
+                            inputBuffer.put(mADTSHeader);
+                            inputBuffer.put(rtpPacket, rtphl + 4, AUSize);
+                            mDecoder.queueInputBuffer(inputIndex, 0, AUSize + 7, timeStamp, 0);
+                        }
                     } else {
-                        inputBuffer = mInputBuffers[inputIndex];
+                        Log.v(TAG, "No buffer available...");
                     }
-                    if (inputBuffer != null) {
-                        inputBuffer.clear();
-                        addADTStoPacket(mADTSHeader, AUSize + 7);
-                        inputBuffer.put(mADTSHeader);
-                        inputBuffer.put(rtpPacket, rtphl + 4, AUSize);
-                        mDecoder.queueInputBuffer(inputIndex, 0, AUSize + 7, timeStamp, 0);
-                    }
-                } else {
-                    Log.v(TAG, "No buffer available...");
+                } catch (IllegalStateException e) {
+                    e.printStackTrace();
                 }
             } else {
                 Log.d(TAG, "bitMark == false");

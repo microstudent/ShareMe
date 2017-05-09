@@ -11,6 +11,9 @@ import com.leaves.app.shareme.contract.WifiDirectionContract;
 import com.leaves.app.shareme.service.MusicClientService;
 import com.leaves.app.shareme.service.MusicServerService;
 
+import java.util.ArrayList;
+import java.util.Collections;
+
 /**
  * Created by Leaves on 2017/4/19.
  */
@@ -106,6 +109,18 @@ public class MainPresenter implements MainActivityContract.Presenter, WifiDirect
     public void cancelSearch() {
         mWifiDirectionPresenter.clearPassword();
         mWifiDirectionPresenter.cancelSearch();
+    }
+
+    @Override
+    public ArrayList<WifiP2pDevice> getDeviceList() {
+        if (mWifiDirectionPresenter != null && mWifiDirectionPresenter.getDeviceList() != null) {
+            ArrayList<WifiP2pDevice> arrayList = new ArrayList<>();
+            for (WifiP2pDevice d : mWifiDirectionPresenter.getDeviceList().getDeviceList()) {
+                arrayList.add(d);
+            }
+            return arrayList;
+        }
+        return new ArrayList<>();
     }
 
 }

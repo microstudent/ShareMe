@@ -78,20 +78,20 @@ public class MusicClientService extends AbsMusicService implements Runnable, Rts
         super.onCreate();
         mGson = new Gson();
         // Configures the SessionBuilder
+        init();
+    }
+
+    private void init() {
         mSession = new ReceiveSession.Builder()
                 .setAudioDecoder(ReceiveSession.Builder.AUDIO_AAC)
                 .setVideoDecoder(ReceiveSession.Builder.VIDEO_NONE)
                 .setOnPCMDataAvailableListener(this)
                 .build();
-        init();
-    }
-
-    private void init() {
         mClient = new RtspClient();
         mClient.setSession(mSession);
         mClient.setCallback(this);
         mPlayThread = new Thread(this);
-        mPlayThread.setName("playThread");
+        mPlayThread.setName("PlayThread");
 
         mFrameQueue = new ConcurrentLinkedQueue<>();
     }
@@ -102,9 +102,9 @@ public class MusicClientService extends AbsMusicService implements Runnable, Rts
             //先建立实例，等webSocket通知再start
             String serverIp = intent.getStringExtra(Constant.Intent.SERVER_IP);
             if (serverIp != null) {
-                mClient.setServerAddress(serverIp, 7236);
-                mClient.setStreamPath("");
                 mServerIp = serverIp;
+                mClient.setServerAddress(mServerIp, 7236);
+                mClient.setStreamPath("");
                 tryConnectToWebSocketServer();
             }
         }
@@ -193,14 +193,26 @@ public class MusicClientService extends AbsMusicService implements Runnable, Rts
     protected void reset() {
         if (mPlayThread != null) {
             mPlayThread.interrupt();
-            mPlayThread = new Thread(this);
         }
         if (mAudioTrack != null) {
+            mAudioTrack.flush();
             mAudioTrack.stop();
+            mAudioTrack.release();
+            mAudioTrack = null;
         }
         if (mClient != null) {
-            mClient.stopStream();
+            mClient.release();
         }
+        if (mFrameQueue != null) {
+            mFrameQueue.clear();
+        }
+        mByteHasWrite = 0;
+        mBytePerSecond = 0;
+        mDelay = 0;
+        mInitDelay = -1;
+        init();
+        mClient.setServerAddress(mServerIp, 7236);
+        mClient.setStreamPath("");
     }
 
 //    private void playSilentIfNeeded(long timeStamp) {
@@ -376,6 +388,8 @@ public class MusicClientService extends AbsMusicService implements Runnable, Rts
                             mByteHasWrite += frame.getPCMData().length;
                             bytesToSkip -= frame.getPCMData().length;
                         }
+                    } else {
+                        Log.w(TAG, "doSyncIfNeeded: nothing to skip");
                     }
                 }
             }
@@ -409,7 +423,7 @@ public class MusicClientService extends AbsMusicService implements Runnable, Rts
 
         @Override
         public void stop() {
-
+            MusicClientService.this.reset();
         }
 
         @Override
