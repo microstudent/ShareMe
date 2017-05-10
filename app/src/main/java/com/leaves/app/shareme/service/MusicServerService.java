@@ -22,6 +22,8 @@ import com.koushikdutta.async.http.server.HttpServerRequestCallback;
 import com.leaves.app.shareme.Constant;
 import com.leaves.app.shareme.bean.Message;
 import com.leaves.app.shareme.bean.Media;
+import com.leaves.app.shareme.contract.AudioListContract;
+import com.leaves.app.shareme.presenter.AudioListPresenter;
 import com.leaves.app.shareme.ui.activity.MainActivity;
 
 import net.majorkernelpanic.streaming.PlaytimeProvider;
@@ -44,7 +46,7 @@ import io.reactivex.schedulers.Schedulers;
  * Created by Leaves on 2016/11/7.
  */
 
-public class MusicServerService extends AbsMusicService implements WebSocket.StringCallback, PlaytimeProvider {
+public class MusicServerService extends AbsMusicService implements WebSocket.StringCallback, PlaytimeProvider, AudioListContract.View {
     private static final String TAG = "MusicServerService";
     public static final int SYNC_SIGNAL_OFFSET = 500;//同步信号发送的间隔，millsec
     private MediaPlayer mMediaPlayer = null;
@@ -59,6 +61,8 @@ public class MusicServerService extends AbsMusicService implements WebSocket.Str
     private Gson mGson;
     private MusicPlayerListener mMusicPlayerListener;
     private Observable<Message<List<Long>>> mSyncSignalSender;
+    private AudioListPresenter mAudioListPresenter;
+    private List<Media> mAudioList;
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
@@ -72,6 +76,7 @@ public class MusicServerService extends AbsMusicService implements WebSocket.Str
             public void onConnected(WebSocket webSocket, AsyncHttpServerRequest request) {
                 Log.d("MusicServerService", "server connect success");
                 mConnectedWebSocket = webSocket;
+                sendAudioList();
                 webSocket.setStringCallback(MusicServerService.this);
             }
         });
@@ -103,7 +108,16 @@ public class MusicServerService extends AbsMusicService implements WebSocket.Str
                         }
                     }
                 });
+        mAudioListPresenter = new AudioListPresenter(this, this);
+        mAudioListPresenter.start();
         return START_STICKY;
+    }
+
+    private void sendAudioList() {
+        if (mConnectedWebSocket != null && mAudioList != null) {
+            Message<List<Media>> message = new Message<>(Message.TYPE_LIST, mAudioList);
+            mConnectedWebSocket.send(mGson.toJson(message));
+        }
     }
 
 
@@ -148,9 +162,6 @@ public class MusicServerService extends AbsMusicService implements WebSocket.Str
 
     }
 
-    private void resetRTSPServer() {
-
-    }
 
     private void resetMediaPlayer() {
         if (mMediaPlayer != null && mMediaPlayer.isPlaying()) {
@@ -328,6 +339,22 @@ public class MusicServerService extends AbsMusicService implements WebSocket.Str
             return mMediaPlayer.getCurrentPosition();
         }
         return 0;
+    }
+
+    @Override
+    public void showToast(String msg) {
+        Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        mAudioListPresenter.onDestroy();
+    }
+
+    @Override
+    public void setData(List<Media> medias) {
+        mAudioList = medias;
     }
 
     public class ServerBinder extends AbsMusicServiceBinder {

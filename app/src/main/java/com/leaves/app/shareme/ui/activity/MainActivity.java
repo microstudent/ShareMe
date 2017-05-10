@@ -261,7 +261,7 @@ public class MainActivity extends AppCompatActivity implements
         if (id == R.id.bt_list) {
             if (mMusicFragment != null && mMusicFragment.isConnectionAlive()) {
                 if (mAudioListFragment == null) {
-                    mAudioListFragment = AudioListFragment.newInstance();
+                    mAudioListFragment = AudioListFragment.newInstance(mPresenter.isServer());
                 }
                 switchFragment(AudioListFragment.TAG, mAudioListFragment, AudioListFragment.TAG, 0, false);
             } else {

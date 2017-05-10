@@ -350,6 +350,10 @@ public class MusicClientService extends AbsMusicService implements Runnable, Rts
                     long playTime = times.get(1);
                     onSyncDataAvailable(ntpTime, playTime);
                     break;
+                case Message.TYPE_LIST:
+                    Message<List<Media>> listMessage = GsonUtils.fromJsonArray(mGson, s, Media.class);
+                    Constant.sPlayList = listMessage.getObject();
+                    break;
             }
         }
     }

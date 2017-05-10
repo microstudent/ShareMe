@@ -18,6 +18,8 @@ public class Constant {
     public volatile static List<Media> mPlayingMedias;
     public static final long DEFAULT_PLAY_TIME_DELAY = RtpReceiveSocket.FIRST_RUN_DELAY + 1000;
 
+    public static List<Media> sPlayList;
+
     public interface WifiDirect {
         String INSTANCE_NAME = "ShareMe";
         String SERVICE_NAME = "sync music player";

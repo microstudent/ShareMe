@@ -11,6 +11,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
 
+import com.leaves.app.shareme.Constant;
 import com.leaves.app.shareme.R;
 import com.leaves.app.shareme.bean.Media;
 import com.leaves.app.shareme.contract.AudioListContract;
@@ -32,6 +33,7 @@ import butterknife.ButterKnife;
 public class AudioListFragment extends BottomSheetDialogFragment implements AudioListContract.View{
     public static final String TAG = "AudioListFragment";
     private static final int MIN_DATA_SIZE_FOR_FAST_SCROLLER = 15;
+    private static final String IS_SERVER = "is_server";
     private OnAudioClickListener mListener;
     private AudioListAdapter mAdapter;
     @BindView(R.id.vbfs)
@@ -43,6 +45,7 @@ public class AudioListFragment extends BottomSheetDialogFragment implements Audi
     private boolean isFirstRun = true;
     private List<Media> mMedia;
     private boolean isFastScrollEnable = false;
+    private boolean isServer;
 
     public AudioListFragment() {
         // Required empty public constructor
@@ -54,8 +57,12 @@ public class AudioListFragment extends BottomSheetDialogFragment implements Audi
      *
      * @return A new instance of fragment AudioListFragment.
      */
-    public static AudioListFragment newInstance() {
-        return new AudioListFragment();
+    public static AudioListFragment newInstance(boolean isServer) {
+        Bundle bundle = new Bundle();
+        bundle.putBoolean(IS_SERVER, isServer);
+        AudioListFragment fragment = new AudioListFragment();
+        fragment.setArguments(bundle);
+        return fragment;
     }
 
     @Override
@@ -64,8 +71,14 @@ public class AudioListFragment extends BottomSheetDialogFragment implements Audi
         if (isFirstRun) {
             mAdapter = new AudioListAdapter();
             mAdapter.setOnAudioClickListener(mListener);
-            mPresenter = new AudioListPresenter(this, getContext().getApplicationContext());
-            mPresenter.start();
+            isServer = getArguments().getBoolean(IS_SERVER, false);
+            if (isServer) {
+                mPresenter = new AudioListPresenter(this, getContext().getApplicationContext());
+                mPresenter.start();
+            } else {
+                mAdapter.setData(Constant.sPlayList);
+                mMedia = Constant.sPlayList;
+            }
             isFirstRun = false;
         }
     }
