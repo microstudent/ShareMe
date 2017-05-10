@@ -5,6 +5,7 @@ import android.media.AudioFormat;
 import android.media.AudioManager;
 import android.media.AudioTrack;
 import android.os.IBinder;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.Log;
 import android.widget.Toast;
@@ -12,7 +13,6 @@ import android.widget.Toast;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.google.gson.reflect.TypeToken;
 import com.koushikdutta.async.callback.CompletedCallback;
 import com.koushikdutta.async.http.AsyncHttpClient;
 import com.koushikdutta.async.http.WebSocket;
@@ -20,20 +20,16 @@ import com.leaves.app.shareme.Constant;
 import com.leaves.app.shareme.bean.Message;
 import com.leaves.app.shareme.bean.Frame;
 import com.leaves.app.shareme.bean.Media;
-import com.leaves.app.shareme.eventbus.MediaEvent;
-import com.leaves.app.shareme.eventbus.RxBus;
 import com.leaves.app.shareme.gson.GsonUtils;
 import com.leaves.app.shareme.ui.activity.MainActivity;
 
 import net.majorkernelpanic.streaming.InputStream;
 import net.majorkernelpanic.streaming.ReceiveSession;
-import net.majorkernelpanic.streaming.rtcp.OnRTCPUpdateListener;
 import net.majorkernelpanic.streaming.rtp.OnPCMDataAvailableListener;
 import net.majorkernelpanic.streaming.rtsp.RtspClient;
 
 import java.util.List;
 import java.util.Queue;
-import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.TimeUnit;
@@ -68,11 +64,13 @@ public class MusicClientService extends AbsMusicService implements Runnable, Rts
     private Gson mGson;
     private Thread mPlayThread;
     private long mDelay;
-    private int mByteHasWrite;
-    private int mBytePerSecond;
     private boolean needSync = true;
     private MusicPlayerListener mMusicPlayerListener;
     private long mInitDelay = -1;//服务器端与本地的ntp时间初始差距
+    private long mInitRtpTime = -1;
+    private double mMsPerAACFrame;
+    private long mPlayTimeToSync;
+    private long mPlayingRTPTime;
 
     @Override
     public void onCreate() {
@@ -208,8 +206,6 @@ public class MusicClientService extends AbsMusicService implements Runnable, Rts
         if (mFrameQueue != null) {
             mFrameQueue.clear();
         }
-        mByteHasWrite = 0;
-        mBytePerSecond = 0;
         mDelay = 0;
         mInitDelay = -1;
         init();
@@ -264,7 +260,7 @@ public class MusicClientService extends AbsMusicService implements Runnable, Rts
         mAudioTrack.setPlaybackPositionUpdateListener(this);
         mAudioTrack.setPositionNotificationPeriod(1);
         mConfig = config;
-        mBytePerSecond = mConfig.sampleRate * mConfig.channelCount * 2; // 44100 samples, 2 channels, 2 bytes per sample
+        mMsPerAACFrame = (double) 1024 * 1000 / mConfig.sampleRate;
     }
 
     @Override
@@ -304,6 +300,7 @@ public class MusicClientService extends AbsMusicService implements Runnable, Rts
             } else {
                 mDelay = getCurrentPosition() - (playTime + (System.currentTimeMillis() - mInitDelay - ntpTime));
             }
+            mPlayTimeToSync = playTime;
             if (Math.abs(mDelay) > MAX_SYNC_DELAY) {
                 needSync = true;
             }
@@ -313,7 +310,8 @@ public class MusicClientService extends AbsMusicService implements Runnable, Rts
 
 
     private long getCurrentPosition() {
-        return (long) ((double) mByteHasWrite / mBytePerSecond * 1000L);
+        return getFramePlayTime(mPlayingRTPTime);
+//        return (long) ((double) mByteHasWrite / mBytePerSecond * 1000L);
     }
 
     /**
@@ -365,13 +363,27 @@ public class MusicClientService extends AbsMusicService implements Runnable, Rts
                 doSyncIfNeeded();
                 Frame frame = mFrameQueue.poll();
                 if (frame != null) {
-                    mByteHasWrite += frame.getPCMData().length;
+                    mPlayingRTPTime = frame.getRtpTime();
 //                playSilentIfNeeded(frame.getRtpTime());
                     mAudioTrack.write(frame.getPCMData(), 0, frame.getPCMData().length);
                 } else {
                     needSync = true;
                 }
             }
+        }
+    }
+
+    private long getFramePlayTime(@NonNull Frame frame) {
+        return getFramePlayTime(frame.getRtpTime());
+    }
+
+    private long getFramePlayTime(long rtpTime) {
+        if (mInitRtpTime == -1) {
+            mInitRtpTime = rtpTime;
+            return 0;
+        } else {
+            long duration = rtpTime - mInitRtpTime;
+            return (long) (mMsPerAACFrame * duration);
         }
     }
 
@@ -388,18 +400,11 @@ public class MusicClientService extends AbsMusicService implements Runnable, Rts
             } else if (mDelay < 0) {
                 Log.w(TAG, "skipping " + mDelay + " millsec for sync");
                 //播放速度比服务器慢，要快进
-                int bytesToSkip = (int) (((double) mBytePerSecond * Math.abs(mDelay)) / 1000);
-                while (bytesToSkip > 0) {
+                Frame frame = null;
+                while (frame == null || getFramePlayTime(frame) < mPlayTimeToSync) {
                     if (!mFrameQueue.isEmpty()) {
-                        Frame frame = mFrameQueue.poll();
-                        if (frame != null) {
-                            mByteHasWrite += frame.getPCMData().length;
-                            bytesToSkip -= frame.getPCMData().length;
-                        }
+                        frame = mFrameQueue.poll();
                     }
-//                    else {
-//                        Log.w(TAG, "doSyncIfNeeded: nothing to skip");
-//                    }
                 }
             }
             needSync = Math.abs(mDelay) < MIN_SYNC_DELAY;
@@ -448,19 +453,6 @@ public class MusicClientService extends AbsMusicService implements Runnable, Rts
         @Override
         public void setMusicPlayerListener(MusicPlayerListener musicPlayerListener) {
             mMusicPlayerListener = musicPlayerListener;
-        }
-    }
-
-    private class SyncTask extends TimerTask {
-        private final long mRtpTime;
-
-        public SyncTask(long rtpTime) {
-            mRtpTime = rtpTime;
-        }
-
-        @Override
-        public void run() {
-            mDelay = getCurrentPosition() - mRtpTime;
         }
     }
 }
