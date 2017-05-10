@@ -337,12 +337,6 @@ public class RtpSocket implements Runnable {
 //		mLastSendTimeStamp = timeStamp;
 //	}
 
-	private long getCurrentTimeStamp() {
-//		if (mCurrentTime != -1) {
-//			return (mCurrentTime / 100L) * (mClock / 1000L) / 10000L;
-//		}
-		return (mTimestamps[mBufferOut] / 100L) * (mClock / 1000L) / 10000L;
-	}
 
 	private void sendTCP() {
 		synchronized (mOutputStream) {

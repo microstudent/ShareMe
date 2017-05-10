@@ -69,8 +69,8 @@ public class MusicClientService extends AbsMusicService implements Runnable, Rts
     private long mInitDelay = -1;//服务器端与本地的ntp时间初始差距
     private long mInitRtpTime = -1;
     private double mMsPerAACFrame;
-    private long mPlayTimeToSync;
-    private long mPlayingRTPTime;
+    private volatile long mPlayTimeToSync;
+    private volatile long mPlayingRTPTime;
 
     @Override
     public void onCreate() {
@@ -285,7 +285,7 @@ public class MusicClientService extends AbsMusicService implements Runnable, Rts
         frame.setRtpTime(rtpTime);
         frame.setPCMData(data);
         mFrameQueue.add(frame);
-        if (DEBUG) Log.d(TAG, "onPCMDataAvailable" + ",timeStamp = " + rtpTime);
+        if (DEBUG) Log.d(TAG, "onPCMDataAvailable" + ",timeStamp = " + rtpTime);;
     }
 
 
@@ -300,7 +300,8 @@ public class MusicClientService extends AbsMusicService implements Runnable, Rts
             } else {
                 mDelay = getCurrentPosition() - (playTime + (System.currentTimeMillis() - mInitDelay - ntpTime));
             }
-            mPlayTimeToSync = playTime;
+            mPlayTimeToSync = playTime + (System.currentTimeMillis() - mInitDelay - ntpTime);
+
             if (Math.abs(mDelay) > MAX_SYNC_DELAY) {
                 needSync = true;
             }
@@ -364,6 +365,8 @@ public class MusicClientService extends AbsMusicService implements Runnable, Rts
                 Frame frame = mFrameQueue.poll();
                 if (frame != null) {
                     mPlayingRTPTime = frame.getRtpTime();
+                    Log.d(TAG, "getFramePlayTime(frame):" + getFramePlayTime(frame));
+                    Log.d(TAG, "mPlayingRTPTime:" + mPlayingRTPTime);
 //                playSilentIfNeeded(frame.getRtpTime());
                     mAudioTrack.write(frame.getPCMData(), 0, frame.getPCMData().length);
                 } else {
@@ -378,13 +381,13 @@ public class MusicClientService extends AbsMusicService implements Runnable, Rts
     }
 
     private long getFramePlayTime(long rtpTime) {
-        if (mInitRtpTime == -1) {
-            mInitRtpTime = rtpTime;
-            return 0;
-        } else {
-            long duration = rtpTime - mInitRtpTime;
-            return (long) (mMsPerAACFrame * duration);
-        }
+//        if (mInitRtpTime == -1) {
+//            mInitRtpTime = rtpTime;
+//            return 0;
+//        } else {
+        long duration = rtpTime + 1;
+        return (long) (mMsPerAACFrame * duration);
+//        }
     }
 
     private void doSyncIfNeeded() {
@@ -400,10 +403,15 @@ public class MusicClientService extends AbsMusicService implements Runnable, Rts
             } else if (mDelay < 0) {
                 Log.w(TAG, "skipping " + mDelay + " millsec for sync");
                 //播放速度比服务器慢，要快进
-                Frame frame = null;
-                while (frame == null || getFramePlayTime(frame) < mPlayTimeToSync) {
+                Frame frame;
+                while (true) {
                     if (!mFrameQueue.isEmpty()) {
-                        frame = mFrameQueue.poll();
+                        frame = mFrameQueue.peek();
+                        if (getFramePlayTime(frame) < mPlayTimeToSync) {
+                            mFrameQueue.poll();
+                        } else {
+                            break;
+                        }
                     }
                 }
             }
