@@ -38,7 +38,7 @@ public class WifiDirectionPresenter implements WifiDirectionContract.Presenter, 
 
     public WifiDirectionPresenter(WifiDirectionContract.View view, FragmentManager manager, Context context) {
         mView = view;
-        mWifiDirect = new WifiDirect(manager, context, INSTANCE_NAME, SERVICE_NAME);
+        mWifiDirect = WifiDirect.getInstance(manager, context, INSTANCE_NAME, SERVICE_NAME);
         mPassword = new StringBuilder();
         mWifiDirect.setOnConnectionChangeListener(this);
         mWifiDirect.setOnDeviceDetailChangeListener(this);

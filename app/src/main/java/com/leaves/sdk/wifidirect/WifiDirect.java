@@ -36,6 +36,8 @@ import java.util.concurrent.TimeUnit;
 public class WifiDirect implements IWifiDirect, WifiDirectReceiver.OnWifiDirectStateChangeListener, LifecycleListener {
     private static final String FRAGMENT_TAG = "com.leaves.app.shareme.wifidirect.shadowfragment";
 
+    private volatile static WifiDirect sInstance = null;
+
     private static final long SERVICE_DISCOVERING_INTERVAL = 10;//sec
 
     private IntentFilter mIntentFilter;
@@ -51,8 +53,6 @@ public class WifiDirect implements IWifiDirect, WifiDirectReceiver.OnWifiDirectS
     private PublishSubject<Integer> mSetSignSubject;
     private PublishSubject<Integer> mDiscoverSubject;
 
-
-
     private boolean isServiceDiscovered = false;
 
     private OnServiceFoundListener mOnServiceFoundListener;
@@ -64,11 +64,12 @@ public class WifiDirect implements IWifiDirect, WifiDirectReceiver.OnWifiDirectS
 
     private OnDeviceDetailChangeListener mOnDeviceDetailChangeListener;
 
-    public WifiDirect(AppCompatActivity rootActivity, String instanceName, String serviceName) {
+
+    private WifiDirect(AppCompatActivity rootActivity, String instanceName, String serviceName) {
         this(rootActivity.getSupportFragmentManager(), rootActivity.getApplicationContext(), instanceName, serviceName);
     }
 
-    public WifiDirect(FragmentManager manager, Context context, String instanceName, String serviceName) {
+    private WifiDirect(FragmentManager manager, Context context, String instanceName, String serviceName) {
         mContext = context.getApplicationContext();
         initWifiP2p();
         initReceiver();
@@ -76,6 +77,17 @@ public class WifiDirect implements IWifiDirect, WifiDirectReceiver.OnWifiDirectS
         mDisposables = new CompositeDisposable();
         mInstanceName = instanceName;
         mServiceName = serviceName;
+    }
+
+    public static WifiDirect getInstance(FragmentManager manager, Context context, String instanceName, String serviceName) {
+        if (sInstance == null) {
+            synchronized (WifiDirect.class) {
+                if (sInstance == null) {
+                    sInstance = new WifiDirect(manager, context, instanceName, serviceName);
+                }
+            }
+        }
+        return sInstance;
     }
 
     public void discover() {
@@ -163,6 +175,8 @@ public class WifiDirect implements IWifiDirect, WifiDirectReceiver.OnWifiDirectS
         mSetSignSubject.onNext(0);
     }
 
+
+
     @Override
     public void stopDiscover() {
         isServiceDiscovered = true;
@@ -189,6 +203,13 @@ public class WifiDirect implements IWifiDirect, WifiDirectReceiver.OnWifiDirectS
 //                    showToast("onConnectFail,reason:" + reason);
                 }
             });
+        }
+    }
+
+    @Override
+    public void disconnectAll() {
+        if (mWifiP2pManager != null && mChannel != null) {
+            mWifiP2pManager.removeGroup(mChannel, null);
         }
     }
 

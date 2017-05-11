@@ -1,11 +1,13 @@
 package com.leaves.app.shareme.ui.fragment;
 
 import android.content.Context;
+import android.content.DialogInterface;
 import android.net.Uri;
 import android.net.wifi.p2p.WifiP2pDevice;
 import android.os.Bundle;
 import android.os.Parcelable;
 import android.support.v4.app.Fragment;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -14,12 +16,17 @@ import android.view.ViewGroup;
 
 import com.leaves.app.shareme.R;
 import com.leaves.app.shareme.ui.adapter.DeviceListAdapter;
+import com.leaves.sdk.wifidirect.WifiDirect;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import butterknife.OnClick;
+
+import static com.leaves.app.shareme.Constant.WifiDirect.INSTANCE_NAME;
+import static com.leaves.app.shareme.Constant.WifiDirect.SERVICE_NAME;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -33,6 +40,8 @@ public class ConnectionFragment extends Fragment {
 
     @BindView(R.id.rv)
     RecyclerView mRecyclerView;
+
+    public WifiDirect mWifiDirect;
 
     private DeviceListAdapter mAdapter;
     private ArrayList<WifiP2pDevice> mDeviceList;
@@ -56,6 +65,7 @@ public class ConnectionFragment extends Fragment {
         if (bundle != null) {
             mDeviceList = bundle.getParcelableArrayList(DEVICE_LIST);
         }
+        mWifiDirect = WifiDirect.getInstance(getFragmentManager(), getContext(), INSTANCE_NAME, SERVICE_NAME);
     }
 
     @Override
@@ -73,6 +83,27 @@ public class ConnectionFragment extends Fragment {
             mAdapter = new DeviceListAdapter(mDeviceList, R.layout.layout_device);
             mRecyclerView.setAdapter(mAdapter);
             mRecyclerView.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.VERTICAL, false));
+        }
+    }
+
+    @OnClick(R.id.bt_disconnect)
+    public void disconnect() {
+        if (mWifiDirect != null) {
+            new AlertDialog.Builder(getContext())
+                    .setMessage("你确定要断开连接吗？")
+                    .setCancelable(true)
+                    .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            mWifiDirect.disconnectAll();
+                        }
+                    })
+                    .setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            dialog.dismiss();
+                        }
+                    }).create().show();
         }
     }
 

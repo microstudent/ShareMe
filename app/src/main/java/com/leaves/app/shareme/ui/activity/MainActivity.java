@@ -214,10 +214,6 @@ public class MainActivity extends AppCompatActivity implements
         transaction.commit();
     }
 
-    public void mock(View view) {
-        onSearchingDevice();
-    }
-
     @Override
     public void onAudioClick(Media media) {
         mMusicFragment.play(media);
@@ -272,11 +268,12 @@ public class MainActivity extends AppCompatActivity implements
                 if (mConnectionFragment == null) {
                     mConnectionFragment = ConnectionFragment.newInstance(mPresenter.getDeviceList());
                 }
-                switchFragment(MusicFragment.TAG, mConnectionFragment, ConnectionFragment.TAG, R.id.container_main, true);
+                if (!mConnectionFragment.isAdded() || mConnectionFragment.isDetached()) {
+                    switchFragment(MusicFragment.TAG, mConnectionFragment, ConnectionFragment.TAG, R.id.container_main, true);
+                }
             } else {
                 showToast("未能连接服务端/客户端");
             }
-
         }
     }
 }

@@ -20,6 +20,8 @@ public interface IWifiDirect {
 
     void connectTo(WifiP2pDevice device, int groupOwnerIntent);
 
+    void disconnectAll();
+
     /**
      * 设置Listener
      */
