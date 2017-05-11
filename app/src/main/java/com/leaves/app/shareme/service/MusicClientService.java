@@ -1,5 +1,6 @@
 package com.leaves.app.shareme.service;
 
+import android.content.Context;
 import android.content.Intent;
 import android.media.AudioFormat;
 import android.media.AudioManager;
@@ -51,8 +52,7 @@ public class MusicClientService extends AbsMusicService implements Runnable, Rts
 
     private static final boolean DEBUG = false;
     private static final long RETRY_DELAY = 3000;//3sec重试一次
-    private static final long MIN_SYNC_DELAY = 10;//最小可忍受的延迟，millsec
-    private static final long MAX_SYNC_DELAY = 60;//最大不可忍受延迟，millsec
+    private static final long MAX_SYNC_DELAY = 25;//最大不可忍受延迟，millsec
     private AudioTrack mAudioTrack;
     private ClientBinder mBinder;
     private ReceiveSession mSession;
@@ -146,6 +146,7 @@ public class MusicClientService extends AbsMusicService implements Runnable, Rts
     protected void pause() {
         if (mAudioTrack != null) {
             mAudioTrack.pause();
+            mAudioTrack.flush();
         }
         if (mMusicPlayerListener != null) {
             mMusicPlayerListener.onMusicPause();
@@ -385,7 +386,7 @@ public class MusicClientService extends AbsMusicService implements Runnable, Rts
 //            mInitRtpTime = rtpTime;
 //            return 0;
 //        } else {
-        long duration = rtpTime + 1;
+        long duration = rtpTime;
         return (long) (mMsPerAACFrame * duration);
 //        }
     }
@@ -415,7 +416,7 @@ public class MusicClientService extends AbsMusicService implements Runnable, Rts
                     }
                 }
             }
-            needSync = Math.abs(mDelay) < MIN_SYNC_DELAY;
+            needSync = Math.abs(mDelay) > MAX_SYNC_DELAY;
             mDelay = 0;
         }
     }
