@@ -170,8 +170,20 @@ public class MusicFragment extends Fragment implements MusicPlayerListener{
 
     @OnClick(R.id.bt_prev)
     public void onPrevClick() {
-        //TODO remove it
-         mBinder.stop();
+        if (mBinder.isBusy()) {
+            Toast.makeText(getContext(), "播放器正忙,请稍后重试", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        mBinder.moveToPrev();
+    }
+
+    @OnClick(R.id.bt_next)
+    public void onNextClick() {
+        if (mBinder.isBusy()) {
+            Toast.makeText(getContext(), "播放器正忙,请稍后重试", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        mBinder.moveToNext();
     }
 
 

@@ -67,7 +67,7 @@ public class MusicServerService extends AbsMusicService implements WebSocket.Str
     private Observable<Message<List<Long>>> mSyncSignalSender;
     private AudioListPresenter mAudioListPresenter;
     private List<Media> mAudioList;
-    private int mPlayMediaIndex;
+    private int mPlayMediaIndex = -1;
     private Disposable mSyncDisposable;
     private boolean isBusy;
 
@@ -351,6 +351,24 @@ public class MusicServerService extends AbsMusicService implements WebSocket.Str
         return mBinder;
     }
 
+    private void moveToNext() {
+        if (isBusy || mPlayMediaIndex == -1) {
+            return;
+        }
+        if (mPlayMediaIndex >= 0 && mAudioList != null && mPlayMediaIndex < mAudioList.size()) {
+            play(mAudioList.get(mPlayMediaIndex + 1 % mAudioList.size()), true);
+        }
+    }
+
+    private void moveToPrev() {
+        if (isBusy || mPlayMediaIndex == -1) {
+            return;
+        }
+        if (mAudioList != null && !mAudioList.isEmpty()) {
+            play(mAudioList.get(mPlayMediaIndex == 0 ? mPlayMediaIndex - 1 : mAudioList.size() - 1 % mAudioList.size()), true);
+        }
+    }
+
 
     @Override
     public long getCurrentPlayTime() {
@@ -379,9 +397,7 @@ public class MusicServerService extends AbsMusicService implements WebSocket.Str
     @Override
     public void onCompletion() {
         //播放下一首
-        if (mPlayMediaIndex >= 0 && mAudioList != null && mPlayMediaIndex < mAudioList.size()) {
-            play(mAudioList.get(mPlayMediaIndex + 1 % mAudioList.size()), true);
-        }
+        moveToNext();
     }
 
     public class ServerBinder extends AbsMusicServiceBinder {
@@ -404,6 +420,16 @@ public class MusicServerService extends AbsMusicService implements WebSocket.Str
         @Override
         public boolean isConnectionAlive() {
             return mConnectedWebSocket != null;
+        }
+
+        @Override
+        public void moveToNext() {
+            MusicServerService.this.moveToNext();
+        }
+
+        @Override
+        public void moveToPrev() {
+            MusicServerService.this.moveToPrev();
         }
 
         @Override

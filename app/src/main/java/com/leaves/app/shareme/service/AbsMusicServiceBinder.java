@@ -19,6 +19,10 @@ public abstract class AbsMusicServiceBinder extends Binder{
 
     public abstract boolean isConnectionAlive();
 
+    public abstract void moveToNext();
+
+    public abstract void moveToPrev();
+
     public abstract void setMusicPlayerListener(MusicPlayerListener musicPlayerListener);
 
     public abstract boolean isBusy();

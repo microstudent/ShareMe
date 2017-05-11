@@ -452,6 +452,16 @@ public class MusicClientService extends AbsMusicService implements Runnable, Rts
         }
 
         @Override
+        public void moveToNext() {
+
+        }
+
+        @Override
+        public void moveToPrev() {
+
+        }
+
+        @Override
         public void setMusicPlayerListener(MusicPlayerListener musicPlayerListener) {
             mMusicPlayerListener = musicPlayerListener;
         }
