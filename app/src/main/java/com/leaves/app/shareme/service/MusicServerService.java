@@ -69,6 +69,7 @@ public class MusicServerService extends AbsMusicService implements WebSocket.Str
     private List<Media> mAudioList;
     private int mPlayMediaIndex;
     private Disposable mSyncDisposable;
+    private boolean isBusy;
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
@@ -149,8 +150,6 @@ public class MusicServerService extends AbsMusicService implements WebSocket.Str
 //        mAudioPlayer.setOnPreparedListener(this);
 //        mAudioPlayer.setOnErrorListener(this);
 //        mAudioPlayer.setOnCompletionListener(this);
-
-        isPrepared = false;
         startRTSPServer();
     }
 
@@ -166,10 +165,13 @@ public class MusicServerService extends AbsMusicService implements WebSocket.Str
 
     @Override
     protected void reset() {
+        isPrepared = false;
         if (mSyncDisposable != null) {
             mSyncDisposable.dispose();
         }
     }
+
+
 
 
     private void resetMediaPlayer() {
@@ -200,6 +202,7 @@ public class MusicServerService extends AbsMusicService implements WebSocket.Str
             }
         }
         if (invalidate) {
+            isBusy = true;
             SessionBuilder.getInstance().setMp3Path(mMedia.getSrc());
             Uri uri = Uri.parse(mMedia.getSrc());
             mCompositeDisposable.add(Observable.just(uri)
@@ -236,6 +239,7 @@ public class MusicServerService extends AbsMusicService implements WebSocket.Str
                                         Log.e(TAG, "accept: ", throwable);
                                     }
                                 });
+                                isBusy = false;
                             } else {
                                 throw new Exception("the music player is not prepared!");
                             }
@@ -278,6 +282,7 @@ public class MusicServerService extends AbsMusicService implements WebSocket.Str
         if (mAudioPlayer != null) {
             mAudioPlayer.reset();
         }
+        isBusy = false;
     }
 
     private void startRTSPServer() {
@@ -302,7 +307,7 @@ public class MusicServerService extends AbsMusicService implements WebSocket.Str
 //        if (mAudioPlayer == null) {
 //            initMediaPlayer();
 //        }
-//        if (mPlayingMedia != null && media.getSrc().equals(mPlayingMedia.getSrc()) && isPrepared) {
+//        if (mPlayingMedia != null && media.getSrc().equals(mPlayingMedia.getSrc()) && isBusy) {
 //            mAudioPlayer.start();
 //            registerTimeSeek();
 //            return;
@@ -313,7 +318,7 @@ public class MusicServerService extends AbsMusicService implements WebSocket.Str
 //            mAudioPlayer.setDataSource(this, uri);
 //            mPlayingMedia = media;
 //            mAudioPlayer.prepareAsync(); // prepare async to not block main thread
-//            isPrepared = false;
+//            isBusy = false;
 //            mWifiLock.setReferenceCounted(false);
 //            mWifiLock.acquire();
 //
@@ -404,6 +409,11 @@ public class MusicServerService extends AbsMusicService implements WebSocket.Str
         @Override
         public void setMusicPlayerListener(MusicPlayerListener musicPlayerListener) {
             mMusicPlayerListener = musicPlayerListener;
+        }
+
+        @Override
+        public boolean isBusy() {
+            return isBusy;
         }
     }
 }

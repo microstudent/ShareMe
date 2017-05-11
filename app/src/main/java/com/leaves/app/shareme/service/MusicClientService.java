@@ -455,6 +455,11 @@ public class MusicClientService extends AbsMusicService implements Runnable, Rts
         public void setMusicPlayerListener(MusicPlayerListener musicPlayerListener) {
             mMusicPlayerListener = musicPlayerListener;
         }
+
+        @Override
+        public boolean isBusy() {
+            return false;
+        }
     }
 }
 

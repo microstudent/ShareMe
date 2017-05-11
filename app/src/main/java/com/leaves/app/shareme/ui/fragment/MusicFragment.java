@@ -13,13 +13,12 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.leaves.app.shareme.R;
 import com.leaves.app.shareme.bean.Media;
-import com.leaves.app.shareme.eventbus.MediaEvent;
-import com.leaves.app.shareme.eventbus.RxBus;
 import com.leaves.app.shareme.service.AbsMusicServiceBinder;
 import com.leaves.app.shareme.service.MusicClientService;
 import com.leaves.app.shareme.service.MusicPlayerListener;
@@ -32,7 +31,6 @@ import butterknife.OnClick;
 import io.reactivex.Observable;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.CompositeDisposable;
-import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.Consumer;
 
 /**
@@ -95,9 +93,14 @@ public class MusicFragment extends Fragment implements MusicPlayerListener{
     }
 
     public void play(Media media) {
-        mMedia = media;
         if (mBinder != null) {
-            mBinder.play(media, true);
+            if (!mBinder.isBusy()) {
+                mMedia = media;
+                mBinder.play(media, true);
+            } else {
+                //还没准备好
+                Toast.makeText(getContext(), "播放器正忙,请稍后重试", Toast.LENGTH_SHORT).show();
+            }
         }
     }
 
