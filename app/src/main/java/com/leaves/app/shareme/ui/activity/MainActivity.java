@@ -152,6 +152,7 @@ public class MainActivity extends AppCompatActivity implements
                     fragment = DialpadFragment.newInstance();
                     mFragmentManager.beginTransaction().replace(R.id.layout_bottom, fragment, DialpadFragment.TAG).commit();
 //                    switchFragment(BehaviorFragment.TAG, fragment, DialpadFragment.TAG, R.id.container_bottom, false);
+                    mPresenter.cancelSearch();
                     break;
                 case MainPresenter.MODE_CONNECTED:
                     mMusicFragment = MusicFragment.newInstance(mPresenter.isServer());
