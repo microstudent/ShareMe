@@ -103,6 +103,7 @@ public class WifiDirectionPresenter implements WifiDirectionContract.Presenter, 
                 mView.startAsUndefined();
             }
         }
+        mWifiDirect.stopDiscover();
         mDeviceList = deviceList;
     }
 

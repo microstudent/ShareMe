@@ -2,6 +2,7 @@ package com.leaves.app.shareme.ui.activity;
 
 import android.graphics.Bitmap;
 import android.os.Bundle;
+import android.os.PersistableBundle;
 import android.support.annotation.IdRes;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
@@ -142,13 +143,15 @@ public class MainActivity extends AppCompatActivity implements
         if (mMode != mode) {
             Fragment fragment;
             switch (mode) {
+                default:
                 case MainPresenter.MODE_STARTUP:
                     mPasswordFragment = PasswordFragment.newInstance();
                     mFragmentManager.beginTransaction()
                             .replace(R.id.container_main, mPasswordFragment, PasswordFragment.TAG)
                             .commit();
                     fragment = DialpadFragment.newInstance();
-                    switchFragment(null, fragment, DialpadFragment.TAG, R.id.container_bottom, false);
+                    mFragmentManager.beginTransaction().replace(R.id.layout_bottom, fragment, DialpadFragment.TAG).commit();
+//                    switchFragment(BehaviorFragment.TAG, fragment, DialpadFragment.TAG, R.id.container_bottom, false);
                     break;
                 case MainPresenter.MODE_CONNECTED:
                     mMusicFragment = MusicFragment.newInstance(mPresenter.isServer());
@@ -156,7 +159,8 @@ public class MainActivity extends AppCompatActivity implements
                             .replace(R.id.container_main, mMusicFragment, MusicFragment.TAG)
                             .commit();
                     fragment = BehaviorFragment.newInstance();
-                    switchFragment(DialpadFragment.TAG, fragment, BehaviorFragment.TAG, R.id.container_bottom, false);
+                    mFragmentManager.beginTransaction().replace(R.id.layout_bottom, fragment, BehaviorFragment.TAG).commit();
+//                    switchFragment(DialpadFragment.TAG, fragment, BehaviorFragment.TAG, R.id.container_bottom, false);
                     break;
             }
         }
@@ -180,7 +184,8 @@ public class MainActivity extends AppCompatActivity implements
      */
     @Override
     public void onSearchingDevice() {
-        switchFragment(DialpadFragment.TAG, BehaviorFragment.newInstance(), BehaviorFragment.TAG, R.id.container_bottom, false);
+        Fragment fragment = BehaviorFragment.newInstance();
+        mFragmentManager.beginTransaction().replace(R.id.layout_bottom, fragment, BehaviorFragment.TAG).commit();
     }
 
     @Override
@@ -188,7 +193,9 @@ public class MainActivity extends AppCompatActivity implements
         if (mPresenter != null) {
             mPresenter.cancelSearch();
         }
-        switchFragment(BehaviorFragment.TAG, DialpadFragment.newInstance(), DialpadFragment.TAG, R.id.container_bottom, false);
+        Fragment fragment = DialpadFragment.newInstance();
+        mFragmentManager.beginTransaction().replace(R.id.layout_bottom, fragment, DialpadFragment.TAG).commit();
+//        switchFragment(BehaviorFragment.TAG, DialpadFragment.newInstance(), DialpadFragment.TAG, R.id.container_bottom, false);
     }
 
     private void switchFragment(String fromTag, Fragment to, String toTag, @IdRes int resId, boolean addToBackStack) {
