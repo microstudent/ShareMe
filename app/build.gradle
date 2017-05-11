@@ -10,8 +10,6 @@ android {
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
-        renderscriptSupportModeEnabled true
-        renderscriptTargetApi 20
     }
     buildTypes {
         release {
@@ -45,4 +43,5 @@ dependencies {
     annotationProcessor 'com.jakewharton:butterknife-compiler:8.4.0'
     compile 'com.google.code.gson:gson:2.8.0'
     compile project(':bouncyfastscroller')
+    compile 'com.devbrackets.android:exomedia:4.0.0'
 }

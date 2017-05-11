@@ -2,7 +2,6 @@ package com.leaves.app.shareme.service;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.IBinder;
 import android.os.PowerManager;
@@ -12,6 +11,7 @@ import android.util.Log;
 import android.widget.Toast;
 
 
+import com.devbrackets.android.exomedia.AudioPlayer;
 import com.google.gson.Gson;
 import com.koushikdutta.async.http.AsyncHttpGet;
 import com.koushikdutta.async.http.WebSocket;
@@ -49,7 +49,7 @@ import io.reactivex.schedulers.Schedulers;
 public class MusicServerService extends AbsMusicService implements WebSocket.StringCallback, PlaytimeProvider, AudioListContract.View {
     private static final String TAG = "MusicServerService";
     public static final int SYNC_SIGNAL_OFFSET = 500;//同步信号发送的间隔，millsec
-    private MediaPlayer mMediaPlayer = null;
+    private AudioPlayer mAudioPlayer = null;
 
     private CompositeDisposable mCompositeDisposable;
 
@@ -123,10 +123,9 @@ public class MusicServerService extends AbsMusicService implements WebSocket.Str
 
     @Override
     protected void stop() {
-        if (mMediaPlayer != null) {
-            mMediaPlayer.stop();
-            mMediaPlayer.release();
-            mMediaPlayer = null;
+        if (mAudioPlayer != null) {
+            mAudioPlayer.release();
+            mAudioPlayer = null;
         }
         stopForeground(true);
     }
@@ -138,11 +137,11 @@ public class MusicServerService extends AbsMusicService implements WebSocket.Str
         if (mCompositeDisposable == null || !mCompositeDisposable.isDisposed()) {
             mCompositeDisposable = new CompositeDisposable();
         }
-        mMediaPlayer = new MediaPlayer(); // initialize it here
-//        mMediaPlayer.setOnPreparedListener(this);
-//        mMediaPlayer.setOnErrorListener(this);
-//        mMediaPlayer.setOnCompletionListener(this);
-        mMediaPlayer.setWakeMode(getApplicationContext(), PowerManager.PARTIAL_WAKE_LOCK);
+        mAudioPlayer = new AudioPlayer(this); // initialize it here
+//        mAudioPlayer.setOnPreparedListener(this);
+//        mAudioPlayer.setOnErrorListener(this);
+//        mAudioPlayer.setOnCompletionListener(this);
+        mAudioPlayer.setWakeMode(getApplicationContext(), PowerManager.PARTIAL_WAKE_LOCK);
         isPrepared = false;
         startRTSPServer();
     }
@@ -164,17 +163,16 @@ public class MusicServerService extends AbsMusicService implements WebSocket.Str
 
 
     private void resetMediaPlayer() {
-        if (mMediaPlayer != null && mMediaPlayer.isPlaying()) {
-            mMediaPlayer.stop();
-            mMediaPlayer.release();
-            mMediaPlayer = null;
-            mMediaPlayer = new MediaPlayer();
+        if (mAudioPlayer != null && mAudioPlayer.isPlaying()) {
+            mAudioPlayer.release();
+            mAudioPlayer = null;
+            mAudioPlayer = new AudioPlayer(this);
         }
     }
 
     protected void pause() {
-        if (mMediaPlayer != null && mMediaPlayer.isPlaying()) {
-            mMediaPlayer.pause();
+        if (mAudioPlayer != null && mAudioPlayer.isPlaying()) {
+            mAudioPlayer.pause();
         }
         if (mConnectedWebSocket != null) {
             mConnectedWebSocket.send(mGson.toJson(new Message<>(Message.TYPE_PAUSE, null)));
@@ -203,8 +201,8 @@ public class MusicServerService extends AbsMusicService implements WebSocket.Str
                         @Override
                         public void accept(Uri uri) throws Exception {
                             resetMediaPlayer();
-                            mMediaPlayer.setDataSource(MusicServerService.this, uri);
-                            mMediaPlayer.prepare();
+                            mAudioPlayer.setDataSource(uri);
+//                            mAudioPlayer.setDataSource(MusicServerService.this, uri);
                             isPrepared = true;
                         }
                     }, new Consumer<Throwable>() {
@@ -220,7 +218,7 @@ public class MusicServerService extends AbsMusicService implements WebSocket.Str
                         @Override
                         public void accept(Uri uri) throws Exception {
                             if (isPrepared) {
-                                mMediaPlayer.start();
+                                mAudioPlayer.start();
                                 mCompositeDisposable.add(mSyncSignalSender.subscribe(new Consumer<Message<List<Long>>>() {
                                     @Override
                                     public void accept(Message<List<Long>> message) throws Exception {
@@ -242,8 +240,8 @@ public class MusicServerService extends AbsMusicService implements WebSocket.Str
                         }
                     }));
         } else {
-            if (mMediaPlayer != null && isPrepared) {
-                mMediaPlayer.start();
+            if (mAudioPlayer != null && isPrepared) {
+                mAudioPlayer.start();
             }
         }
         if (mMusicPlayerListener != null) {
@@ -261,8 +259,8 @@ public class MusicServerService extends AbsMusicService implements WebSocket.Str
                     }
                 }));
         throwable.printStackTrace();
-        if (mMediaPlayer != null) {
-            mMediaPlayer.reset();
+        if (mAudioPlayer != null) {
+            mAudioPlayer.reset();
         }
     }
 
@@ -285,20 +283,20 @@ public class MusicServerService extends AbsMusicService implements WebSocket.Str
 //        if (media == null) {
 //            return;
 //        }
-//        if (mMediaPlayer == null) {
+//        if (mAudioPlayer == null) {
 //            initMediaPlayer();
 //        }
 //        if (mPlayingMedia != null && media.getSrc().equals(mPlayingMedia.getSrc()) && isPrepared) {
-//            mMediaPlayer.start();
+//            mAudioPlayer.start();
 //            registerTimeSeek();
 //            return;
 //        }
-//        mMediaPlayer.reset();
+//        mAudioPlayer.reset();
 //        Uri uri = Uri.parse(media.getSrc());
 //        try {
-//            mMediaPlayer.setDataSource(this, uri);
+//            mAudioPlayer.setDataSource(this, uri);
 //            mPlayingMedia = media;
-//            mMediaPlayer.prepareAsync(); // prepare async to not block main thread
+//            mAudioPlayer.prepareAsync(); // prepare async to not block main thread
 //            isPrepared = false;
 //            mWifiLock.setReferenceCounted(false);
 //            mWifiLock.acquire();
@@ -335,8 +333,8 @@ public class MusicServerService extends AbsMusicService implements WebSocket.Str
 
     @Override
     public long getCurrentPlayTime() {
-        if (mMediaPlayer != null && isPrepared) {
-            return mMediaPlayer.getCurrentPosition();
+        if (mAudioPlayer != null && isPrepared) {
+            return mAudioPlayer.getCurrentPosition();
         }
         return 0;
     }
