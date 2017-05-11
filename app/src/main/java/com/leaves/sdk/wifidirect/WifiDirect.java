@@ -435,6 +435,7 @@ public class WifiDirect implements IWifiDirect, WifiDirectReceiver.OnWifiDirectS
         mWifiP2pManager.cancelConnect(mChannel, null);
         mWifiP2pManager.clearLocalServices(mChannel, null);
         mWifiP2pManager.clearServiceRequests(mChannel, null);
+        sInstance = null;
         if (mDisposables.size() != 0) {
             mDisposables.dispose();
         }
