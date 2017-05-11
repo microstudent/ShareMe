@@ -207,7 +207,6 @@ public class MusicServerService extends AbsMusicService implements WebSocket.Str
                     .subscribe(new Consumer<Uri>() {
                         @Override
                         public void accept(Uri uri) throws Exception {
-                            Looper.prepare();
                             resetMediaPlayer();
                             mAudioPlayer.setDataSource(uri);
 //                            mAudioPlayer.setDataSource(MusicServerService.this, uri);

@@ -43,7 +43,7 @@ import io.reactivex.schedulers.Schedulers;
  * Created by Leaves on 2017/4/18.
  */
 
-public class MusicClientService extends AbsMusicService implements Runnable, RtspClient.Callback, OnPCMDataAvailableListener, WebSocket.StringCallback, AudioTrack.OnPlaybackPositionUpdateListener, CompletedCallback {
+public class MusicClientService extends AbsMusicService implements Runnable, RtspClient.Callback, OnPCMDataAvailableListener, WebSocket.StringCallback, CompletedCallback {
     private static final String TAG = "MusicClientService";
     public static final int ACTION_PLAY = 0;
     public static final int ACTION_PAUSE = 1;
@@ -200,7 +200,6 @@ public class MusicClientService extends AbsMusicService implements Runnable, Rts
         }
         if (mAudioTrack != null) {
             mAudioTrack.flush();
-            mAudioTrack.stop();
             mAudioTrack.release();
         }
         if (mClient != null) {
@@ -260,8 +259,6 @@ public class MusicClientService extends AbsMusicService implements Runnable, Rts
                         audioTrack.play();
                     }
                 });
-        mAudioTrack.setPlaybackPositionUpdateListener(this);
-        mAudioTrack.setPositionNotificationPeriod(1);
         mConfig = config;
         mMsPerAACFrame = (double) 1024 * 1000 / mConfig.sampleRate;
     }
@@ -424,16 +421,6 @@ public class MusicClientService extends AbsMusicService implements Runnable, Rts
             needSync = Math.abs(mDelay) > MAX_SYNC_DELAY;
             mDelay = 0;
         }
-    }
-
-    @Override
-    public void onMarkerReached(AudioTrack track) {
-
-    }
-
-    @Override
-    public void onPeriodicNotification(AudioTrack track) {
-
     }
 
     @Override
