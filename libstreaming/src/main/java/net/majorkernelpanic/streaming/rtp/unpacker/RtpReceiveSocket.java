@@ -91,7 +91,7 @@ public class RtpReceiveSocket implements Runnable{
         byte[] result = null;
         try {
             //等待时间最多只能是一帧的时间，一帧用多少时间由采样率决定，
-            while (mSortBuffers.get(mSeq) == null) {
+            while (mSortBuffers.get(mSeq) == null && !Thread.interrupted()) {
                 Thread.sleep(mWaitingTimeout);
                 Log.w(TAG, "sleep for waiting,mSortBuffers size = " + mSortBuffers.size() + ",is send rate too slow?");
                 mSeq++;
@@ -158,7 +158,7 @@ public class RtpReceiveSocket implements Runnable{
     @Override
     public void run() {
         try {
-            while (!mReceiverThread.isInterrupted() && mBufferRequested.tryAcquire(4, TimeUnit.SECONDS)) {
+            while (!Thread.interrupted() && mBufferRequested.tryAcquire(4, TimeUnit.SECONDS)) {
                 if (mSocket != null && !mSocket.isClosed()) {
                     mSocket.receive(mPackets[mBufferIn]);
                     if (++mBufferIn >= mBufferCount) mBufferIn = 0;

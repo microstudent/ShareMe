@@ -54,7 +54,7 @@ public class AACADTSUnpacker extends AbstractUnpacker implements Runnable {
 
     @Override
     public void run() {
-        while (!mThread.isInterrupted()) {
+        while (!Thread.interrupted()) {
             byte[] result;
             result = mSocket.read();
             if (result != null) {

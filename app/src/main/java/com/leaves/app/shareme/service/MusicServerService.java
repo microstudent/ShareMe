@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.IBinder;
+import android.os.Looper;
 import android.os.PowerManager;
 import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
@@ -12,6 +13,8 @@ import android.widget.Toast;
 
 
 import com.devbrackets.android.exomedia.AudioPlayer;
+import com.devbrackets.android.exomedia.listener.OnCompletionListener;
+import com.devbrackets.android.exomedia.util.DeviceUtil;
 import com.google.gson.Gson;
 import com.koushikdutta.async.http.AsyncHttpGet;
 import com.koushikdutta.async.http.WebSocket;
@@ -39,6 +42,7 @@ import java.util.concurrent.TimeUnit;
 import io.reactivex.Observable;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.CompositeDisposable;
+import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.Consumer;
 import io.reactivex.schedulers.Schedulers;
 
@@ -46,7 +50,7 @@ import io.reactivex.schedulers.Schedulers;
  * Created by Leaves on 2016/11/7.
  */
 
-public class MusicServerService extends AbsMusicService implements WebSocket.StringCallback, PlaytimeProvider, AudioListContract.View {
+public class MusicServerService extends AbsMusicService implements WebSocket.StringCallback, PlaytimeProvider, AudioListContract.View, OnCompletionListener {
     private static final String TAG = "MusicServerService";
     public static final int SYNC_SIGNAL_OFFSET = 500;//同步信号发送的间隔，millsec
     private AudioPlayer mAudioPlayer = null;
@@ -63,6 +67,8 @@ public class MusicServerService extends AbsMusicService implements WebSocket.Str
     private Observable<Message<List<Long>>> mSyncSignalSender;
     private AudioListPresenter mAudioListPresenter;
     private List<Media> mAudioList;
+    private int mPlayMediaIndex;
+    private Disposable mSyncDisposable;
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
@@ -138,10 +144,12 @@ public class MusicServerService extends AbsMusicService implements WebSocket.Str
             mCompositeDisposable = new CompositeDisposable();
         }
         mAudioPlayer = new AudioPlayer(this); // initialize it here
+        mAudioPlayer.setWakeMode(getApplicationContext(), PowerManager.PARTIAL_WAKE_LOCK);
+        mAudioPlayer.setOnCompletionListener(this);
 //        mAudioPlayer.setOnPreparedListener(this);
 //        mAudioPlayer.setOnErrorListener(this);
 //        mAudioPlayer.setOnCompletionListener(this);
-        mAudioPlayer.setWakeMode(getApplicationContext(), PowerManager.PARTIAL_WAKE_LOCK);
+
         isPrepared = false;
         startRTSPServer();
     }
@@ -158,16 +166,15 @@ public class MusicServerService extends AbsMusicService implements WebSocket.Str
 
     @Override
     protected void reset() {
-
+        if (mSyncDisposable != null) {
+            mSyncDisposable.dispose();
+        }
     }
 
 
     private void resetMediaPlayer() {
-        if (mAudioPlayer != null && mAudioPlayer.isPlaying()) {
-            mAudioPlayer.release();
-            mAudioPlayer = null;
-            mAudioPlayer = new AudioPlayer(this);
-        }
+        mAudioPlayer.pause();
+        mAudioPlayer.reset();
     }
 
     protected void pause() {
@@ -200,6 +207,7 @@ public class MusicServerService extends AbsMusicService implements WebSocket.Str
                     .subscribe(new Consumer<Uri>() {
                         @Override
                         public void accept(Uri uri) throws Exception {
+                            Looper.prepare();
                             resetMediaPlayer();
                             mAudioPlayer.setDataSource(uri);
 //                            mAudioPlayer.setDataSource(MusicServerService.this, uri);
@@ -219,7 +227,7 @@ public class MusicServerService extends AbsMusicService implements WebSocket.Str
                         public void accept(Uri uri) throws Exception {
                             if (isPrepared) {
                                 mAudioPlayer.start();
-                                mCompositeDisposable.add(mSyncSignalSender.subscribe(new Consumer<Message<List<Long>>>() {
+                                mSyncDisposable = mSyncSignalSender.subscribe(new Consumer<Message<List<Long>>>() {
                                     @Override
                                     public void accept(Message<List<Long>> message) throws Exception {
                                     }
@@ -228,7 +236,7 @@ public class MusicServerService extends AbsMusicService implements WebSocket.Str
                                     public void accept(Throwable throwable) throws Exception {
                                         Log.e(TAG, "accept: ", throwable);
                                     }
-                                }));
+                                });
                             } else {
                                 throw new Exception("the music player is not prepared!");
                             }
@@ -246,6 +254,15 @@ public class MusicServerService extends AbsMusicService implements WebSocket.Str
         }
         if (mMusicPlayerListener != null) {
             mMusicPlayerListener.onMusicStart(mMedia);
+        }
+        if (mAudioList != null) {
+            for (int i = 0; i < mAudioList.size(); i++) {
+                Media media = mAudioList.get(i);
+                if (media.getSrc().equals(mMedia.getSrc())) {
+                    mPlayMediaIndex = i;
+                    break;
+                }
+            }
         }
     }
 
@@ -353,6 +370,14 @@ public class MusicServerService extends AbsMusicService implements WebSocket.Str
     @Override
     public void setData(List<Media> medias) {
         mAudioList = medias;
+    }
+
+    @Override
+    public void onCompletion() {
+        //播放下一首
+        if (mPlayMediaIndex >= 0 && mAudioList != null && mPlayMediaIndex < mAudioList.size()) {
+            play(mAudioList.get(mPlayMediaIndex + 1 % mAudioList.size()), true);
+        }
     }
 
     public class ServerBinder extends AbsMusicServiceBinder {

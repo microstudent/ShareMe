@@ -1,6 +1,5 @@
 package com.leaves.app.shareme.service;
 
-import android.content.Context;
 import android.content.Intent;
 import android.media.AudioFormat;
 import android.media.AudioManager;
@@ -31,12 +30,12 @@ import net.majorkernelpanic.streaming.rtsp.RtspClient;
 
 import java.util.List;
 import java.util.Queue;
-import java.util.TimerTask;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.TimeUnit;
 
 import io.reactivex.Observable;
 import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.Consumer;
 import io.reactivex.schedulers.Schedulers;
 
@@ -71,6 +70,7 @@ public class MusicClientService extends AbsMusicService implements Runnable, Rts
     private double mMsPerAACFrame;
     private volatile long mPlayTimeToSync;
     private volatile long mPlayingRTPTime;
+    private Disposable mPlayDisposable;
 
     @Override
     public void onCreate() {
@@ -192,6 +192,9 @@ public class MusicClientService extends AbsMusicService implements Runnable, Rts
 
     @Override
     protected void reset() {
+        if (mPlayDisposable != null) {
+            mPlayDisposable.dispose();
+        }
         if (mPlayThread != null) {
             mPlayThread.interrupt();
         }
@@ -199,7 +202,6 @@ public class MusicClientService extends AbsMusicService implements Runnable, Rts
             mAudioTrack.flush();
             mAudioTrack.stop();
             mAudioTrack.release();
-            mAudioTrack = null;
         }
         if (mClient != null) {
             mClient.release();
@@ -249,7 +251,7 @@ public class MusicClientService extends AbsMusicService implements Runnable, Rts
                 1300,
                 AudioTrack.MODE_STREAM
         );
-        Observable.just(mAudioTrack)
+        mPlayDisposable = Observable.just(mAudioTrack)
                 .subscribeOn(Schedulers.io())
                 .delay(Constant.DEFAULT_PLAY_TIME_DELAY, TimeUnit.MILLISECONDS)
                 .subscribe(new Consumer<AudioTrack>() {
@@ -366,8 +368,8 @@ public class MusicClientService extends AbsMusicService implements Runnable, Rts
                 Frame frame = mFrameQueue.poll();
                 if (frame != null) {
                     mPlayingRTPTime = frame.getRtpTime();
-                    Log.d(TAG, "getFramePlayTime(frame):" + getFramePlayTime(frame));
-                    Log.d(TAG, "mPlayingRTPTime:" + mPlayingRTPTime);
+//                    Log.d(TAG, "getFramePlayTime(frame):" + getFramePlayTime(frame));
+//                    Log.d(TAG, "mPlayingRTPTime:" + mPlayingRTPTime);
 //                playSilentIfNeeded(frame.getRtpTime());
                     mAudioTrack.write(frame.getPCMData(), 0, frame.getPCMData().length);
                 } else {
@@ -377,8 +379,11 @@ public class MusicClientService extends AbsMusicService implements Runnable, Rts
         }
     }
 
-    private long getFramePlayTime(@NonNull Frame frame) {
-        return getFramePlayTime(frame.getRtpTime());
+    private long getFramePlayTime(Frame frame) {
+        if (frame != null) {
+            return getFramePlayTime(frame.getRtpTime());
+        }
+        return 0;
     }
 
     private long getFramePlayTime(long rtpTime) {
