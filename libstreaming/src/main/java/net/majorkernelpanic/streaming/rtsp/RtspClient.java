@@ -148,6 +148,9 @@ public class RtspClient {
 		new HandlerThread("net.majorkernelpanic.streaming.RtspClient"){
 			@Override
 			protected void onLooperPrepared() {
+				if (mHandler != null) {
+					mHandler.getLooper().quit();
+				}
 				mHandler = new Handler();
 				signal.release();
 			}
