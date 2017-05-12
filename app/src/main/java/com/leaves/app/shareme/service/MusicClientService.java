@@ -297,8 +297,8 @@ public class MusicClientService extends AbsMusicService implements Runnable, Rts
 
         if (playTime > 0) {
             if (mInitDelay == -1) {
-                mInitDelay =  System.currentTimeMillis() - ntpTime - 10;
-                mDelay = getCurrentPosition() - playTime - 10;//10ms是对传输耗时的假设判断
+                mInitDelay =  System.currentTimeMillis() - ntpTime - 100;
+                mDelay = getCurrentPosition() - playTime - 100;//100ms是对传输耗时的假设判断
             } else {
                 mDelay = getCurrentPosition() - (playTime + (System.currentTimeMillis() - mInitDelay - ntpTime));
             }
