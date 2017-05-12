@@ -47,6 +47,7 @@ public class MainActivity extends AppCompatActivity implements
         BehaviorFragment.OnBehaviorClickListener,
         MainActivityContract.View {
 
+    public static final String EXTRA_CURRENT_MEDIA_DESCRIPTION = "current_media";
     private FragmentManager mFragmentManager;
 
     @BindView(R.id.iv_bg)

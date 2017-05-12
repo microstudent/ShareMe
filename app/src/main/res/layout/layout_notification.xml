@@ -43,7 +43,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content">
         <ImageView
-            android:id="@+id/bt_pause"
+            android:id="@+id/bt_play_pause"
             android:background="@drawable/bg_ripple_dark"
             android:clickable="true"
             android:src="@drawable/ic_pause"

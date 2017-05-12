@@ -45,9 +45,6 @@ import io.reactivex.schedulers.Schedulers;
 
 public class MusicClientService extends AbsMusicService implements Runnable, RtspClient.Callback, OnPCMDataAvailableListener, WebSocket.StringCallback, CompletedCallback {
     private static final String TAG = "MusicClientService";
-    public static final int ACTION_PLAY = 0;
-    public static final int ACTION_PAUSE = 1;
-    public static final int ACTION_STOP = 2;
 
     private static final boolean DEBUG = false;
     private static final long RETRY_DELAY = 3000;//3sec重试一次
@@ -183,6 +180,11 @@ public class MusicClientService extends AbsMusicService implements Runnable, Rts
         if (mAudioTrack != null) {
             mAudioTrack.stop();
         }
+    }
+
+    @Override
+    public AbsMusicServiceBinder getBinder() {
+        return mBinder;
     }
 
     @Override

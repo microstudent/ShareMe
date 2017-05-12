@@ -130,11 +130,17 @@ public class MusicServerService extends AbsMusicService implements WebSocket.Str
 
     @Override
     protected void stop() {
+        super.stop();
         if (mAudioPlayer != null) {
             mAudioPlayer.release();
             mAudioPlayer = null;
         }
         stopForeground(true);
+    }
+
+    @Override
+    public AbsMusicServiceBinder getBinder() {
+        return mBinder;
     }
 
     @Override
@@ -180,6 +186,7 @@ public class MusicServerService extends AbsMusicService implements WebSocket.Str
     }
 
     protected void pause() {
+        super.pause();
         if (mAudioPlayer != null && mAudioPlayer.isPlaying()) {
             mAudioPlayer.pause();
         }

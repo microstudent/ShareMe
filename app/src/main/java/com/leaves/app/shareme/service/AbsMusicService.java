@@ -6,8 +6,10 @@ import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.graphics.Color;
 import android.net.wifi.WifiManager;
-import android.support.v4.app.NotificationCompat;
+import android.os.RemoteException;
+import android.support.v7.app.NotificationCompat;
 import android.widget.RemoteViews;
 
 import com.bumptech.glide.Glide;
@@ -15,6 +17,8 @@ import com.bumptech.glide.request.RequestListener;
 import com.bumptech.glide.request.target.Target;
 import com.leaves.app.shareme.R;
 import com.leaves.app.shareme.bean.Media;
+import com.leaves.app.shareme.receiver.MediaNotificationManager;
+import com.leaves.app.shareme.util.ResourceHelper;
 
 import io.reactivex.Observable;
 import io.reactivex.android.schedulers.AndroidSchedulers;
@@ -29,6 +33,14 @@ public abstract class AbsMusicService extends Service {
     public static final int MODE_LOCAL = 0;
     public static final int MODE_REMOTE = 1;
 
+    public final static int STATE_NONE = 0;
+    public final static int STATE_STOPPED = 1;
+    public final static int STATE_PAUSED = 2;
+    public final static int STATE_PLAYING = 3;
+    public final static int STATE_ERROR = 7;
+
+    protected MediaNotificationManager mNotificationManager;
+
     private int mMode;
     private WifiManager.WifiLock mWifiLock;
     protected Media mMedia;
@@ -42,6 +54,11 @@ public abstract class AbsMusicService extends Service {
         mWifiLock = ((WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE))
                 .createWifiLock(WifiManager.WIFI_MODE_FULL, "musicLock");
         mCompositeDisposable = new CompositeDisposable();
+        try {
+            mNotificationManager = new MediaNotificationManager(this);
+        } catch (RemoteException e) {
+            throw new IllegalStateException("Could not create a MediaNotificationManager", e);
+        }
     }
 
     public void play(Media media, boolean invalidate) {
@@ -60,36 +77,54 @@ public abstract class AbsMusicService extends Service {
         }
         mMedia = media;
 
-        mCompositeDisposable.add(Observable.just(mMedia)
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Consumer<Media>() {
-                    @Override
-                    public void accept(Media media) throws Exception {
-                        Glide.with(AbsMusicService.this).load(media.getImage()).asBitmap().listener(new RequestListener<String, Bitmap>() {
-                            @Override
-                            public boolean onException(Exception e, String model, Target<Bitmap> target, boolean isFirstResource) {
-                                showNotification(null);
-                                return false;
-                            }
-
-                            @Override
-                            public boolean onResourceReady(Bitmap resource, String model, Target<Bitmap> target, boolean isFromMemoryCache, boolean isFirstResource) {
-                                showNotification(resource);
-                                return false;
-                            }
-                        }).preload();
-                    }
-                }));
+        if (mNotificationManager != null) {
+            mNotificationManager.onPlaybackStateChanged(STATE_PLAYING);
+            mNotificationManager.startNotification();
+        }
+//        mCompositeDisposable.add(Observable.just(mMedia)
+//                .observeOn(AndroidSchedulers.mainThread())
+//                .subscribe(new Consumer<Media>() {
+//                    @Override
+//                    public void accept(Media media) throws Exception {
+//                        Glide.with(AbsMusicService.this).load(media.getImage()).asBitmap().listener(new RequestListener<String, Bitmap>() {
+//                            @Override
+//                            public boolean onException(Exception e, String model, Target<Bitmap> target, boolean isFirstResource) {
+//                                showNotification(null);
+//                                return false;
+//                            }
+//
+//                            @Override
+//                            public boolean onResourceReady(Bitmap resource, String model, Target<Bitmap> target, boolean isFromMemoryCache, boolean isFirstResource) {
+//                                showNotification(resource);
+//                                return false;
+//                            }
+//                        }).preload();
+//                    }
+//                }));
         //notify Client
         start(invalidate);
         isFirstRun = false;
     }
 
-    protected abstract void pause();
+    protected void pause(){
+        if (mNotificationManager != null) {
+            mNotificationManager.onPlaybackStateChanged(STATE_PAUSED);
+        }
+    }
 
     protected abstract void start(boolean invalidate);
 
-    protected abstract void stop();
+    protected void stop(){
+        if (mNotificationManager != null) {
+            mNotificationManager.onPlaybackStateChanged(STATE_STOPPED);
+        }
+    };
+
+    public Media getPlayingMedia() {
+        return mMedia;
+    }
+
+    public abstract AbsMusicServiceBinder getBinder();
 
     private void showNotification(Bitmap cover) {
         PendingIntent pi = PendingIntent.getActivity(getApplicationContext(), 0,
@@ -100,6 +135,8 @@ public abstract class AbsMusicService extends Service {
         remoteViews.setTextViewText(R.id.tv_sub_title, mMedia.getArtist());
         remoteViews.setImageViewBitmap(R.id.iv_cover, cover);
         Notification notification = new NotificationCompat.Builder(this)
+                .setStyle(new NotificationCompat.MediaStyle())
+                .setColor(ResourceHelper.getThemeColor(this, R.color.colorPrimary, Color.WHITE))
                 .setContentIntent(pi)
                 .setCustomContentView(remoteViews)
                 .setAutoCancel(false)
