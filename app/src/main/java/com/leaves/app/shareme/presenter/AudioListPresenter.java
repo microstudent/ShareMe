@@ -6,7 +6,6 @@ import android.database.Cursor;
 import android.provider.MediaStore;
 import android.util.Log;
 
-import com.leaves.app.shareme.R;
 import com.leaves.app.shareme.bean.Media;
 import com.leaves.app.shareme.contract.AudioListContract;
 
@@ -34,6 +33,7 @@ public class AudioListPresenter implements AudioListContract.Presenter, RealmCha
     private AudioListContract.View mView;
     private ContentResolver mResolver;
     private Disposable mDisposable;
+    private Realm mRealm;
 
     public AudioListPresenter(AudioListContract.View view, Context context) {
         mContext = context;
@@ -42,10 +42,10 @@ public class AudioListPresenter implements AudioListContract.Presenter, RealmCha
 
     @Override
     public void start() {
-        Realm realm = Realm.getDefaultInstance();
-        RealmResults<Media> realmResults = realm.where(Media.class).findAll();
+        mRealm = Realm.getDefaultInstance();
+        RealmResults<Media> realmResults = mRealm.where(Media.class).findAll();
         realmResults.addChangeListener(this);
-        mView.setData(realmResults);
+        mView.setData(mRealm.copyFromRealm(realmResults));
 
         mResolver = mContext.getContentResolver();
         mDisposable = Observable.just(mResolver)
@@ -109,11 +109,14 @@ public class AudioListPresenter implements AudioListContract.Presenter, RealmCha
         if (mDisposable != null) {
             mDisposable.dispose();
         }
+        if (mRealm != null) {
+            mRealm.close();
+        }
     }
 
     @Override
     public void onChange(RealmResults<Media> medias) {
-//        mView.setData(medias);
+        mView.setData(mRealm.copyFromRealm(medias));
     }
 }
 
