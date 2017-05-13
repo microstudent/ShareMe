@@ -68,6 +68,14 @@ public class AudioListFragment extends BottomSheetDialogFragment implements Audi
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+    }
+
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                             Bundle savedInstanceState) {
+        // Inflate the layout for this fragment
+        View view = inflater.inflate(R.layout.fragment_media_list, container, false);
+        ButterKnife.bind(this, view);
         if (isFirstRun) {
             mAdapter = new AudioListAdapter();
             mAdapter.setOnAudioClickListener(mListener);
@@ -81,17 +89,9 @@ public class AudioListFragment extends BottomSheetDialogFragment implements Audi
             }
             isFirstRun = false;
         }
-    }
-
-    @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
-        View view = inflater.inflate(R.layout.fragment_media_list, container, false);
-        ButterKnife.bind(this, view);
+        setupFastScroll();
         mRecyclerView.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.VERTICAL, false));
         mRecyclerView.setAdapter(mAdapter);
-        setupFastScroll();
         return view;
     }
 
@@ -113,11 +113,9 @@ public class AudioListFragment extends BottomSheetDialogFragment implements Audi
     }
 
     private void setupFastScroll() {
-        if (isFastScrollEnable) {
+        if (isFastScrollEnable && mMedia != null) {
             mVerticalBouncyFastScroller.setEnabled(true);
-            if (mMedia != null) {
-                mVerticalBouncyFastScroller.setData(mMedia);
-            }
+            mVerticalBouncyFastScroller.setData(mMedia);
             mVerticalBouncyFastScroller.setRecyclerView(mRecyclerView, RecyclerViewScroller.SHOW_INDEX_IN_NEED);
         } else {
             mVerticalBouncyFastScroller.setEnabled(false);

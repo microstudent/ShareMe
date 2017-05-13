@@ -4,7 +4,9 @@ import android.content.ContentResolver;
 import android.content.Context;
 import android.database.Cursor;
 import android.provider.MediaStore;
+import android.util.Log;
 
+import com.leaves.app.shareme.R;
 import com.leaves.app.shareme.bean.Media;
 import com.leaves.app.shareme.contract.AudioListContract;
 
@@ -13,17 +15,21 @@ import java.util.Collections;
 import java.util.List;
 
 import io.reactivex.Observable;
-import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.Consumer;
 import io.reactivex.functions.Function;
 import io.reactivex.schedulers.Schedulers;
+import io.realm.Realm;
+import io.realm.RealmChangeListener;
+import io.realm.RealmResults;
+
+import static com.bumptech.glide.gifdecoder.GifHeaderParser.TAG;
 
 /**
  * Created by Leaves on 2017/4/11.
  */
 
-public class AudioListPresenter implements AudioListContract.Presenter {
+public class AudioListPresenter implements AudioListContract.Presenter, RealmChangeListener<RealmResults<Media>> {
     private final Context mContext;
     private AudioListContract.View mView;
     private ContentResolver mResolver;
@@ -36,6 +42,11 @@ public class AudioListPresenter implements AudioListContract.Presenter {
 
     @Override
     public void start() {
+        Realm realm = Realm.getDefaultInstance();
+        RealmResults<Media> realmResults = realm.where(Media.class).findAll();
+        realmResults.addChangeListener(this);
+        mView.setData(realmResults);
+
         mResolver = mContext.getContentResolver();
         mDisposable = Observable.just(mResolver)
                 .subscribeOn(Schedulers.io())
@@ -64,20 +75,27 @@ public class AudioListPresenter implements AudioListContract.Presenter {
                         return medias;
                     }
                 })
-                .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Consumer<List<Media>>() {
                     @Override
                     public void accept(List<Media> medias) throws Exception {
-                        mView.setData(medias);
+                        Realm realm = Realm.getDefaultInstance();
+                        realm.beginTransaction();
+                        realm.copyToRealmOrUpdate(medias);
+                        realm.commitTransaction();
+                    }
+                }, new Consumer<Throwable>() {
+                    @Override
+                    public void accept(Throwable throwable) throws Exception {
+                        Log.e(TAG, "get audio list fail", throwable);
                     }
                 });
     }
 
     private String getAlbumArt(long albumId) {
         Cursor cursor = mResolver.query(MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI,
-                new String[] {MediaStore.Audio.Albums._ID, MediaStore.Audio.Albums.ALBUM_ART},
-                MediaStore.Audio.Albums._ID+ "=?",
-                new String[] {String.valueOf(albumId)},
+                new String[]{MediaStore.Audio.Albums._ID, MediaStore.Audio.Albums.ALBUM_ART},
+                MediaStore.Audio.Albums._ID + "=?",
+                new String[]{String.valueOf(albumId)},
                 null);
         if (cursor != null && cursor.moveToFirst()) {
             String path = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Albums.ALBUM_ART));
@@ -91,6 +109,11 @@ public class AudioListPresenter implements AudioListContract.Presenter {
         if (mDisposable != null) {
             mDisposable.dispose();
         }
+    }
+
+    @Override
+    public void onChange(RealmResults<Media> medias) {
+//        mView.setData(medias);
     }
 }
 

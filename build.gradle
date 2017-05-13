@@ -3,10 +3,14 @@
 buildscript {
     repositories {
         jcenter()
+        maven {
+            url 'http://oss.jfrog.org/artifactory/oss-snapshot-local'
+        }
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:2.3.2'
         classpath 'com.jakewharton.hugo:hugo-plugin:1.2.1'
+        classpath 'io.realm:realm-gradle-plugin:3.1.4'
         // NOTE: Do not place your application dependencies here; they belong
         // in the individual module build.gradle files
     }

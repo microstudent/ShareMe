@@ -4,14 +4,18 @@ import android.support.annotation.NonNull;
 
 import java.io.Serializable;
 
+import io.realm.RealmObject;
+import io.realm.annotations.PrimaryKey;
+
 /**
  * Created by Leaves on 2016/11/13.
  */
 
-public class Media implements Serializable, Comparable<Media> {
+public class Media extends RealmObject implements Serializable, Comparable<Media> {
     public static final int VIDEO = 0;
     public static final int AUDIO = 1;
     private String image;
+    @PrimaryKey
     private String src;
     private String title;
     private long duration;
@@ -19,6 +23,8 @@ public class Media implements Serializable, Comparable<Media> {
     private String artist;
     private int type;
 
+    public Media() {
+    }
 
     public Media(String image, String src, String title, long duration, String artist, int type) {
         this.image = image;
