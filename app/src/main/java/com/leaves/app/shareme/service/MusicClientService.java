@@ -141,6 +141,7 @@ public class MusicClientService extends AbsMusicService implements Runnable, Rts
 
     @Override
     protected void pause() {
+        super.pause();
         if (mAudioTrack != null) {
             mAudioTrack.pause();
             mAudioTrack.flush();
@@ -176,6 +177,7 @@ public class MusicClientService extends AbsMusicService implements Runnable, Rts
 
     @Override
     protected void stop() {
+        super.stop();
         mClient.stopStream();
         if (mAudioTrack != null) {
             mAudioTrack.stop();
