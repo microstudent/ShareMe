@@ -5,7 +5,7 @@
         <shape>
             <corners android:radius="@dimen/cardview_default_radius"/>
             <stroke
-                android:color="@color/colorAccent"
+                android:color="@color/colorPrimary"
                 android:width="1dp"/>
             <solid android:color="@color/gray"/>
         </shape>
@@ -14,7 +14,7 @@
         <shape>
             <corners android:radius="@dimen/cardview_default_radius"/>
             <stroke
-                android:color="@color/colorAccent"
+                android:color="@color/colorPrimary"
                 android:width="1dp"/>
         </shape>
     </item>

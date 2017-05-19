@@ -7,5 +7,5 @@
     android:layout_height="wrap_content"
     app:colorful="true"
     app:divider_color="#11000000"
-    app:tint_color="@color/colorPrimary"
-    app:tint_color2="@color/colorAccent"/>
+    app:tint_color="@color/colorAccent"
+    app:tint_color2="@color/colorPrimary"/>

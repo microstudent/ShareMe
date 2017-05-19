@@ -8,7 +8,7 @@
               android:layout_height="@dimen/list_item_height_large">
     <ImageView
         android:src="@drawable/ic_phone"
-        android:tint="@color/colorAccent"
+        android:tint="@color/colorPrimary"
         android:layout_width="@dimen/image_normal"
         android:layout_height="@dimen/image_normal"/>
     <TextView

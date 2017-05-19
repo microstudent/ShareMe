@@ -23,7 +23,7 @@
         app:logo="@drawable/ic_action">
         <TextView
             android:text="@string/app_name"
-            android:textColor="@color/colorAccent"
+            android:textColor="@color/colorPrimary"
             android:textSize="@dimen/font_larger"
             android:paddingLeft="@dimen/spacing_small"
             android:layout_width="wrap_content"

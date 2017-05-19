@@ -23,12 +23,15 @@
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:supportsRtl="true"
-        android:theme="@style/TranslucentTheme">
-        <activity android:name=".ui.activity.MainActivity"
-            android:launchMode="singleInstance"
-            android:alwaysRetainTaskState="true">
+        android:theme="@style/AppTheme">
+        <activity
+            android:theme="@style/TranslucentTheme"
+            android:name=".ui.activity.MainActivity"
+            android:alwaysRetainTaskState="true"
+            android:launchMode="singleTask">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
+
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
@@ -40,6 +43,9 @@
         <service android:name=".service.MusicServerService"/>
         <service android:name="net.majorkernelpanic.streaming.rtsp.RtspServer"/>
         <service android:name=".service.MusicClientService"/>
+
+        <activity android:name=".ui.activity.SettingActivity">
+        </activity>
     </application>
 
 </manifest>

@@ -13,4 +13,5 @@
     <string name="disconnect">断开连接</string>
     <string name="label_previous">Previous</string>
     <string name="label_next">Next</string>
+    <string name="setting">设置</string>
 </resources>

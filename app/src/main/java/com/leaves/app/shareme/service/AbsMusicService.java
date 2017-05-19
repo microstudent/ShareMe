@@ -136,7 +136,7 @@ public abstract class AbsMusicService extends Service {
         remoteViews.setImageViewBitmap(R.id.iv_cover, cover);
         Notification notification = new NotificationCompat.Builder(this)
                 .setStyle(new NotificationCompat.MediaStyle())
-                .setColor(ResourceHelper.getThemeColor(this, R.color.colorPrimary, Color.WHITE))
+//                .setColor(ResourceHelper.getThemeColor(this, R.color.colorPrimary, Color.WHITE))
                 .setContentIntent(pi)
                 .setCustomContentView(remoteViews)
                 .setAutoCancel(false)

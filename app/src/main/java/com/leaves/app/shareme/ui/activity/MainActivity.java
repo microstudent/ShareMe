@@ -1,5 +1,6 @@
 package com.leaves.app.shareme.ui.activity;
 
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.os.PersistableBundle;
@@ -245,6 +246,10 @@ public class MainActivity extends AppCompatActivity implements
         switch (item.getItemId()) {
             case R.id.action_exit:
                 System.exit(0);
+                return true;
+            case R.id.action_setting:
+                Intent intent = new Intent(this, SettingActivity.class);
+                startActivity(intent);
                 return true;
         }
         return super.onOptionsItemSelected(item);

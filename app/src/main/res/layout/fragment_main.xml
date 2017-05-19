@@ -10,7 +10,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
         <View
-            android:background="@color/colorAccent"
+            android:background="@color/colorPrimary"
             android:layout_width="match_parent"
             android:layout_height="@dimen/list_item_height_normal"/>
         <TextView
@@ -35,14 +35,14 @@
             <TextView
                 android:id="@+id/tv_hint"
                 android:text="@string/hint_password"
-                android:textColor="@color/colorAccent"
+                android:textColor="@color/colorPrimary"
                 android:textSize="@dimen/font_large"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 />
             <com.leaves.app.shareme.ui.widget.PasswordTextView
                 android:id="@+id/tv_key"
-                app:dot_color="@color/colorAccent"
+                app:dot_color="@color/colorPrimary"
                 app:text_size="@dimen/font_larger"
                 android:layout_width="match_parent"
                 android:layout_height="@dimen/list_item_height_normal"/>
@@ -60,7 +60,7 @@
                 android:layout_gravity="center_horizontal"
                 android:text="@string/hint_searching"
                 android:textSize="@dimen/font_normal"
-                android:textColor="@color/colorAccent"
+                android:textColor="@color/colorPrimary"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"/>
             <com.leaves.app.shareme.ui.widget.dialpad.colorfulanimview.ColorfulAnimView
@@ -71,7 +71,7 @@
             <Button
                 android:id="@+id/bt_cancel"
                 android:background="@drawable/bg_button_roundrect_accent"
-                android:textColor="@color/colorAccent"
+                android:textColor="@color/colorPrimary"
                 android:text="@string/cancel"
                 android:layout_gravity="center"
                 android:layout_width="wrap_content"

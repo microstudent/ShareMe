@@ -8,7 +8,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
         <View
-            android:background="@color/colorAccent"
+            android:background="@color/colorPrimary"
             android:layout_width="match_parent"
             android:layout_height="@dimen/list_item_height_normal"/>
         <TextView

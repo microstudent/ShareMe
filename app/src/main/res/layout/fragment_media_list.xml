@@ -12,7 +12,7 @@
         android:id="@+id/vbfs"
         android:padding="10dp"
         app:behavior="simple_with_indicator"
-        app:theme_color="@color/colorAccent"
+        app:theme_color="@color/colorPrimary"
         app:alpha2="0.6"
         android:layout_alignParentRight="true"
         android:layout_alignParentEnd="true"
