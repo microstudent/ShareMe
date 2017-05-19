@@ -23,6 +23,7 @@ public class AACADTSUnpacker extends AbstractUnpacker implements Runnable {
     private byte[] mADTSHeader;
     private InputStream.Config mConfig;
     private int mLastSeq;
+    private volatile boolean isStopped = false;
 
     public AACADTSUnpacker(MediaCodec decoder) {
         if (decoder != null) {
@@ -49,12 +50,13 @@ public class AACADTSUnpacker extends AbstractUnpacker implements Runnable {
         if (mThread != null) {
             mThread.interrupt();
         }
+        isStopped = true;
     }
 
 
     @Override
     public void run() {
-        while (!Thread.interrupted()) {
+        while (!Thread.interrupted() && !isStopped) {
             byte[] result;
             result = mSocket.read();
             if (result != null) {

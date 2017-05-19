@@ -39,6 +39,7 @@ public class RtpReceiveSocket implements Runnable{
     private SparseArray<Object> mSortBuffers;
     private long mWaitingTimeout;
     private boolean isFirstRun = true;
+    private volatile boolean isStopped = false;
 
     public RtpReceiveSocket() {
         mBufferCount = 300;
@@ -89,7 +90,7 @@ public class RtpReceiveSocket implements Runnable{
         byte[] result = null;
         try {
             //等待时间最多只能是一帧的时间，一帧用多少时间由采样率决定，
-            while (mSortBuffers.get(mSeq) == null && !Thread.interrupted()) {
+            while (mSortBuffers.get(mSeq) == null && !Thread.interrupted() && !isStopped) {
                 Thread.sleep(mWaitingTimeout);
                 Log.w(TAG, "sleep for waiting,mSortBuffers size = " + mSortBuffers.size() + ",is send rate too slow?");
                 mSeq++;
@@ -183,6 +184,7 @@ public class RtpReceiveSocket implements Runnable{
             mReceiverThread.interrupt();
             Log.e(TAG, "thread is interrupted ");
         }
+        isStopped = true;
         reset();
     }
 
