@@ -9,6 +9,7 @@ import android.support.v7.app.AppCompatActivity;
 import com.leaves.app.shareme.Constant;
 import com.leaves.app.shareme.contract.WifiDirectionContract;
 import com.leaves.sdk.wifidirect.WifiDirect;
+import com.leaves.sdk.wifidirect.listener.ErrorHandler;
 import com.leaves.sdk.wifidirect.listener.OnConnectionChangeListener;
 import com.leaves.sdk.wifidirect.listener.OnDeviceDetailChangeListener;
 import com.leaves.sdk.wifidirect.listener.OnServiceFoundListener;
@@ -23,7 +24,7 @@ import static com.leaves.app.shareme.Constant.WifiDirect.SERVICE_NAME;
  * Created by Leaves on 2017/3/29.
  */
 
-public class WifiDirectionPresenter implements WifiDirectionContract.Presenter, OnConnectionChangeListener, OnDeviceDetailChangeListener, OnServiceFoundListener {
+public class WifiDirectionPresenter implements WifiDirectionContract.Presenter, OnConnectionChangeListener, OnDeviceDetailChangeListener, OnServiceFoundListener, ErrorHandler {
 
     private final WifiDirectionContract.View mView;
     private WifiDirect mWifiDirect;
@@ -43,6 +44,7 @@ public class WifiDirectionPresenter implements WifiDirectionContract.Presenter, 
         mWifiDirect.setOnConnectionChangeListener(this);
         mWifiDirect.setOnDeviceDetailChangeListener(this);
         mWifiDirect.setOnServiceFoundListener(this);
+        mWifiDirect.setErrorHandler(this);
     }
 
     @Override
@@ -122,7 +124,8 @@ public class WifiDirectionPresenter implements WifiDirectionContract.Presenter, 
             mView.onDeviceFound(response.wifiP2pDevice);
             //时间晚的去连接早的
             if (mLocalTimeStamp > Long.parseLong(response.txtRecordMap.get(Constant.WifiDirect.KEY_TIMESTAMP))) {
-                mWifiDirect.connectTo(device, getGroupIntent(response.txtRecordMap.get(Constant.WifiDirect.KEY_TIMESTAMP)));
+                int groupIntent = getGroupIntent(response.txtRecordMap.get(Constant.WifiDirect.KEY_TIMESTAMP));
+                mWifiDirect.connectTo(device, groupIntent);
             }
         }
     }
@@ -131,9 +134,9 @@ public class WifiDirectionPresenter implements WifiDirectionContract.Presenter, 
         long deviceTimeStamp = Long.parseLong(timeStamp);
         if (mLocalTimeStamp > deviceTimeStamp) {
             //本地的比找到的这台手机慢
-            return 6;
+            return 1;
         } else {
-            return 8;
+            return 14;
         }
     }
 
@@ -147,5 +150,10 @@ public class WifiDirectionPresenter implements WifiDirectionContract.Presenter, 
             }
         }
         return false;
+    }
+
+    @Override
+    public void error(int reason) {
+        mView.showToast("连接失败");
     }
 }

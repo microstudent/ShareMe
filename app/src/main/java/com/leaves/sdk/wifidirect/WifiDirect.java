@@ -15,6 +15,9 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v7.app.AppCompatActivity;
 import android.widget.Toast;
+
+import com.leaves.app.shareme.presenter.WifiDirectionPresenter;
+import com.leaves.sdk.wifidirect.listener.ErrorHandler;
 import com.leaves.sdk.wifidirect.listener.LifecycleListener;
 import com.leaves.sdk.wifidirect.listener.OnConnectionChangeListener;
 import com.leaves.sdk.wifidirect.listener.OnDeviceDetailChangeListener;
@@ -63,6 +66,8 @@ public class WifiDirect implements IWifiDirect, WifiDirectReceiver.OnWifiDirectS
     private WifiP2pDevice mThisDevice;
 
     private OnDeviceDetailChangeListener mOnDeviceDetailChangeListener;
+
+    private ErrorHandler mErrorHandler;
 
 
     private WifiDirect(AppCompatActivity rootActivity, String instanceName, String serviceName) {
@@ -129,7 +134,9 @@ public class WifiDirect implements IWifiDirect, WifiDirectReceiver.OnWifiDirectS
         }, new Consumer<Throwable>() {
             @Override
             public void accept(Throwable throwable) throws Exception {
-//                showToast(throwable.toString());
+                if (mErrorHandler != null) {
+                    mErrorHandler.error(0);
+                }
             }
         });
         mDiscoverSubject.onNext(0);
@@ -200,7 +207,9 @@ public class WifiDirect implements IWifiDirect, WifiDirectReceiver.OnWifiDirectS
 
                 @Override
                 public void onFailure(int reason) {
-//                    showToast("onConnectFail,reason:" + reason);
+                    if (mErrorHandler != null) {
+                        mErrorHandler.error(reason);
+                    }
                 }
             });
         }
@@ -323,6 +332,10 @@ public class WifiDirect implements IWifiDirect, WifiDirectReceiver.OnWifiDirectS
         if (mDnsSdServiceResponseHandler != null) {
             mDnsSdServiceResponseHandler.setOnServiceFoundListener(mOnServiceFoundListener);
         }
+    }
+
+    public void setErrorHandler(ErrorHandler errorHandler) {
+        mErrorHandler = errorHandler;
     }
 
     private class DnsSdServiceResponseHandler implements WifiP2pManager.DnsSdServiceResponseListener, WifiP2pManager.DnsSdTxtRecordListener {
