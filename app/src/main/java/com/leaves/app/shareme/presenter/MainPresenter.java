@@ -14,6 +14,10 @@ import com.leaves.app.shareme.service.MusicServerService;
 import java.util.ArrayList;
 import java.util.Collections;
 
+import static com.leaves.app.shareme.Constant.ROLE_CLIENT;
+import static com.leaves.app.shareme.Constant.ROLE_SERVER;
+import static com.leaves.app.shareme.Constant.ROLE_UNDEFINED;
+
 /**
  * Created by Leaves on 2017/4/19.
  */
@@ -27,7 +31,7 @@ public class MainPresenter implements MainActivityContract.Presenter, WifiDirect
     private MainActivityContract.View mView;
     private int mMode = MODE_STARTUP;
     private boolean isServiceStarted;
-    private boolean isServer;
+    private int mRole = ROLE_UNDEFINED;
 
     public MainPresenter(MainActivityContract.View view, FragmentManager manager, Context context) {
         mWifiDirectionPresenter = new WifiDirectionPresenter(this, manager, context);
@@ -58,7 +62,7 @@ public class MainPresenter implements MainActivityContract.Presenter, WifiDirect
     @Override
     public void startAsServer() {
         mMode = MODE_CONNECTED;
-        isServer = true;
+        mRole = ROLE_SERVER;
         mView.setupFragment(mMode);
         if (!isServiceStarted) {
             Intent intent = new Intent(mContext, MusicServerService.class);
@@ -70,7 +74,7 @@ public class MainPresenter implements MainActivityContract.Presenter, WifiDirect
     @Override
     public void startAsClient(String serverIp) {
         mMode = MODE_CONNECTED;
-        isServer = false;
+        mRole = ROLE_CLIENT;
         mView.setupFragment(mMode);
         if (!isServiceStarted) {
             Intent intent = new Intent(mContext, MusicClientService.class);
@@ -83,7 +87,7 @@ public class MainPresenter implements MainActivityContract.Presenter, WifiDirect
     @Override
     public void startAsUndefined() {
         mMode = MODE_STARTUP;
-        isServer = false;
+        mRole = ROLE_UNDEFINED;
         mView.setupFragment(mMode);
     }
 
@@ -101,9 +105,10 @@ public class MainPresenter implements MainActivityContract.Presenter, WifiDirect
     }
 
     @Override
-    public boolean isServer() {
-        return isServer;
+    public int getRole() {
+        return mRole;
     }
+
 
     @Override
     public void cancelSearch() {

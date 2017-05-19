@@ -1,5 +1,6 @@
 package com.leaves.app.shareme.service;
 
+import android.content.Context;
 import android.content.Intent;
 import android.media.AudioFormat;
 import android.media.AudioManager;
@@ -71,6 +72,9 @@ public class MusicClientService extends AbsMusicService implements Runnable, Rts
     private volatile long mPlayTimeToSync;
     private volatile long mPlayingRTPTime;
     private Disposable mPlayDisposable;
+    private AudioManager mAudioManager;
+    private float mLeftF = 1;
+    private float mRightF = 1;
 
     @Override
     public void onCreate() {
@@ -87,6 +91,7 @@ public class MusicClientService extends AbsMusicService implements Runnable, Rts
                         return false;
                     }
                 }).create();
+        mAudioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
         // Configures the SessionBuilder
         init();
     }
@@ -442,6 +447,29 @@ public class MusicClientService extends AbsMusicService implements Runnable, Rts
     }
 
     @Override
+    public int getLeftVolume() {
+        return (int) (mLeftF * 100);
+    }
+
+    @Override
+    public void setVolume(int left, int right) {
+        if (left != -1) {
+            mLeftF = (float) left / 100;
+        }
+        if (right != -1) {
+            mRightF = (float) right / 100;
+        }
+        if (mAudioTrack != null) {
+            mAudioTrack.setStereoVolume(mLeftF, mRightF);
+        }
+    }
+
+    @Override
+    public int getRightVolume() {
+        return (int) (mRightF * 100);
+    }
+
+    @Override
     public void onCompleted(Exception ex) {
         tryConnectToWebSocketServer();
     }
@@ -458,6 +486,7 @@ public class MusicClientService extends AbsMusicService implements Runnable, Rts
         public void pause() {
 
         }
+
 
         @Override
         public void stop() {
@@ -487,6 +516,21 @@ public class MusicClientService extends AbsMusicService implements Runnable, Rts
         @Override
         public boolean isBusy() {
             return false;
+        }
+
+        @Override
+        public int getLeftVolume() {
+            return MusicClientService.this.getLeftVolume();
+        }
+
+        @Override
+        public int getRightVolume() {
+            return MusicClientService.this.getRightVolume();
+        }
+
+        @Override
+        public void setVolume(int left, int right) {
+            MusicClientService.this.setVolume(left, right);
         }
     }
 }

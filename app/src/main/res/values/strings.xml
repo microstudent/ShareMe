@@ -14,4 +14,7 @@
     <string name="label_previous">Previous</string>
     <string name="label_next">Next</string>
     <string name="setting">设置</string>
+    <string name="channel_control">声道管理</string>
+    <string name="left_channel">左声道</string>
+    <string name="right_channel">右声道</string>
 </resources>

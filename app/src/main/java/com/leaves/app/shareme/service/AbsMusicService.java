@@ -165,4 +165,10 @@ public abstract class AbsMusicService extends Service {
         }
         mCompositeDisposable.dispose();
     }
+
+    public abstract int getLeftVolume();
+
+    public abstract int getRightVolume();
+
+    public abstract void setVolume(int left, int right);
 }

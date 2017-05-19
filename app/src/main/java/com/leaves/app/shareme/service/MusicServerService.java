@@ -8,6 +8,7 @@ import android.os.Looper;
 import android.os.PowerManager;
 import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
+import android.text.TextUtils;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -76,6 +77,8 @@ public class MusicServerService extends AbsMusicService implements WebSocket.Str
     private int mPlayMediaIndex = -1;
     private Disposable mSyncDisposable;
     private boolean isBusy;
+    private float mLeftF = 1;
+    private float mRightF = 1;
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
@@ -96,7 +99,12 @@ public class MusicServerService extends AbsMusicService implements WebSocket.Str
         mAsyncHttpServer.addAction(AsyncHttpGet.METHOD, "/cover", new HttpServerRequestCallback() {
             @Override
             public void onRequest(AsyncHttpServerRequest request, AsyncHttpServerResponse response) {
-                response.sendFile(new File(mMedia.getImage()));
+                if (!TextUtils.isEmpty(mMedia.getImage())) {
+                    File file = new File(mMedia.getImage());
+                    if (file.exists()) {
+                        response.sendFile(file);
+                    }
+                }
             }
         });
         mAsyncHttpServer.listen(Constant.WebSocket.PORT);
@@ -413,6 +421,29 @@ public class MusicServerService extends AbsMusicService implements WebSocket.Str
     }
 
     @Override
+    public int getLeftVolume() {
+        return (int) (mLeftF * 100);
+    }
+
+    @Override
+    public int getRightVolume() {
+        return (int) (mRightF * 100);
+    }
+
+    @Override
+    public void setVolume(int left, int right) {
+        if (left != -1) {
+            mLeftF = (float) left / 100;
+        }
+        if (right != -1) {
+            mRightF = (float) right / 100;
+        }
+        if (mAudioPlayer != null) {
+            mAudioPlayer.setVolume(mLeftF, mRightF);
+        }
+    }
+
+    @Override
     public void setData(List<Media> medias) {
         mAudioList = medias;
     }
@@ -463,6 +494,21 @@ public class MusicServerService extends AbsMusicService implements WebSocket.Str
         @Override
         public boolean isBusy() {
             return isBusy;
+        }
+
+        @Override
+        public int getLeftVolume() {
+            return MusicServerService.this.getLeftVolume();
+        }
+
+        @Override
+        public int getRightVolume() {
+            return MusicServerService.this.getRightVolume();
+        }
+
+        @Override
+        public void setVolume(int left, int right) {
+            MusicServerService.this.setVolume(left,right);
         }
     }
 }

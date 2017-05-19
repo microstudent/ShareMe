@@ -22,7 +22,7 @@ public interface MainActivityContract {
     interface Presenter extends BasePresenter {
         void onDialpadClick(int position, String number);
 
-        boolean isServer();
+        int getRole();
 
         void cancelSearch();
 

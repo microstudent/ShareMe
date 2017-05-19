@@ -26,4 +26,10 @@ public abstract class AbsMusicServiceBinder extends Binder{
     public abstract void setMusicPlayerListener(MusicPlayerListener musicPlayerListener);
 
     public abstract boolean isBusy();
+
+    public abstract int getLeftVolume();
+
+    public abstract int getRightVolume();
+
+    public abstract void setVolume(int left, int right);
 }

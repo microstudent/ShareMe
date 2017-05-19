@@ -45,4 +45,6 @@ dependencies {
     testCompile 'junit:junit:4.12'
     annotationProcessor 'com.jakewharton:butterknife-compiler:8.4.0'
     compile 'com.android.support.constraint:constraint-layout:1.0.2'
+    compile 'com.xw.repo:bubbleseekbar:3.4-lite'
+    compile 'de.hdodenhof:circleimageview:2.1.0'
 }

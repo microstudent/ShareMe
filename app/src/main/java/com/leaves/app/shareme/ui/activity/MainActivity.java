@@ -27,6 +27,7 @@ import jp.wasabeef.blurry.Blurry;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.RequestListener;
 import com.bumptech.glide.request.target.Target;
+import com.leaves.app.shareme.Constant;
 import com.leaves.app.shareme.R;
 import com.leaves.app.shareme.bean.Media;
 import com.leaves.app.shareme.contract.MainActivityContract;
@@ -40,6 +41,7 @@ import com.leaves.app.shareme.ui.fragment.MusicFragment;
 import com.leaves.app.shareme.ui.fragment.PasswordFragment;
 import com.leaves.app.shareme.ui.widget.dialpad.listener.OnNumberClickListener;
 import com.tbruyelle.rxpermissions2.RxPermissions;
+
 
 
 public class MainActivity extends AppCompatActivity implements
@@ -157,7 +159,7 @@ public class MainActivity extends AppCompatActivity implements
                     mPresenter.cancelSearch();
                     break;
                 case MainPresenter.MODE_CONNECTED:
-                    mMusicFragment = MusicFragment.newInstance(mPresenter.isServer());
+                    mMusicFragment = MusicFragment.newInstance(mPresenter.getRole() == Constant.ROLE_SERVER);
                     mFragmentManager.beginTransaction()
                             .replace(R.id.container_main, mMusicFragment, MusicFragment.TAG)
                             .commit();
@@ -249,6 +251,7 @@ public class MainActivity extends AppCompatActivity implements
                 return true;
             case R.id.action_setting:
                 Intent intent = new Intent(this, SettingActivity.class);
+                intent.putExtra(Constant.TAG_ROLE_TYPE, mPresenter.getRole());
                 startActivity(intent);
                 return true;
         }
@@ -271,7 +274,7 @@ public class MainActivity extends AppCompatActivity implements
         if (id == R.id.bt_list) {
             if (mMusicFragment != null && mMusicFragment.isConnectionAlive()) {
                 if (mAudioListFragment == null) {
-                    mAudioListFragment = AudioListFragment.newInstance(mPresenter.isServer());
+                    mAudioListFragment = AudioListFragment.newInstance(mPresenter.getRole() == Constant.ROLE_SERVER);
                 }
                 switchFragment(AudioListFragment.TAG, mAudioListFragment, AudioListFragment.TAG, 0, false);
             } else {

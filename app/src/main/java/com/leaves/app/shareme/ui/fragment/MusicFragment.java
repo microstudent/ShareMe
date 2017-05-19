@@ -117,6 +117,9 @@ public class MusicFragment extends Fragment implements MusicPlayerListener{
 
     private void bindServer() {
         if (getActivity() != null) {
+            if (mBinder != null) {
+                getActivity().unbindService(mConnection);
+            }
             if (isServer) {
                 Intent intent = new Intent(getContext(), MusicServerService.class);
                 getActivity().bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
@@ -140,11 +143,11 @@ public class MusicFragment extends Fragment implements MusicPlayerListener{
 
     private void setupView() {
         if (mMedia == null) {
-            Glide.with(this).load(R.drawable.bg_piano).asBitmap().
+            Glide.with(this).load(R.drawable.ic_music).asBitmap().
                     transform(new GlideCircleTransform(getContext())).into(mCoverView);
         } else {
             if (!TextUtils.isEmpty(mMedia.getImage())) {
-                Glide.with(this).load(mMedia.getImage()).skipMemoryCache(true).diskCacheStrategy(DiskCacheStrategy.NONE).error(R.drawable.bg_piano).
+                Glide.with(this).load(mMedia.getImage()).skipMemoryCache(true).diskCacheStrategy(DiskCacheStrategy.NONE).error(R.drawable.ic_music).
                         transform(new GlideCircleTransform(getContext())).into(mCoverView);
             }
             mTitleView.setText(mMedia.getTitle());
