@@ -30,7 +30,6 @@ public class RtpReceiveSocket implements Runnable{
 
     private final byte[][] mBuffers;
 
-    private SenderReport mReport;
     private volatile int mSeq = 0;
     private int mBufferCount ,mBufferIn, mBufferOut;
     private DatagramPacket[] mPackets;
@@ -45,7 +44,6 @@ public class RtpReceiveSocket implements Runnable{
         mBufferCount = 300;
         mBuffers = new byte[mBufferCount][];
         mPackets = new DatagramPacket[mBufferCount];
-        mReport = new SenderReport();
 
         mSortBuffers = new SparseArray<>();
 
@@ -122,7 +120,6 @@ public class RtpReceiveSocket implements Runnable{
 
 
     public void reset() {
-        mReport.reset();
         mBufferRequested = new Semaphore(mBufferCount);
         mBufferIn = mBufferOut = 0;
         mSeq = 0;

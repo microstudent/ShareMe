@@ -537,7 +537,6 @@ public class RtspServer extends Service {
                             ";mode=play\r\n" +
                             "Session: " + "1185d20035702ca" + "\r\n" +
                             "Cache-Control: no-cache\r\n";
-                    response.status = Response.STATUS_OK;
 
                     // If no exception has been thrown, we reply with OK
                     response.status = Response.STATUS_OK;

@@ -5,7 +5,6 @@ import android.media.AudioFormat;
 import android.media.AudioManager;
 import android.media.AudioTrack;
 import android.os.IBinder;
-import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.Log;
 import android.widget.Toast;
@@ -63,7 +62,7 @@ public class MusicClientService extends AbsMusicService implements Runnable, Rts
     private WebSocket mConnectedWebSocket;
     private Gson mGson;
     private Thread mPlayThread;
-    private long mDelay;
+    private long mPlayDelay;
     private boolean needSync = true;
     private MusicPlayerListener mMusicPlayerListener;
     private long mInitDelay = -1;//服务器端与本地的ntp时间初始差距
@@ -227,7 +226,7 @@ public class MusicClientService extends AbsMusicService implements Runnable, Rts
         if (mFrameQueue != null) {
             mFrameQueue.clear();
         }
-        mDelay = 0;
+        mPlayDelay = 0;
         mInitDelay = -1;
         init();
         mClient.setServerAddress(mServerIp, 7236);
@@ -315,13 +314,13 @@ public class MusicClientService extends AbsMusicService implements Runnable, Rts
         if (playTime > 0) {
             if (mInitDelay == -1) {
                 mInitDelay =  System.currentTimeMillis() - ntpTime - 100;
-                mDelay = getCurrentPosition() - playTime - 100;//100ms是对传输耗时的假设判断
+                mPlayDelay = getCurrentPosition() - playTime - 100;//100ms是对传输耗时的假设判断
             } else {
-                mDelay = getCurrentPosition() - (playTime + (System.currentTimeMillis() - mInitDelay - ntpTime));
+                mPlayDelay = getCurrentPosition() - (playTime + (System.currentTimeMillis() - mInitDelay - ntpTime));
             }
             mPlayTimeToSync = playTime + (System.currentTimeMillis() - mInitDelay - ntpTime);
 
-            if (Math.abs(mDelay) > MAX_SYNC_DELAY) {
+            if (Math.abs(mPlayDelay) > MAX_SYNC_DELAY) {
                 needSync = true;
             }
         }
@@ -414,16 +413,16 @@ public class MusicClientService extends AbsMusicService implements Runnable, Rts
 
     private void doSyncIfNeeded() {
         if (needSync) {
-            if (mDelay > 0) {
+            if (mPlayDelay > 0) {
                 //播放进度比服务端快，沉睡一段时间以同步
                 try {
-                    Log.w(TAG, "sleep " + mDelay + " millsec for sync");
-                    Thread.sleep(mDelay);
+                    Log.w(TAG, "sleep " + mPlayDelay + " millsec for sync");
+                    Thread.sleep(mPlayDelay);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
-            } else if (mDelay < 0) {
-                Log.w(TAG, "skipping " + mDelay + " millsec for sync");
+            } else if (mPlayDelay < 0) {
+                Log.w(TAG, "skipping " + mPlayDelay + " millsec for sync");
                 //播放速度比服务器慢，要快进
                 Frame frame;
                 while (true) {
@@ -437,8 +436,8 @@ public class MusicClientService extends AbsMusicService implements Runnable, Rts
                     }
                 }
             }
-            needSync = Math.abs(mDelay) > MAX_SYNC_DELAY;
-            mDelay = 0;
+            needSync = Math.abs(mPlayDelay) > MAX_SYNC_DELAY;
+            mPlayDelay = 0;
         }
     }
 
