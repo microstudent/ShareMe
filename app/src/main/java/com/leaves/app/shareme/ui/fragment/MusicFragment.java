@@ -197,6 +197,7 @@ public class MusicFragment extends Fragment implements MusicPlayerListener{
         if (mCompositeDisposable != null) {
             mCompositeDisposable.dispose();
         }
+        getActivity().unbindService(mConnection);
     }
 
 
@@ -226,4 +227,5 @@ public class MusicFragment extends Fragment implements MusicPlayerListener{
                     }
                 }));
     }
+
 }
