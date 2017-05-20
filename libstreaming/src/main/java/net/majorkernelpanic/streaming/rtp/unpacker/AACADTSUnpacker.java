@@ -93,7 +93,8 @@ public class AACADTSUnpacker extends AbstractUnpacker implements Runnable {
                             addADTStoPacket(mADTSHeader, AUSize + 7);
                             inputBuffer.put(mADTSHeader);
                             inputBuffer.put(rtpPacket, rtphl + 4, AUSize);
-                            mDecoder.queueInputBuffer(inputIndex, 0, AUSize + 7, seq, 0);
+                            mDecoder.queueInputBuffer(inputIndex, 0, AUSize + 7, timeStamp, 0);
+                            Log.d(TAG, "timeStamp = " + timeStamp);
                         }
                     } else {
                         Log.v(TAG, "No buffer available...");

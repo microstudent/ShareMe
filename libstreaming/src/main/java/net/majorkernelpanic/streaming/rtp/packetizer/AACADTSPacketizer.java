@@ -22,6 +22,7 @@ import java.io.IOException;
 
 import net.majorkernelpanic.streaming.ByteUtils;
 import net.majorkernelpanic.streaming.PlaytimeProvider;
+import net.majorkernelpanic.streaming.audio.AACCodecInputStream;
 import net.majorkernelpanic.streaming.audio.AACStream;
 import net.majorkernelpanic.streaming.rtp.packetizer.AbstractPacketizer;
 
@@ -125,7 +126,8 @@ public class AACADTSPacketizer extends AbstractPacketizer implements Runnable {
 				profile = ( (header[2]&0xC0) >> 6 ) + 1 ;
 
 				// We update the RTP timestamp
-				ts +=  1000000000L/samplingRate; //stats.average();nanotime
+//				ts +=  1000000000L/samplingRate; //stats.average();nanotime
+				ts = ((AACCodecInputStream) is).getReadingTime();
 
 				//Log.d(TAG,"frameLength: "+frameLength+" protection: "+protection+" p: "+profile+" sr: "+samplingRate);
 

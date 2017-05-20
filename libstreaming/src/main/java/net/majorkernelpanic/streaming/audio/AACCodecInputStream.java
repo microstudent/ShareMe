@@ -155,4 +155,11 @@ public class AACCodecInputStream extends MediaCodecInputStream{
         packet[5] = (byte) (((packetLen & 7) << 5) + 0x1F);
         packet[6] = (byte) 0xFC;
     }
+
+    public long getReadingTime() {
+        if (mBufferInfo != null) {
+            return mBufferInfo.presentationTimeUs;
+        }
+        return 0;
+    }
 }

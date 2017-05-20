@@ -84,7 +84,7 @@ public class Mp3Wrapper {
 
 
     public long getCurrentTime() {
-        return mMediaExtractor.getSampleTime();
+        return mDecodeBufferInfo.presentationTimeUs;
     }
 
     /**

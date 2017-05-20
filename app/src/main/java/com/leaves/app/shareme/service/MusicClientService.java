@@ -289,6 +289,7 @@ public class MusicClientService extends AbsMusicService implements Runnable, Rts
     public void onRtspUpdate(int message, Exception exception) {
         if (exception != null) {
             Toast.makeText(this, "RTSP无法连接至服务器，请重试！", Toast.LENGTH_SHORT).show();
+            exception.printStackTrace();
             //通知websocket服务器
 //            if (mConnectedWebSocket != null) {
 //                mConnectedWebSocket.send("");
@@ -317,8 +318,8 @@ public class MusicClientService extends AbsMusicService implements Runnable, Rts
 
         if (playTime > 0) {
             if (mInitDelay == -1) {
-                mInitDelay =  System.currentTimeMillis() - ntpTime - 160;
-                mPlayDelay = getCurrentPosition() - playTime - 160;//100ms是对传输耗时的假设判断
+                mInitDelay =  System.currentTimeMillis() - ntpTime - 100;
+                mPlayDelay = getCurrentPosition() - playTime - 100;//100ms是对传输耗时的假设判断
             } else {
                 mPlayDelay = getCurrentPosition() - (playTime + (System.currentTimeMillis() - mInitDelay - ntpTime));
             }
@@ -333,7 +334,7 @@ public class MusicClientService extends AbsMusicService implements Runnable, Rts
 
 
     private long getCurrentPosition() {
-        return getFramePlayTime(mPlayingRTPTime);
+        return mPlayingRTPTime / 1000;
 //        return (long) ((double) mByteHasWrite / mBytePerSecond * 1000L);
     }
 
@@ -410,8 +411,9 @@ public class MusicClientService extends AbsMusicService implements Runnable, Rts
 //            mInitRtpTime = rtpTime;
 //            return 0;
 //        } else {
-        long duration = rtpTime;
-        return (long) (mMsPerAACFrame * duration);
+        return rtpTime / 1000;
+//        long duration = rtpTime;
+//        return (long) (mMsPerAACFrame * duration);
 //        }
     }
 
@@ -426,7 +428,7 @@ public class MusicClientService extends AbsMusicService implements Runnable, Rts
                     e.printStackTrace();
                 }
             } else if (mPlayDelay < 0) {
-                Log.w(TAG, "skipping " + mPlayDelay + " millsec for sync");
+                Log.w(TAG, "skipping " + mPlayDelay + " millsec for sync, mPlayTimeToSync- current = " + (mPlayTimeToSync - System.currentTimeMillis()) + ", mDelay" + mPlayDelay);
                 //播放速度比服务器慢，要快进
                 Frame frame;
                 while (true) {

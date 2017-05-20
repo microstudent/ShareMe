@@ -43,7 +43,7 @@ abstract public class AbstractPacketizer {
 
 	public AbstractPacketizer() {
 		int ssrc = new Random().nextInt();
-		ts = new Random().nextInt();
+//		ts = new Random().nextInt();
 		socket = new RtpSocket();
 		socket.setSSRC(ssrc);
 		socket.setInitTs(ts);
