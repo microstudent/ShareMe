@@ -428,7 +428,7 @@ public class MusicClientService extends AbsMusicService implements Runnable, Rts
                     e.printStackTrace();
                 }
             } else if (mPlayDelay < 0) {
-                Log.w(TAG, "skipping " + mPlayDelay + " millsec for sync, mPlayTimeToSync- current = " + (mPlayTimeToSync - System.currentTimeMillis()) + ", mDelay" + mPlayDelay);
+                Log.w(TAG, "skipping " + mPlayDelay + " millsec for sync");
                 //播放速度比服务器慢，要快进
                 Frame frame;
                 while (true) {
