@@ -72,7 +72,6 @@ public class MusicClientService extends AbsMusicService implements Runnable, Rts
     private volatile long mPlayTimeToSync;
     private volatile long mPlayingRTPTime;
     private Disposable mPlayDisposable;
-    private AudioManager mAudioManager;
     private float mLeftF = 1;
     private float mRightF = 1;
 
@@ -91,7 +90,6 @@ public class MusicClientService extends AbsMusicService implements Runnable, Rts
                         return false;
                     }
                 }).create();
-        mAudioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
         // Configures the SessionBuilder
         init();
     }
@@ -319,8 +317,8 @@ public class MusicClientService extends AbsMusicService implements Runnable, Rts
 
         if (playTime > 0) {
             if (mInitDelay == -1) {
-                mInitDelay =  System.currentTimeMillis() - ntpTime - 100;
-                mPlayDelay = getCurrentPosition() - playTime - 100;//100ms是对传输耗时的假设判断
+                mInitDelay =  System.currentTimeMillis() - ntpTime - 160;
+                mPlayDelay = getCurrentPosition() - playTime - 160;//100ms是对传输耗时的假设判断
             } else {
                 mPlayDelay = getCurrentPosition() - (playTime + (System.currentTimeMillis() - mInitDelay - ntpTime));
             }
@@ -383,7 +381,7 @@ public class MusicClientService extends AbsMusicService implements Runnable, Rts
 
     @Override
     public void run() {
-        while (!mPlayThread.isInterrupted()) {
+        while (!Thread.interrupted()) {
             if (mAudioTrack != null && mAudioTrack.getPlayState() == AudioTrack.PLAYSTATE_PLAYING) {
                 doSyncIfNeeded();
                 Frame frame = mFrameQueue.poll();
