@@ -318,12 +318,12 @@ public class MusicClientService extends AbsMusicService implements Runnable, Rts
 
         if (playTime > 0) {
             if (mInitDelay == -1) {
-                mInitDelay =  System.currentTimeMillis() - ntpTime - 100;
-                mPlayDelay = getCurrentPosition() - playTime - 100;//100ms是对传输耗时的假设判断
+                mInitDelay =  System.currentTimeMillis() - ntpTime - 140;
+                mPlayDelay = getCurrentPosition() - playTime - 140;//100ms是对传输耗时的假设判断
             } else {
                 mPlayDelay = getCurrentPosition() - (playTime + (System.currentTimeMillis() - mInitDelay - ntpTime));
+                mPlayTimeToSync = playTime + (System.currentTimeMillis() - mInitDelay - ntpTime);
             }
-            mPlayTimeToSync = playTime + (System.currentTimeMillis() - mInitDelay - ntpTime);
 
             if (Math.abs(mPlayDelay) > MAX_SYNC_DELAY) {
                 needSync = true;

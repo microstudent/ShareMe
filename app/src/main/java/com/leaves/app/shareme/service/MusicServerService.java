@@ -240,6 +240,7 @@ public class MusicServerService extends AbsMusicService implements WebSocket.Str
     private void resetMediaPlayer() {
         mAudioPlayer.pause();
         mAudioPlayer.reset();
+        isPrepared = false;
     }
 
     protected void pause() {

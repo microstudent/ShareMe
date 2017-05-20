@@ -97,12 +97,14 @@ public class AudioListPresenter implements AudioListContract.Presenter, RealmCha
                 MediaStore.Audio.Albums._ID + "=?",
                 new String[]{String.valueOf(albumId)},
                 null);
-        if (cursor != null && cursor.moveToFirst()) {
-            String path = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Albums.ALBUM_ART));
+        String path = null;
+        if (cursor != null) {
+            if (cursor.moveToFirst()) {
+                path = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Albums.ALBUM_ART));
+            }
             cursor.close();
-            return path;
         }
-        return null;
+        return path;
     }
 
     public void onDestroy() {
