@@ -265,12 +265,13 @@ public class MusicClientService extends AbsMusicService implements Runnable, Rts
     }
 
     private void setConfig(InputStream.Config config) {
+        int minBufferSize = AudioTrack.getMinBufferSize(config.sampleRate, AudioFormat.CHANNEL_OUT_STEREO, AudioFormat.ENCODING_PCM_16BIT);
         mAudioTrack = new AudioTrack(
                 AudioManager.STREAM_MUSIC,
                 config.sampleRate,
                 AudioFormat.CHANNEL_OUT_STEREO,
                 AudioFormat.ENCODING_PCM_16BIT,
-                1300,
+                minBufferSize,
                 AudioTrack.MODE_STREAM
         );
         mPlayDisposable = Observable.just(mAudioTrack)

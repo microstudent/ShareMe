@@ -116,9 +116,9 @@ public class MusicFragment extends Fragment implements MusicPlayerListener{
     }
 
     private void bindServer() {
-        if (getActivity() != null && mBinder != null) {
+        if (getActivity() != null && mBinder == null) {
             if (isServer) {
-                Intent intent = new Intent(getContext(), MusicServerService.class);
+                Intent intent = new Intent(getContext( ), MusicServerService.class);
                 getActivity().bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
             } else {
                 Intent intent = new Intent(getContext(), MusicClientService.class);
@@ -179,7 +179,7 @@ public class MusicFragment extends Fragment implements MusicPlayerListener{
 
     @OnClick(R.id.bt_next)
     public void onNextClick() {
-        if (mBinder.isBusy()) {
+        if (mBinder == null || mBinder.isBusy()) {
             Toast.makeText(getContext(), "播放器正忙,请稍后重试", Toast.LENGTH_SHORT).show();
             return;
         }
@@ -188,7 +188,7 @@ public class MusicFragment extends Fragment implements MusicPlayerListener{
 
 
     public boolean isConnectionAlive() {
-        return mBinder.isConnectionAlive();
+        return mBinder != null && mBinder.isConnectionAlive();
     }
 
     @Override
