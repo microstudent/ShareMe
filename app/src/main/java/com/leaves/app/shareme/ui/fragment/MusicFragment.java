@@ -116,10 +116,7 @@ public class MusicFragment extends Fragment implements MusicPlayerListener{
     }
 
     private void bindServer() {
-        if (getActivity() != null) {
-            if (mBinder != null) {
-                getActivity().unbindService(mConnection);
-            }
+        if (getActivity() != null && mBinder != null) {
             if (isServer) {
                 Intent intent = new Intent(getContext(), MusicServerService.class);
                 getActivity().bindService(intent, mConnection, Context.BIND_AUTO_CREATE);

@@ -20,6 +20,8 @@ import com.google.gson.ExclusionStrategy;
 import com.google.gson.FieldAttributes;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import com.koushikdutta.async.http.AsyncHttpGet;
 import com.koushikdutta.async.http.WebSocket;
 import com.koushikdutta.async.http.server.AsyncHttpServer;
@@ -30,6 +32,7 @@ import com.leaves.app.shareme.Constant;
 import com.leaves.app.shareme.bean.Message;
 import com.leaves.app.shareme.bean.Media;
 import com.leaves.app.shareme.contract.AudioListContract;
+import com.leaves.app.shareme.gson.GsonUtils;
 import com.leaves.app.shareme.presenter.AudioListPresenter;
 import com.leaves.app.shareme.ui.activity.MainActivity;
 
@@ -185,7 +188,37 @@ public class MusicServerService extends AbsMusicService implements WebSocket.Str
 
     @Override
     public void onStringAvailable(String s) {
-
+        JsonObject object = mGson.fromJson(s, JsonObject.class);
+        JsonElement type = object.get("type");
+        if (type != null) {
+            switch (type.getAsInt()) {
+                case Message.TYPE_MEDIA:
+                    //服务器端不接收此类消息
+                    break;
+                case Message.TYPE_PAUSE:
+                    pause();
+                    break;
+                case Message.TYPE_RESUME:
+                    play(mMedia, false);
+                    break;
+                case Message.TYPE_SYNC:
+                    //服务器端不接受此类消息
+                    break;
+                case Message.TYPE_LIST:
+                    //服务器端不接受此类消息
+                    break;
+                case Message.TYPE_NEXT:
+                    moveToNext();
+                    break;
+                case Message.TYPE_PREV:
+                    moveToPrev();
+                    break;
+                case Message.TYPE_PLAY:
+                    Message<Media> mediaMessage = GsonUtils.fromJsonObject(mGson, s, Media.class);
+                    play(mediaMessage.getObject(), true);
+                    break;
+            }
+        }
     }
 
     @Override
@@ -213,9 +246,6 @@ public class MusicServerService extends AbsMusicService implements WebSocket.Str
         super.pause();
         if (mAudioPlayer != null && mAudioPlayer.isPlaying()) {
             mAudioPlayer.pause();
-        }
-        if (mConnectedWebSocket != null) {
-            mConnectedWebSocket.send(mGson.toJson(new Message<>(Message.TYPE_PAUSE, null)));
         }
         if (mMusicPlayerListener != null) {
             mMusicPlayerListener.onMusicPause();
@@ -382,16 +412,22 @@ public class MusicServerService extends AbsMusicService implements WebSocket.Str
         return mBinder;
     }
 
-    private void moveToNext() {
+    @Override
+    public void moveToNext() {
         if (isBusy || mPlayMediaIndex == -1) {
             return;
         }
         if (mPlayMediaIndex >= 0 && mAudioList != null && mPlayMediaIndex < mAudioList.size()) {
-            play(mAudioList.get(mPlayMediaIndex + 1 % mAudioList.size()), true);
+            if (mAudioList.size() == 1) {
+                play(mAudioList.get(0), true);
+            } else {
+                play(mAudioList.get(mPlayMediaIndex + 1 % (mAudioList.size() - 1)), true);
+            }
         }
     }
 
-    private void moveToPrev() {
+    @Override
+    public void moveToPrev() {
         if (isBusy || mPlayMediaIndex == -1) {
             return;
         }
@@ -464,6 +500,9 @@ public class MusicServerService extends AbsMusicService implements WebSocket.Str
         @Override
         public void pause() {
             MusicServerService.this.pause();
+            if (mConnectedWebSocket != null) {
+                mConnectedWebSocket.send(mGson.toJson(new Message<>(Message.TYPE_PAUSE, null)));
+            }
         }
 
         @Override

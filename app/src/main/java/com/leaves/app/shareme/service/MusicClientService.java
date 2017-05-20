@@ -465,12 +465,23 @@ public class MusicClientService extends AbsMusicService implements Runnable, Rts
     }
 
     @Override
+    public void moveToPrev() {
+
+    }
+
+    @Override
+    public void moveToNext() {
+
+    }
+
+    @Override
     public int getRightVolume() {
         return (int) (mRightF * 100);
     }
 
     @Override
     public void onCompleted(Exception ex) {
+        mConnectedWebSocket = null;
         tryConnectToWebSocketServer();
     }
 
@@ -480,11 +491,24 @@ public class MusicClientService extends AbsMusicService implements Runnable, Rts
         @Override
         public void play(Media media, boolean invalidate) {
             MusicClientService.this.play(media, invalidate);
+            if (mConnectedWebSocket != null) {
+                Message<Media> msg;
+                if (invalidate) {
+                    msg = new Message<>(Message.TYPE_PLAY, media);
+                } else {
+                    msg = new Message<>(Message.TYPE_RESUME, media);
+                }
+                mConnectedWebSocket.send(mGson.toJson(msg));
+            }
         }
 
         @Override
         public void pause() {
-
+            MusicClientService.this.pause();
+            if (mConnectedWebSocket != null) {
+                Message<Object> pause = new Message<>(Message.TYPE_PAUSE, null);
+                mConnectedWebSocket.send(mGson.toJson(pause));
+            }
         }
 
 
@@ -500,12 +524,20 @@ public class MusicClientService extends AbsMusicService implements Runnable, Rts
 
         @Override
         public void moveToNext() {
-
+            MusicClientService.this.moveToNext();
+            if (mConnectedWebSocket != null) {
+                Message<Object> next = new Message<>(Message.TYPE_NEXT, null);
+                mConnectedWebSocket.send(mGson.toJson(next));
+            }
         }
 
         @Override
         public void moveToPrev() {
-
+            MusicClientService.this.moveToPrev();
+            if (mConnectedWebSocket != null) {
+                Message<Object> prev = new Message<>(Message.TYPE_PREV, null);
+                mConnectedWebSocket.send(mGson.toJson(prev));
+            }
         }
 
         @Override

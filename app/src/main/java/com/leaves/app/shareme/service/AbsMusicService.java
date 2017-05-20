@@ -171,4 +171,8 @@ public abstract class AbsMusicService extends Service {
     public abstract int getRightVolume();
 
     public abstract void setVolume(int left, int right);
+
+    public abstract void moveToPrev();
+
+    public abstract void moveToNext();
 }

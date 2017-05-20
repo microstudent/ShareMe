@@ -36,7 +36,7 @@
             android:layout_width="@dimen/cover_image_size"
             android:layout_height="@dimen/cover_image_size"
             app:civ_border_color="@color/colorAccent"
-            app:civ_border_width="1dp"
+            app:civ_border_width="2dp"
             />
         <TextView
             android:id="@+id/tv_title"

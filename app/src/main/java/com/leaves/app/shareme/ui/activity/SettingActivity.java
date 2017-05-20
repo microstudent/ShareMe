@@ -131,4 +131,13 @@ public class SettingActivity extends AppCompatActivity {
         }
         return super.onOptionsItemSelected(item);
     }
+
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (mBinder != null) {
+            unbindService(mServiceConnection);
+        }
+    }
 }
