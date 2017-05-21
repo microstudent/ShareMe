@@ -74,7 +74,6 @@ public class MusicClientService extends AbsMusicService implements Runnable, Rts
     private Disposable mPlayDisposable;
     private float mLeftF = 1;
     private float mRightF = 1;
-    private volatile boolean isStopped = false;
 
     @Override
     public void onCreate() {
@@ -219,7 +218,6 @@ public class MusicClientService extends AbsMusicService implements Runnable, Rts
         }
         if (mPlayThread != null) {
             mPlayThread.interrupt();
-            isStopped = true;
         }
         if (mAudioTrack != null) {
             mAudioTrack.flush();
@@ -383,7 +381,7 @@ public class MusicClientService extends AbsMusicService implements Runnable, Rts
 
     @Override
     public void run() {
-        while (!Thread.interrupted() && !isStopped) {
+        while (!Thread.interrupted()) {
             if (mAudioTrack != null && mAudioTrack.getPlayState() == AudioTrack.PLAYSTATE_PLAYING) {
                 doSyncIfNeeded();
                 Frame frame = mFrameQueue.poll();
@@ -398,7 +396,6 @@ public class MusicClientService extends AbsMusicService implements Runnable, Rts
                 }
             }
         }
-        isStopped = false;
     }
 
     private long getFramePlayTime(Frame frame) {
@@ -493,7 +490,6 @@ public class MusicClientService extends AbsMusicService implements Runnable, Rts
 
         @Override
         public void play(Media media, boolean invalidate) {
-            MusicClientService.this.play(media, invalidate);
             if (mConnectedWebSocket != null) {
                 Message<Media> msg;
                 if (invalidate) {

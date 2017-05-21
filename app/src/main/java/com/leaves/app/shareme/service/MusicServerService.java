@@ -15,6 +15,7 @@ import android.widget.Toast;
 
 import com.devbrackets.android.exomedia.AudioPlayer;
 import com.devbrackets.android.exomedia.listener.OnCompletionListener;
+import com.devbrackets.android.exomedia.listener.OnPreparedListener;
 import com.devbrackets.android.exomedia.util.DeviceUtil;
 import com.google.gson.ExclusionStrategy;
 import com.google.gson.FieldAttributes;
@@ -60,7 +61,7 @@ import io.realm.RealmObject;
  * Created by Leaves on 2016/11/7.
  */
 
-public class MusicServerService extends AbsMusicService implements WebSocket.StringCallback, PlaytimeProvider, AudioListContract.View, OnCompletionListener {
+public class MusicServerService extends AbsMusicService implements WebSocket.StringCallback, PlaytimeProvider, AudioListContract.View, OnCompletionListener, OnPreparedListener {
     private static final String TAG = "MusicServerService";
     public static final int SYNC_SIGNAL_OFFSET = 500;//同步信号发送的间隔，millsec
     private AudioPlayer mAudioPlayer = null;
@@ -178,6 +179,7 @@ public class MusicServerService extends AbsMusicService implements WebSocket.Str
             mCompositeDisposable = new CompositeDisposable();
         }
         mAudioPlayer = new AudioPlayer(this); // initialize it here
+        mAudioPlayer.setOnPreparedListener(this);
         mAudioPlayer.setWakeMode(getApplicationContext(), PowerManager.PARTIAL_WAKE_LOCK);
         mAudioPlayer.setOnCompletionListener(this);
 //        mAudioPlayer.setOnPreparedListener(this);
@@ -264,25 +266,12 @@ public class MusicServerService extends AbsMusicService implements WebSocket.Str
             }
         }
         if (invalidate) {
+            resetMediaPlayer();
             isBusy = true;
             SessionBuilder.getInstance().setMp3Path(mMedia.getSrc());
             Uri uri = Uri.parse(mMedia.getSrc());
-            mCompositeDisposable.add(Observable.just(uri)
-                    .observeOn(Schedulers.io())
-                    .subscribe(new Consumer<Uri>() {
-                        @Override
-                        public void accept(Uri uri) throws Exception {
-                            resetMediaPlayer();
-                            mAudioPlayer.setDataSource(uri);
-//                            mAudioPlayer.setDataSource(MusicServerService.this, uri);
-                            isPrepared = true;
-                        }
-                    }, new Consumer<Throwable>() {
-                        @Override
-                        public void accept(Throwable throwable) throws Exception {
-                            onMusicPlayError(throwable);
-                        }
-                    }));
+            mAudioPlayer.setDataSource(uri);
+            mAudioPlayer.prepareAsync();
             mCompositeDisposable.add(Observable.just(uri)
                     .observeOn(Schedulers.io())
                     .delay(Constant.DEFAULT_PLAY_TIME_DELAY, TimeUnit.MILLISECONDS)
@@ -422,7 +411,7 @@ public class MusicServerService extends AbsMusicService implements WebSocket.Str
             if (mAudioList.size() == 1) {
                 play(mAudioList.get(0), true);
             } else {
-                play(mAudioList.get(mPlayMediaIndex + 1 % (mAudioList.size() - 1)), true);
+                play(mAudioList.get((mPlayMediaIndex + 1) % (mAudioList.size() - 1)), true);
             }
         }
     }
@@ -489,6 +478,11 @@ public class MusicServerService extends AbsMusicService implements WebSocket.Str
     public void onCompletion() {
         //播放下一首
         moveToNext();
+    }
+
+    @Override
+    public void onPrepared() {
+        isPrepared = true;
     }
 
     public class ServerBinder extends AbsMusicServiceBinder {

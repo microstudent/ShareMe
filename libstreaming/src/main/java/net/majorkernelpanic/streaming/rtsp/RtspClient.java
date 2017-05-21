@@ -584,7 +584,7 @@ public class RtspClient {
 					postMessage(ERROR_CONNECTION_LOST);
 					Log.e(TAG, "Connection lost with the server...");
 					mParameters.session.stop();
-//					mHandler.post(mRetryConnection);
+					mHandler.post(mRetryConnection);
 				}
 			}
 		}
