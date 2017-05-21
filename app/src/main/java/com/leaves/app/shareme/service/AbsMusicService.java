@@ -78,6 +78,9 @@ public abstract class AbsMusicService extends Service {
         mMedia = media;
 
         if (mNotificationManager != null) {
+            if (invalidate) {
+                mNotificationManager.onMediaChanged(media);
+            }
             mNotificationManager.onPlaybackStateChanged(STATE_PLAYING);
             mNotificationManager.startNotification();
         }
