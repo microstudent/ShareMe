@@ -308,7 +308,7 @@ public class MusicClientService extends AbsMusicService implements Runnable, Rts
         frame.setRtpTime(rtpTime);
         frame.setPCMData(data);
         mFrameQueue.add(frame);
-        if (DEBUG) Log.d(TAG, "onPCMDataAvailable" + ",timeStamp = " + rtpTime);;
+        if (DEBUG) Log.d(TAG, "onPCMDataAvailable" + ",timeStamp = " + rtpTime);
     }
 
 
@@ -381,20 +381,24 @@ public class MusicClientService extends AbsMusicService implements Runnable, Rts
 
     @Override
     public void run() {
-        while (!Thread.interrupted()) {
-            if (mAudioTrack != null && mAudioTrack.getPlayState() == AudioTrack.PLAYSTATE_PLAYING) {
-                doSyncIfNeeded();
-                Frame frame = mFrameQueue.poll();
-                if (frame != null && mAudioTrack.getState() == AudioTrack.STATE_INITIALIZED) {
-                    mPlayingRTPTime = frame.getRtpTime();
+        try {
+            while (!Thread.interrupted()) {
+                if (mAudioTrack != null && mAudioTrack.getPlayState() == AudioTrack.PLAYSTATE_PLAYING) {
+                    doSyncIfNeeded();
+                    Frame frame = mFrameQueue.poll();
+                    if (frame != null && mAudioTrack.getState() == AudioTrack.STATE_INITIALIZED) {
+                        mPlayingRTPTime = frame.getRtpTime();
 //                    Log.d(TAG, "getFramePlayTime(frame):" + getFramePlayTime(frame));
 //                    Log.d(TAG, "mPlayingRTPTime:" + mPlayingRTPTime);
 //                playSilentIfNeeded(frame.getRtpTime());
-                    mAudioTrack.write(frame.getPCMData(), 0, frame.getPCMData().length);
-                } else {
-                    needSync = true;
+                        mAudioTrack.write(frame.getPCMData(), 0, frame.getPCMData().length);
+                    } else {
+                        needSync = true;
+                    }
                 }
             }
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
     }
 
@@ -416,16 +420,12 @@ public class MusicClientService extends AbsMusicService implements Runnable, Rts
 //        }
     }
 
-    private void doSyncIfNeeded() {
+    private void doSyncIfNeeded() throws InterruptedException {
         if (needSync) {
             if (mPlayDelay > 0) {
                 //播放进度比服务端快，沉睡一段时间以同步
-                try {
-                    Log.w(TAG, "sleep " + mPlayDelay + " millsec for sync");
-                    Thread.sleep(mPlayDelay);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
+                Log.w(TAG, "sleep " + mPlayDelay + " millsec for sync");
+                Thread.sleep(mPlayDelay);
             } else if (mPlayDelay < 0) {
                 Log.w(TAG, "skipping " + mPlayDelay + " millsec for sync");
                 //播放速度比服务器慢，要快进
