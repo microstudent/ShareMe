@@ -97,6 +97,7 @@ public class Session {
 	 * Some other error occurred !
 	 */
 	public final static int ERROR_OTHER = 0x06;
+	private final HandlerThread mHandlerThread;
 
 	private String mOrigin;
 	private String mDestination;
@@ -117,10 +118,10 @@ public class Session {
 	public Session() {
 		long uptime = System.currentTimeMillis();
 
-		HandlerThread thread = new HandlerThread("net.majorkernelpanic.streaming.Session");
-		thread.start();
+		mHandlerThread = new HandlerThread("net.majorkernelpanic.streaming.Session");
+		mHandlerThread.start();
 
-		mHandler = new Handler(thread.getLooper());
+		mHandler = new Handler(mHandlerThread.getLooper());
 		mMainHandler = new Handler(Looper.getMainLooper());
 		mTimestamp = (uptime/1000)<<32 & (((uptime-((uptime/1000)*1000))>>32)/1000); // NTP timestamp
 		mOrigin = "127.0.0.1";
@@ -640,7 +641,7 @@ public class Session {
 	public void release() {
 		removeAudioTrack();
 		removeVideoTrack();
-		mHandler.getLooper().quit();
+		mHandlerThread.getLooper().quit();
 	}
 
 	private void postPreviewStarted() {

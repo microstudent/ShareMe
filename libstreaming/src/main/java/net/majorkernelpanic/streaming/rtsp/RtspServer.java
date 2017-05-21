@@ -455,8 +455,11 @@ public class RtspServer extends Service {
                 if (request.method.equalsIgnoreCase("DESCRIBE")) {
 
                     // Parse the requested URI and configure the session
-                    mSession = handleRequest(request.uri, mClient);
-                    mSessions.put(mSession, null);
+					if (mSession != null) {
+						mSession.release();
+					}
+					mSession = handleRequest(request.uri, mClient);
+					mSessions.put(mSession, null);
                     mSession.syncConfigure();
 
                     String requestContent = mSession.getSessionDescription();

@@ -63,7 +63,7 @@ public class MusicClientService extends AbsMusicService implements Runnable, Rts
     private WebSocket mConnectedWebSocket;
     private Gson mGson;
     private Thread mPlayThread;
-    private long mPlayDelay;
+    private volatile long mPlayDelay;
     private boolean needSync = true;
     private MusicPlayerListener mMusicPlayerListener;
     private long mInitDelay = -1;//服务器端与本地的ntp时间初始差距
@@ -74,6 +74,7 @@ public class MusicClientService extends AbsMusicService implements Runnable, Rts
     private Disposable mPlayDisposable;
     private float mLeftF = 1;
     private float mRightF = 1;
+    private volatile boolean isStopped = false;
 
     @Override
     public void onCreate() {
@@ -218,6 +219,7 @@ public class MusicClientService extends AbsMusicService implements Runnable, Rts
         }
         if (mPlayThread != null) {
             mPlayThread.interrupt();
+            isStopped = true;
         }
         if (mAudioTrack != null) {
             mAudioTrack.flush();
@@ -318,8 +320,7 @@ public class MusicClientService extends AbsMusicService implements Runnable, Rts
 
         if (playTime > 0) {
             if (mInitDelay == -1) {
-                mInitDelay =  System.currentTimeMillis() - ntpTime - 140;
-                mPlayDelay = getCurrentPosition() - playTime - 140;//100ms是对传输耗时的假设判断
+                mInitDelay =  System.currentTimeMillis() - ntpTime - 180;//越大越快
             } else {
                 mPlayDelay = getCurrentPosition() - (playTime + (System.currentTimeMillis() - mInitDelay - ntpTime));
                 mPlayTimeToSync = playTime + (System.currentTimeMillis() - mInitDelay - ntpTime);
@@ -382,11 +383,11 @@ public class MusicClientService extends AbsMusicService implements Runnable, Rts
 
     @Override
     public void run() {
-        while (!Thread.interrupted()) {
+        while (!Thread.interrupted() && !isStopped) {
             if (mAudioTrack != null && mAudioTrack.getPlayState() == AudioTrack.PLAYSTATE_PLAYING) {
                 doSyncIfNeeded();
                 Frame frame = mFrameQueue.poll();
-                if (frame != null) {
+                if (frame != null && mAudioTrack.getState() == AudioTrack.STATE_INITIALIZED) {
                     mPlayingRTPTime = frame.getRtpTime();
 //                    Log.d(TAG, "getFramePlayTime(frame):" + getFramePlayTime(frame));
 //                    Log.d(TAG, "mPlayingRTPTime:" + mPlayingRTPTime);
@@ -397,6 +398,7 @@ public class MusicClientService extends AbsMusicService implements Runnable, Rts
                 }
             }
         }
+        isStopped = false;
     }
 
     private long getFramePlayTime(Frame frame) {
