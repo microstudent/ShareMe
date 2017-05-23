@@ -22,6 +22,7 @@ public class MP3Stream extends AudioStream {
 
     private String mMp3Path;
     private Mp3Wrapper mMp3Wrapper;
+    private volatile boolean isStop = false;
 
     public MP3Stream(String mp3Path) {
         mMp3Path = mp3Path;
@@ -193,7 +194,7 @@ public class MP3Stream extends AudioStream {
                 int len = 0, bufferIndex = 0;
                 ByteBuffer[] inputBuffers = mMediaCodec.getInputBuffers();
                 try {
-                    while (!Thread.interrupted()) {
+                    while (!Thread.interrupted() && !isStop) {
                         bufferIndex = mMediaCodec.dequeueInputBuffer(10000);
                         if (bufferIndex >= 0) {
                             inputBuffers[bufferIndex].clear();
@@ -221,7 +222,7 @@ public class MP3Stream extends AudioStream {
                     e.printStackTrace();
                 }
             }
-        });
+        },"Mp3StreamThread");
 
         mThread.start();
 
@@ -238,9 +239,9 @@ public class MP3Stream extends AudioStream {
      */
     public synchronized void stop() {
         if (mStreaming) {
-            if (mMode == MODE_MEDIACODEC_API) {
-                Log.d(TAG, "Interrupting threads...");
+            if (mThread != null) {
                 mThread.interrupt();
+                isStop = true;
             }
             super.stop();
         }
