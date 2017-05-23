@@ -83,6 +83,7 @@ public class MusicServerService extends AbsMusicService implements WebSocket.Str
     private boolean isBusy;
     private float mLeftF = 1;
     private float mRightF = 1;
+    private Disposable mPlayDisposable;
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
@@ -190,37 +191,43 @@ public class MusicServerService extends AbsMusicService implements WebSocket.Str
 
     @Override
     public void onStringAvailable(String s) {
-        JsonObject object = mGson.fromJson(s, JsonObject.class);
-        JsonElement type = object.get("type");
-        if (type != null) {
-            switch (type.getAsInt()) {
-                case Message.TYPE_MEDIA:
-                    //服务器端不接收此类消息
-                    break;
-                case Message.TYPE_PAUSE:
-                    pause();
-                    break;
-                case Message.TYPE_RESUME:
-                    play(mMedia, false);
-                    break;
-                case Message.TYPE_SYNC:
-                    //服务器端不接受此类消息
-                    break;
-                case Message.TYPE_LIST:
-                    //服务器端不接受此类消息
-                    break;
-                case Message.TYPE_NEXT:
-                    moveToNext();
-                    break;
-                case Message.TYPE_PREV:
-                    moveToPrev();
-                    break;
-                case Message.TYPE_PLAY:
-                    Message<Media> mediaMessage = GsonUtils.fromJsonObject(mGson, s, Media.class);
-                    play(mediaMessage.getObject(), true);
-                    break;
-            }
-        }
+        Observable.just(s).observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Consumer<String>() {
+                    @Override
+                    public void accept(String s) throws Exception {
+                        JsonObject object = mGson.fromJson(s, JsonObject.class);
+                        JsonElement type = object.get("type");
+                        if (type != null) {
+                            switch (type.getAsInt()) {
+                                case Message.TYPE_MEDIA:
+                                    //服务器端不接收此类消息
+                                    break;
+                                case Message.TYPE_PAUSE:
+                                    pause();
+                                    break;
+                                case Message.TYPE_RESUME:
+                                    play(mMedia, false);
+                                    break;
+                                case Message.TYPE_SYNC:
+                                    //服务器端不接受此类消息
+                                    break;
+                                case Message.TYPE_LIST:
+                                    //服务器端不接受此类消息
+                                    break;
+                                case Message.TYPE_NEXT:
+                                    moveToNext();
+                                    break;
+                                case Message.TYPE_PREV:
+                                    moveToPrev();
+                                    break;
+                                case Message.TYPE_PLAY:
+                                    Message<Media> mediaMessage = GsonUtils.fromJsonObject(mGson, s, Media.class);
+                                    play(mediaMessage.getObject(), true);
+                                    break;
+                            }
+                        }
+                    }
+                });
     }
 
     @Override
@@ -233,6 +240,9 @@ public class MusicServerService extends AbsMusicService implements WebSocket.Str
         isPrepared = false;
         if (mSyncDisposable != null) {
             mSyncDisposable.dispose();
+        }
+        if (mPlayDisposable != null) {
+            mPlayDisposable.dispose();
         }
     }
 
@@ -272,7 +282,7 @@ public class MusicServerService extends AbsMusicService implements WebSocket.Str
             Uri uri = Uri.parse(mMedia.getSrc());
             mAudioPlayer.setDataSource(uri);
             mAudioPlayer.prepareAsync();
-            mCompositeDisposable.add(Observable.just(uri)
+            mPlayDisposable =  Observable.just(uri)
                     .observeOn(Schedulers.io())
                     .delay(Constant.DEFAULT_PLAY_TIME_DELAY, TimeUnit.MILLISECONDS)
                     .subscribe(new Consumer<Uri>() {
@@ -300,7 +310,7 @@ public class MusicServerService extends AbsMusicService implements WebSocket.Str
                         public void accept(Throwable throwable) throws Exception {
                             onMusicPlayError(throwable);
                         }
-                    }));
+                    });
         } else {
             if (mAudioPlayer != null && isPrepared) {
                 mAudioPlayer.start();

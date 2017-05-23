@@ -91,7 +91,6 @@ public class MusicClientService extends AbsMusicService implements Runnable, Rts
                     }
                 }).create();
         // Configures the SessionBuilder
-        init();
     }
 
     private void init() {
@@ -103,6 +102,8 @@ public class MusicClientService extends AbsMusicService implements Runnable, Rts
         mClient = new RtspClient();
         mClient.setSession(mSession);
         mClient.setCallback(this);
+        mClient.setServerAddress(mServerIp, 7236);
+        mClient.setStreamPath("");
         mPlayThread = new Thread(this);
         mPlayThread.setName("PlayThread");
 
@@ -116,8 +117,6 @@ public class MusicClientService extends AbsMusicService implements Runnable, Rts
             String serverIp = intent.getStringExtra(Constant.Intent.SERVER_IP);
             if (serverIp != null) {
                 mServerIp = serverIp;
-                mClient.setServerAddress(mServerIp, 7236);
-                mClient.setStreamPath("");
                 tryConnectToWebSocketServer();
             }
         }
@@ -232,8 +231,6 @@ public class MusicClientService extends AbsMusicService implements Runnable, Rts
         mPlayDelay = 0;
         mInitDelay = -1;
         init();
-        mClient.setServerAddress(mServerIp, 7236);
-        mClient.setStreamPath("");
     }
 
 //    private void playSilentIfNeeded(long timeStamp) {
@@ -342,7 +339,13 @@ public class MusicClientService extends AbsMusicService implements Runnable, Rts
      */
     @Override
     public void onStringAvailable(String s) {
-        handleMessage(s);
+        Observable.just(s).observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Consumer<String>() {
+                    @Override
+                    public void accept(String s) throws Exception {
+                        handleMessage(s);
+                    }
+                });
     }
 
     private void handleMessage(String s) {

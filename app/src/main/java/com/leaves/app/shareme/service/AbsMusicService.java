@@ -44,7 +44,6 @@ public abstract class AbsMusicService extends Service {
     private int mMode;
     private WifiManager.WifiLock mWifiLock;
     protected Media mMedia;
-    private boolean isFirstRun = true;
 
     protected CompositeDisposable mCompositeDisposable;
 
@@ -67,7 +66,7 @@ public abstract class AbsMusicService extends Service {
         } else {
             mMode = MODE_REMOTE;
         }
-        if (invalidate && !isFirstRun) {
+        if (invalidate) {
             reset();
         }
         //开wifiLock
@@ -106,7 +105,6 @@ public abstract class AbsMusicService extends Service {
 //                }));
         //notify Client
         start(invalidate);
-        isFirstRun = false;
     }
 
     protected void pause(){

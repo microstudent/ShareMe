@@ -254,6 +254,11 @@ public class MediaNotificationManager extends BroadcastReceiver {
                             mNotificationManager.notify(NOTIFICATION_ID, notification);
                         }
                     }
+                }, new Consumer<Throwable>() {
+                    @Override
+                    public void accept(Throwable throwable) throws Exception {
+                        throwable.printStackTrace();
+                    }
                 });
     }
 

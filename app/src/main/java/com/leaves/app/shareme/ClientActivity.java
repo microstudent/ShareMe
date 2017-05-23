@@ -128,6 +128,11 @@ public class ClientActivity extends AppCompatActivity {
                         mLogView.append(msg);
                         mLogView.append("\n");
                     }
+                }, new Consumer<Throwable>() {
+                    @Override
+                    public void accept(Throwable throwable) throws Exception {
+                        throwable.printStackTrace();
+                    }
                 });
     }
 }
