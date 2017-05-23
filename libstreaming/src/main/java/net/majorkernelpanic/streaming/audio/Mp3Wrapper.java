@@ -192,4 +192,14 @@ public class Mp3Wrapper {
         }
         return sizeHasRead;
     }
+
+    public void release() {
+        if (mMediaDecode != null) {
+            mMediaDecode.stop();
+            mMediaDecode.release();
+        }
+        if (mMediaExtractor != null) {
+            mMediaExtractor.release();
+        }
+    }
 }

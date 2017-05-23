@@ -243,6 +243,7 @@ public class MP3Stream extends AudioStream {
                 mThread.interrupt();
                 isStop = true;
             }
+            mMp3Wrapper.release();
             super.stop();
         }
     }
