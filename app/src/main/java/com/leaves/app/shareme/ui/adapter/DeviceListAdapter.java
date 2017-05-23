@@ -34,6 +34,8 @@ public class DeviceListAdapter extends BaseAdapter<WifiP2pDevice> {
             @Override
             public void setData(WifiP2pDevice wifiP2pDevice) {
                 setTextView(R.id.tv_name, wifiP2pDevice.deviceName);
+                TextView textView = (TextView) findView(R.id.tv_mac);
+                textView.setText(String.format("(%1s)", wifiP2pDevice.deviceAddress));
             }
         };
     }
