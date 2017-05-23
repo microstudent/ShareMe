@@ -4,6 +4,7 @@ import android.content.ContentResolver;
 import android.content.Context;
 import android.database.Cursor;
 import android.provider.MediaStore;
+import android.text.TextUtils;
 import android.util.Log;
 
 import com.leaves.app.shareme.bean.Media;
@@ -66,8 +67,10 @@ public class AudioListPresenter implements AudioListContract.Presenter, RealmCha
                                 long duration = cursor.getInt(cursor.getColumnIndex(MediaStore.Audio.Media.DURATION));
                                 String author = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.ARTIST));
                                 String image = getAlbumArt(albumId);
-                                Media media = new Media(image, src, title, duration, author, Media.AUDIO);
-                                medias.add(media);
+                                if (!TextUtils.isEmpty(src) && src.endsWith("mp3")) {
+                                    Media media = new Media(image, src, title, duration, author, Media.AUDIO);
+                                    medias.add(media);
+                                }
                             }
                             cursor.close();
                         }
@@ -80,6 +83,7 @@ public class AudioListPresenter implements AudioListContract.Presenter, RealmCha
                     public void accept(List<Media> medias) throws Exception {
                         Realm realm = Realm.getDefaultInstance();
                         realm.beginTransaction();
+                        realm.delete(Media.class);
                         realm.copyToRealmOrUpdate(medias);
                         realm.commitTransaction();
                     }

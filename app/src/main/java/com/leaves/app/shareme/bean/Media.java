@@ -1,6 +1,12 @@
 package com.leaves.app.shareme.bean;
 
 import android.support.annotation.NonNull;
+import android.text.TextUtils;
+import android.util.Log;
+
+import com.microstudent.app.bouncyfastscroller.utils.CharacterUtils;
+
+import net.sourceforge.pinyin4j.PinyinHelper;
 
 import java.io.Serializable;
 
@@ -93,14 +99,28 @@ public class Media extends RealmObject implements Serializable, Comparable<Media
 
     @Override
     public int compareTo(@NonNull Media o) {
-        if (o.getTitle() == null) {
-            if (getTitle() == null) {
+        if (TextUtils.isEmpty(o.getTitle())) {
+            if (TextUtils.isEmpty(getTitle())) {
                 return 0;
             } else {
                 return -1;
             }
         }
-        return getTitle().compareToIgnoreCase(o.getTitle());
+        String thisTitle = getTitle();
+        String objTitle = o.getTitle();
+        if (CharacterUtils.isChinese(thisTitle.charAt(0))) {
+            String[] pinyinArray = PinyinHelper.toHanyuPinyinStringArray(thisTitle.charAt(0));
+            if (pinyinArray != null) {
+                thisTitle = pinyinArray[0];
+            }
+        }
+        if (CharacterUtils.isChinese(objTitle.charAt(0))) {
+            String[] pinyinArray = PinyinHelper.toHanyuPinyinStringArray(objTitle.charAt(0));
+            if (pinyinArray != null) {
+                objTitle = pinyinArray[0];
+            }
+        }
+        return thisTitle.compareToIgnoreCase(objTitle);
     }
 
     @Override
