@@ -261,7 +261,7 @@ public class MusicServerService extends AbsMusicService implements WebSocket.Str
             mAudioPlayer.pause();
         }
         if (mMusicPlayerListener != null) {
-            mMusicPlayerListener.onMusicPause();
+            mMusicPlayerListener.onMusicPause(mMedia);
         }
     }
 
@@ -533,6 +533,13 @@ public class MusicServerService extends AbsMusicService implements WebSocket.Str
         @Override
         public void setMusicPlayerListener(MusicPlayerListener musicPlayerListener) {
             mMusicPlayerListener = musicPlayerListener;
+            if (mMedia != null && mMusicPlayerListener != null) {
+                if (mState == STATE_PAUSED) {
+                    mMusicPlayerListener.onMusicPause(mMedia);
+                } else if (mState == STATE_PLAYING) {
+                    mMusicPlayerListener.onMusicStart(mMedia);
+                }
+            }
         }
 
         @Override

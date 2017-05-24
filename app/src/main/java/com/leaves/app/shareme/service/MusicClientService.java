@@ -163,7 +163,7 @@ public class MusicClientService extends AbsMusicService implements Runnable, Rts
             mAudioTrack.flush();
         }
         if (mMusicPlayerListener != null) {
-            mMusicPlayerListener.onMusicPause();
+            mMusicPlayerListener.onMusicPause(mMedia);
         }
     }
 
@@ -545,6 +545,13 @@ public class MusicClientService extends AbsMusicService implements Runnable, Rts
         @Override
         public void setMusicPlayerListener(MusicPlayerListener musicPlayerListener) {
             mMusicPlayerListener = musicPlayerListener;
+            if (mMedia != null && mMusicPlayerListener != null) {
+                if (mState == STATE_PAUSED) {
+                    mMusicPlayerListener.onMusicPause(mMedia);
+                } else if (mState == STATE_PLAYING) {
+                    mMusicPlayerListener.onMusicStart(mMedia);
+                }
+            }
         }
 
         @Override

@@ -7,7 +7,7 @@ import com.leaves.app.shareme.bean.Media;
  */
 
 public interface MusicPlayerListener {
-    void onMusicPause();
+    void onMusicPause(Media media);
 
     void onMusicStart(Media media);
 }

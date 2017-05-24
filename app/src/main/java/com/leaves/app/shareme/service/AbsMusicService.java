@@ -47,6 +47,8 @@ public abstract class AbsMusicService extends Service {
 
     protected CompositeDisposable mCompositeDisposable;
 
+    protected int mState;
+
     @Override
     public void onCreate() {
         super.onCreate();
@@ -83,6 +85,7 @@ public abstract class AbsMusicService extends Service {
             mNotificationManager.onPlaybackStateChanged(STATE_PLAYING);
             mNotificationManager.startNotification();
         }
+        mState = STATE_PLAYING;
 //        mCompositeDisposable.add(Observable.just(mMedia)
 //                .observeOn(AndroidSchedulers.mainThread())
 //                .subscribe(new Consumer<Media>() {
@@ -111,6 +114,7 @@ public abstract class AbsMusicService extends Service {
         if (mNotificationManager != null) {
             mNotificationManager.onPlaybackStateChanged(STATE_PAUSED);
         }
+        mState = STATE_PAUSED;
     }
 
     protected abstract void start(boolean invalidate);
@@ -119,6 +123,7 @@ public abstract class AbsMusicService extends Service {
         if (mNotificationManager != null) {
             mNotificationManager.onPlaybackStateChanged(STATE_STOPPED);
         }
+        mState = STATE_STOPPED;
     };
 
     public Media getPlayingMedia() {

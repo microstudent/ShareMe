@@ -200,9 +200,8 @@ public class MusicFragment extends Fragment implements MusicPlayerListener{
         getActivity().unbindService(mConnection);
     }
 
-
     @Override
-    public void onMusicPause() {
+    public void onMusicPause(Media media) {
         mCompositeDisposable.add(Observable.just(1)
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Consumer<Integer>() {
