@@ -45,7 +45,7 @@ public class AudioListAdapter extends BaseAdapter<Media> implements BaseViewHold
                 ImageView imageView = (ImageView) findView(R.id.iv_cover);
                 if (media.getImage() != null) {
                     Glide.with(context).load(media.getImage())
-                            .centerCrop().crossFade().into(imageView);
+                            .centerCrop().crossFade().error(R.drawable.ic_music).into(imageView);
                 } else {
                     imageView.setImageDrawable(null);
                 }

@@ -84,8 +84,7 @@ public class AudioListFragment extends BottomSheetDialogFragment implements Audi
                 mPresenter = new AudioListPresenter(this, getContext().getApplicationContext());
                 mPresenter.start();
             } else {
-                mAdapter.setData(Constant.sPlayList);
-                mMedia = Constant.sPlayList;
+                setData(Constant.sPlayList);
             }
             isFirstRun = false;
         }
