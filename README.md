@@ -1,4 +1,6 @@
 # ShareMe
+<img src="/pic/logo.png" width = "80" height = "80" />
+
 ShareMe是本人的毕业设计项目，主要功能有：
 
 1. 通过Wifi Direct配对连接和传输数据；
@@ -21,7 +23,11 @@ ShareMe是本人的毕业设计项目，主要功能有：
 Protocol(下面简称 RTSP)及其相关协议的修改定制，利用 Wi-Fi Direct 面对面建立局域
 网，以及通过 Websocket 来同步播放控制操作，完成了本软件的设计和开发。
 
+<img src="/pic/Screenshot.png" width = "50%" height = "50%" />
+
 # ShareMe
+<img src="/pic/logo.png" width = "80" height = "80" />
+
 ShareMe is my graduation project, the main functions are following：
 
 1. connect and transfer data via Wifi Direct;
@@ -46,3 +52,5 @@ The software uses an intuitive interface design, and designed with a simple and 
 operation, using the Real Time Streaming Protocol (RTSP) and its related customized protocol,
 and synchronizing playback control by Websocket. Finally, we use Wi-Fi Direct to set up a local
 area network face to face, and completed the software design and development.
+
+<img src="/pic/Screenshot.png" width = "50%" height = "50%" />
