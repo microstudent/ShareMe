@@ -35,10 +35,6 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
-        <activity android:name=".ClientActivity"/>
-        <activity android:name=".ServerActivity"/>
-        <activity android:name=".RTSPActivity">
-        </activity>
 
         <service android:name=".service.MusicServerService"/>
         <service android:name="net.majorkernelpanic.streaming.rtsp.RtspServer"/>
