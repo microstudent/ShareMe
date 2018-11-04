@@ -17,9 +17,6 @@
     <style name="ToolbarPopupTheme" parent="@style/ThemeOverlay.AppCompat">
     </style>
 
-    <style name="TranslucentTheme" parent="AppTheme">
-
-    </style>
 
     <style
         name="NotificationInfo"

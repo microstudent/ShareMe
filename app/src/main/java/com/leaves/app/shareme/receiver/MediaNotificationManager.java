@@ -23,19 +23,18 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.os.RemoteException;
-import android.support.annotation.NonNull;
-import android.support.v4.app.NotificationManagerCompat;
-import android.support.v7.app.NotificationCompat;
+import androidx.annotation.NonNull;
+import androidx.core.app.NotificationCompat;
+import androidx.core.app.NotificationManagerCompat;
 import android.util.Log;
 import android.widget.RemoteViews;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
-import com.bumptech.glide.request.RequestListener;
 import com.bumptech.glide.request.target.Target;
+import com.leaves.app.shareme.GlideApp;
 import com.leaves.app.shareme.R;
 import com.leaves.app.shareme.SApplication;
 import com.leaves.app.shareme.bean.Media;
@@ -274,9 +273,9 @@ public class MediaNotificationManager extends BroadcastReceiver {
             // it can actually be any valid Android Uri formatted String.
             // async fetch the album art icon
             try {
-                art = Glide.with(SApplication.getContext())
-                        .load(mMedia.getImage())
+                art = GlideApp.with(SApplication.getContext())
                         .asBitmap()
+                        .load(mMedia.getImage())
                         .skipMemoryCache(true)
                         .diskCacheStrategy(DiskCacheStrategy.NONE)
                         .into(Target.SIZE_ORIGINAL, Target.SIZE_ORIGINAL)

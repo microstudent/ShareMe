@@ -1,8 +1,7 @@
 package com.leaves.app.shareme.bean;
 
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 import android.text.TextUtils;
-import android.util.Log;
 
 import com.microstudent.app.bouncyfastscroller.utils.CharacterUtils;
 

@@ -1,13 +1,13 @@
 package com.leaves.app.shareme.ui.adapter;
 
 import android.content.Context;
-import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.SectionIndexer;
 
 import com.bumptech.glide.Glide;
+import com.leaves.app.shareme.GlideApp;
 import com.leaves.app.shareme.R;
 import com.leaves.app.shareme.bean.Media;
 import com.leaves.app.shareme.ui.fragment.AudioListFragment;
@@ -44,8 +44,8 @@ public class AudioListAdapter extends BaseAdapter<Media> implements BaseViewHold
                 setTextView(R.id.tv_author, media.getArtist());
                 ImageView imageView = (ImageView) findView(R.id.iv_cover);
                 if (media.getImage() != null) {
-                    Glide.with(context).load(media.getImage())
-                            .centerCrop().crossFade().error(R.drawable.ic_music).into(imageView);
+                    GlideApp.with(context).load(media.getImage())
+                            .centerCrop().error(R.drawable.ic_music).into(imageView);
                 } else {
                     imageView.setImageDrawable(null);
                 }

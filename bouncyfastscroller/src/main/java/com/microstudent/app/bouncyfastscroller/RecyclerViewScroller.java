@@ -1,6 +1,6 @@
 package com.microstudent.app.bouncyfastscroller;
 
-import android.support.v7.widget.RecyclerView;
+import androidx.recyclerview.widget.RecyclerView;
 
 /**
  * a scroller for recyclerView, has more than one behavior.

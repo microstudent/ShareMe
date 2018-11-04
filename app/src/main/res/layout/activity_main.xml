@@ -4,6 +4,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/activity_main"
+    android:fitsSystemWindows="true"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context="com.leaves.app.shareme.ui.activity.MainActivity">
@@ -13,11 +14,10 @@
         android:layout_height="match_parent"
         android:scaleType="centerCrop"
         />
-    <android.support.v7.widget.Toolbar
+    <androidx.appcompat.widget.Toolbar
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
-        android:layout_marginTop="@dimen/status_bar_height"
         app:theme="@style/ToolbarTheme"
         app:popupTheme="@style/ToolbarPopupTheme"
         app:logo="@drawable/ic_action">
@@ -28,12 +28,12 @@
             android:paddingLeft="@dimen/spacing_small"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"/>
-    </android.support.v7.widget.Toolbar>
-    <android.support.design.widget.CoordinatorLayout
+    </androidx.appcompat.widget.Toolbar>
+    <androidx.coordinatorlayout.widget.CoordinatorLayout
         android:layout_marginTop="85dp"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
-        <android.support.v7.widget.CardView
+        <androidx.cardview.widget.CardView
             android:id="@+id/view_content"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
@@ -46,9 +46,9 @@
                 android:id="@+id/container_main"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"/>
-        </android.support.v7.widget.CardView>
+        </androidx.cardview.widget.CardView>
 
-        <android.support.v7.widget.CardView
+        <androidx.cardview.widget.CardView
             android:id="@+id/layout_bottom"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -60,6 +60,6 @@
                 android:id="@+id/container_bottom"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"/>
-        </android.support.v7.widget.CardView>
-    </android.support.design.widget.CoordinatorLayout>
+        </androidx.cardview.widget.CardView>
+    </androidx.coordinatorlayout.widget.CoordinatorLayout>
 </FrameLayout>

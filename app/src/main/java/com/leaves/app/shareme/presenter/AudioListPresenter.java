@@ -23,13 +23,12 @@ import io.realm.Realm;
 import io.realm.RealmChangeListener;
 import io.realm.RealmResults;
 
-import static com.bumptech.glide.gifdecoder.GifHeaderParser.TAG;
-
 /**
  * Created by Leaves on 2017/4/11.
  */
 
 public class AudioListPresenter implements AudioListContract.Presenter, RealmChangeListener<RealmResults<Media>> {
+    private static final String TAG = "AudioListPresenter";
     private final Context mContext;
     private AudioListContract.View mView;
     private ContentResolver mResolver;

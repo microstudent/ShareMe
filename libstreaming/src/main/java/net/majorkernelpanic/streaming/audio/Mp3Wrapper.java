@@ -1,7 +1,7 @@
 package net.majorkernelpanic.streaming.audio;
 
 import android.media.*;
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 import android.util.Log;
 
 import java.io.IOException;

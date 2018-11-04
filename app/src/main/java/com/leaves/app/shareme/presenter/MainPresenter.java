@@ -3,7 +3,7 @@ package com.leaves.app.shareme.presenter;
 import android.content.Context;
 import android.content.Intent;
 import android.net.wifi.p2p.WifiP2pDevice;
-import android.support.v4.app.FragmentManager;
+import androidx.fragment.app.FragmentManager;
 
 import com.leaves.app.shareme.Constant;
 import com.leaves.app.shareme.contract.MainActivityContract;
@@ -12,7 +12,6 @@ import com.leaves.app.shareme.service.MusicClientService;
 import com.leaves.app.shareme.service.MusicServerService;
 
 import java.util.ArrayList;
-import java.util.Collections;
 
 import static com.leaves.app.shareme.Constant.ROLE_CLIENT;
 import static com.leaves.app.shareme.Constant.ROLE_SERVER;

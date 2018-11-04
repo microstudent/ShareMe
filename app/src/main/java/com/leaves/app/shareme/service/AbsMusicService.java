@@ -6,24 +6,16 @@ import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
-import android.graphics.Color;
 import android.net.wifi.WifiManager;
 import android.os.RemoteException;
-import android.support.v7.app.NotificationCompat;
 import android.widget.RemoteViews;
 
-import com.bumptech.glide.Glide;
-import com.bumptech.glide.request.RequestListener;
-import com.bumptech.glide.request.target.Target;
 import com.leaves.app.shareme.R;
 import com.leaves.app.shareme.bean.Media;
 import com.leaves.app.shareme.receiver.MediaNotificationManager;
-import com.leaves.app.shareme.util.ResourceHelper;
 
-import io.reactivex.Observable;
-import io.reactivex.android.schedulers.AndroidSchedulers;
+import androidx.core.app.NotificationCompat;
 import io.reactivex.disposables.CompositeDisposable;
-import io.reactivex.functions.Consumer;
 
 /**
  * Created by Leaves on 2017/4/17.
@@ -141,8 +133,6 @@ public abstract class AbsMusicService extends Service {
         remoteViews.setTextViewText(R.id.tv_sub_title, mMedia.getArtist());
         remoteViews.setImageViewBitmap(R.id.iv_cover, cover);
         Notification notification = new NotificationCompat.Builder(this)
-                .setStyle(new NotificationCompat.MediaStyle())
-//                .setColor(ResourceHelper.getThemeColor(this, R.color.colorPrimary, Color.WHITE))
                 .setContentIntent(pi)
                 .setCustomContentView(remoteViews)
                 .setAutoCancel(false)

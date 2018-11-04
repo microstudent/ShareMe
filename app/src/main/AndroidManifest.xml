@@ -25,7 +25,6 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <activity
-            android:theme="@style/TranslucentTheme"
             android:name=".ui.activity.MainActivity"
             android:alwaysRetainTaskState="true"
             android:launchMode="singleTask">

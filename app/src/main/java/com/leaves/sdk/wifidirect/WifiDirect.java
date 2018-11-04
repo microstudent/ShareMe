@@ -9,14 +9,12 @@ import android.net.wifi.p2p.*;
 import android.net.wifi.p2p.nsd.WifiP2pDnsSdServiceInfo;
 import android.net.wifi.p2p.nsd.WifiP2pDnsSdServiceRequest;
 import android.os.Build;
-import android.support.annotation.IntRange;
-import android.support.annotation.Nullable;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
-import android.support.v7.app.AppCompatActivity;
-import android.widget.Toast;
+import androidx.annotation.IntRange;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.appcompat.app.AppCompatActivity;
 
-import com.leaves.app.shareme.presenter.WifiDirectionPresenter;
 import com.leaves.sdk.wifidirect.listener.ErrorHandler;
 import com.leaves.sdk.wifidirect.listener.LifecycleListener;
 import com.leaves.sdk.wifidirect.listener.OnConnectionChangeListener;
@@ -318,12 +316,12 @@ public class WifiDirect implements IWifiDirect, WifiDirectReceiver.OnWifiDirectS
     private void setupShadowFragment(AppCompatActivity activity) {
         FragmentManager manager = activity.getSupportFragmentManager();
         ShadowFragment current = getShadowFragment(manager);
-        current.getLifecycle().addListener(this);
+        current.getLifecycleCompat().addListener(this);
     }
 
     private void setupShadowFragment(FragmentManager manager) {
         ShadowFragment current = getShadowFragment(manager);
-        current.getLifecycle().addListener(this);
+        current.getLifecycleCompat().addListener(this);
     }
 
 
@@ -482,11 +480,13 @@ public class WifiDirect implements IWifiDirect, WifiDirectReceiver.OnWifiDirectS
         public ShadowFragment() {
             this(new ActivityFragmentLifecycle());
         }
+
         @SuppressLint("ValidFragment")
         public ShadowFragment(ActivityFragmentLifecycle lifecycle) {
             this.lifecycle = lifecycle;
         }
-        ActivityFragmentLifecycle getLifecycle() {
+
+        ActivityFragmentLifecycle getLifecycleCompat() {
             return lifecycle;
         }
 

@@ -4,10 +4,9 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.IBinder;
-import android.os.Looper;
 import android.os.PowerManager;
 import android.preference.PreferenceManager;
-import android.support.annotation.Nullable;
+import androidx.annotation.Nullable;
 import android.text.TextUtils;
 import android.util.Log;
 import android.widget.Toast;
@@ -42,8 +41,6 @@ import net.majorkernelpanic.streaming.SessionBuilder;
 import net.majorkernelpanic.streaming.rtsp.RtspServer;
 
 import java.io.File;
-import java.lang.ref.Reference;
-import java.lang.ref.ReferenceQueue;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
@@ -255,6 +252,7 @@ public class MusicServerService extends AbsMusicService implements WebSocket.Str
         isPrepared = false;
     }
 
+    @Override
     protected void pause() {
         super.pause();
         if (mAudioPlayer != null && mAudioPlayer.isPlaying()) {

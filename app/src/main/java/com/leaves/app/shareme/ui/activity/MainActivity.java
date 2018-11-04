@@ -2,14 +2,8 @@ package com.leaves.app.shareme.ui.activity;
 
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
-import android.os.PersistableBundle;
-import android.support.annotation.IdRes;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentTransaction;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -17,17 +11,24 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.Toast;
 
+import androidx.annotation.IdRes;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
 import butterknife.BindView;
 import butterknife.ButterKnife;
-import io.reactivex.Observable;
-import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.functions.Consumer;
 import jp.wasabeef.blurry.Blurry;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.DataSource;
+import com.bumptech.glide.load.engine.GlideException;
 import com.bumptech.glide.request.RequestListener;
 import com.bumptech.glide.request.target.Target;
 import com.leaves.app.shareme.Constant;
+import com.leaves.app.shareme.GlideApp;
 import com.leaves.app.shareme.R;
 import com.leaves.app.shareme.bean.Media;
 import com.leaves.app.shareme.contract.MainActivityContract;
@@ -41,7 +42,6 @@ import com.leaves.app.shareme.ui.fragment.MusicFragment;
 import com.leaves.app.shareme.ui.fragment.PasswordFragment;
 import com.leaves.app.shareme.ui.widget.dialpad.listener.OnNumberClickListener;
 import com.tbruyelle.rxpermissions2.RxPermissions;
-
 
 
 public class MainActivity extends AppCompatActivity implements
@@ -72,6 +72,7 @@ public class MainActivity extends AppCompatActivity implements
     private MusicFragment mMusicFragment;
     private ConnectionFragment mConnectionFragment;
 
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
@@ -99,47 +100,25 @@ public class MainActivity extends AppCompatActivity implements
     }
 
     private void setupView() {
-//        mBottomSheetBehavior.setBottomSheetCallback(new BottomSheetBehavior.BottomSheetCallback() {
-//            @Override
-//            public void onStateChanged(@NonNull View bottomSheet, int newState) {
-//                if (newState == STATE_EXPANDED) {
-////                    mDockerBehavior.setNeedMeasure(false);
-//                    if (mAudioListFragment == null) {
-//                        mAudioListFragment = AudioListFragment.newInstance();
-//                    }
-//                    switchFragment(BehaviorFragment.TAG, mAudioListFragment, AudioListFragment.TAG, R.id.bottom_sheet);
-//                    mBottomSheetBehavior.setScrollable(true);
-//                } else if (newState == STATE_COLLAPSED) {
-////                    mDockerBehavior.setNeedMeasure(false);
-//                    if (mBehaviorFragment == null) {
-//                        mBehaviorFragment = BehaviorFragment.newInstance();
-//                    }
-//                    switchFragment(AudioListFragment.TAG, mBehaviorFragment, BehaviorFragment.TAG, R.id.bottom_sheet);
-//                    mBottomSheetBehavior.setScrollable(true);
-//                }
-//            }
-//
-//            @Override
-//            public void onSlide(@NonNull View bottomSheet, float slideOffset) {
-//
-//            }
-//        });
         setSupportActionBar(mToolbar);
         setTitle("");
 //        mBottomSheetBehavior.setMinOffset(300);
 
-        Glide.with(this).load(R.drawable.bg_piano).asBitmap().listener(new RequestListener<Integer, Bitmap>() {
-            @Override
-            public boolean onException(Exception e, Integer model, Target<Bitmap> target, boolean isFirstResource) {
-                return false;
-            }
+        GlideApp.with(this)
+                .asBitmap()
+                .load(R.drawable.bg_piano)
+                .listener(new RequestListener<Bitmap>() {
+                    @Override
+                    public boolean onLoadFailed(GlideException e, Object model, Target<Bitmap> target, boolean isFirstResource) {
+                        return false;
+                    }
 
-            @Override
-            public boolean onResourceReady(Bitmap resource, Integer model, Target<Bitmap> target, boolean isFromMemoryCache, boolean isFirstResource) {
-                Blurry.with(MainActivity.this).radius(10).sampling(10).async().animate().from(resource).into(mImageView);
-                return true;
-            }
-        }).preload();
+                    @Override
+                    public boolean onResourceReady(Bitmap resource, Object model, Target<Bitmap> target, DataSource dataSource, boolean isFirstResource) {
+                        Blurry.with(MainActivity.this).radius(10).sampling(10).async().animate().from(resource).into(mImageView);
+                        return false;
+                    }
+                }).preload();
     }
 
     @Override

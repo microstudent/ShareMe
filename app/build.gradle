@@ -1,16 +1,19 @@
 apply plugin: 'com.android.application'
+apply plugin: 'kotlin-android'
 apply plugin: 'realm-android'
+apply plugin: 'kotlin-kapt'
 
 android {
-    compileSdkVersion 25
-    buildToolsVersion '25.0.2'
+    compileSdkVersion 28
+    buildToolsVersion '28.0.3'
     defaultConfig {
         applicationId "com.leaves.app.shareme"
-        minSdkVersion 16
-        targetSdkVersion 25
+        minSdkVersion 21
+        targetSdkVersion 28
         versionCode 1
         versionName "1.0"
-        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        multiDexEnabled true
     }
     buildTypes {
         release {
@@ -21,30 +24,36 @@ android {
 }
 
 dependencies {
-    compile fileTree(include: ['*.jar'], dir: 'libs')
-    androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
+    androidTestCompile('androidx.test.espresso:espresso-core:3.1.0', {
         exclude group: 'com.android.support', module: 'support-annotations'
     })
-    compile project(':AndroidAsync')
-    compile project(':libstreaming')
-    compile project(':bouncyfastscroller')
-    compile 'com.android.support:appcompat-v7:25.3.1'
-    compile 'com.android.support:design:25.3.1'
-    compile 'io.reactivex.rxjava2:rxjava:2.0.4'
-    compile 'com.jakewharton:butterknife:8.4.0'
-    compile 'io.reactivex.rxjava2:rxandroid:2.0.1'
-    compile 'com.github.bumptech.glide:glide:3.7.0'
-    compile 'com.android.support:recyclerview-v7:25.3.1'
-    compile 'com.github.chrisbanes:PhotoView:1.3.1'
-    compile 'jp.wasabeef:blurry:2.1.1'
-    compile 'com.android.support:cardview-v7:25.3.1'
-    compile 'com.android.support:support-v4:25.3.1'
-    compile 'com.tbruyelle.rxpermissions2:rxpermissions:0.9.3@aar'
-    compile 'com.google.code.gson:gson:2.8.0'
-    compile 'com.devbrackets.android:exomedia:4.0.1'
+    implementation project(':AndroidAsync')
+    implementation project(':libstreaming')
+    implementation project(':bouncyfastscroller')
+    implementation 'androidx.appcompat:appcompat:1.0.0'
+    implementation 'com.google.android.material:material:1.1.0-alpha01'
+    implementation 'io.reactivex.rxjava2:rxjava:2.2.2'
+    implementation 'com.jakewharton:butterknife:9.0.0-rc1'
+    kapt 'com.jakewharton:butterknife-compiler:9.0.0-rc1'
+    api 'io.reactivex.rxjava2:rxandroid:2.0.1'
+    implementation 'com.github.bumptech.glide:glide:4.8.0'
+    kapt 'com.github.bumptech.glide:compiler:4.8.0'
+    implementation 'androidx.recyclerview:recyclerview:1.0.0'
+    implementation 'com.github.chrisbanes:PhotoView:1.3.1'
+    api 'jp.wasabeef:blurry:2.1.1'
+    implementation 'androidx.cardview:cardview:1.0.0'
+    implementation 'androidx.legacy:legacy-support-v4:1.0.0'
+    api 'com.tbruyelle.rxpermissions2:rxpermissions:0.9.3@aar'
+    implementation 'com.google.code.gson:gson:2.8.5'
+    implementation 'com.devbrackets.android:exomedia:4.0.1'
     testCompile 'junit:junit:4.12'
-    annotationProcessor 'com.jakewharton:butterknife-compiler:8.4.0'
-    compile 'com.android.support.constraint:constraint-layout:1.0.2'
-    compile 'com.xw.repo:bubbleseekbar:3.4-lite'
-    compile 'de.hdodenhof:circleimageview:2.1.0'
+    implementation 'androidx.constraintlayout:constraintlayout:2.0.0-alpha2'
+    api 'com.xw.repo:bubbleseekbar:3.4-lite'
+    implementation 'de.hdodenhof:circleimageview:2.1.0'
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+    implementation 'com.github.instacart.truetime-android:library-extension-rx:3.4'
+}
+repositories {
+    mavenCentral()
 }

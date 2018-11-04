@@ -3,8 +3,8 @@ package com.microstudent.app.bouncyfastscroller;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Color;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -21,7 +21,6 @@ import com.microstudent.app.bouncyfastscroller.indexbar.IndexBar;
 import com.microstudent.app.bouncyfastscroller.indexer.IndexCursor;
 import com.microstudent.app.bouncyfastscroller.thumb.Thumb;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**

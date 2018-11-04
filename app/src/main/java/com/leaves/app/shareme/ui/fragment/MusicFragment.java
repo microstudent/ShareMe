@@ -6,7 +6,7 @@ import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.Bundle;
 import android.os.IBinder;
-import android.support.v4.app.Fragment;
+import androidx.fragment.app.Fragment;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -15,15 +15,15 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
+import com.bumptech.glide.load.resource.bitmap.CircleCrop;
+import com.leaves.app.shareme.GlideApp;
 import com.leaves.app.shareme.R;
 import com.leaves.app.shareme.bean.Media;
 import com.leaves.app.shareme.service.AbsMusicServiceBinder;
 import com.leaves.app.shareme.service.MusicClientService;
 import com.leaves.app.shareme.service.MusicPlayerListener;
 import com.leaves.app.shareme.service.MusicServerService;
-import com.leaves.app.shareme.util.GlideCircleTransform;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -140,12 +140,12 @@ public class MusicFragment extends Fragment implements MusicPlayerListener{
 
     private void setupView() {
         if (mMedia == null) {
-            Glide.with(this).load(R.drawable.ic_music).asBitmap().
-                    transform(new GlideCircleTransform(getContext())).into(mCoverView);
+            GlideApp.with(this).asBitmap().load(R.drawable.ic_music).
+                    transform(new CircleCrop()).into(mCoverView);
         } else {
             if (!TextUtils.isEmpty(mMedia.getImage())) {
-                Glide.with(this).load(mMedia.getImage()).skipMemoryCache(true).diskCacheStrategy(DiskCacheStrategy.NONE).error(R.drawable.ic_music).
-                        transform(new GlideCircleTransform(getContext())).into(mCoverView);
+                GlideApp.with(this).load(mMedia.getImage()).skipMemoryCache(true).diskCacheStrategy(DiskCacheStrategy.NONE).error(R.drawable.ic_music).
+                        transform(new CircleCrop()).into(mCoverView);
             }
             mTitleView.setText(mMedia.getTitle());
             mAuthorView.setText(mMedia.getArtist());

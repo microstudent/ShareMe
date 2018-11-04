@@ -2,21 +2,14 @@ package com.leaves.app.shareme.ui.adapter;
 
 import android.content.Context;
 import android.net.wifi.p2p.WifiP2pDevice;
-import android.support.annotation.LayoutRes;
-import android.support.v7.widget.RecyclerView;
-import android.view.LayoutInflater;
+import androidx.annotation.LayoutRes;
+
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.TextView;
 
 import com.leaves.app.shareme.R;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
-
-import butterknife.BindView;
-import butterknife.ButterKnife;
 
 /**
  * Created by Leaves on 2017/4/1.
