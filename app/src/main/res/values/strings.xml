@@ -17,4 +17,5 @@
     <string name="channel_control">声道管理</string>
     <string name="left_channel">左声道</string>
     <string name="right_channel">右声道</string>
+    <string name="login">登录</string>
 </resources>
