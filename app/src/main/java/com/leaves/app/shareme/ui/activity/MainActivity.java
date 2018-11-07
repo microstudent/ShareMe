@@ -1,8 +1,10 @@
 package com.leaves.app.shareme.ui.activity;
 
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
+import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -30,6 +32,7 @@ import com.bumptech.glide.request.target.Target;
 import com.leaves.app.shareme.Constant;
 import com.leaves.app.shareme.GlideApp;
 import com.leaves.app.shareme.R;
+import com.leaves.app.shareme.SApplication;
 import com.leaves.app.shareme.bean.Media;
 import com.leaves.app.shareme.contract.MainActivityContract;
 import com.leaves.app.shareme.presenter.MainPresenter;
@@ -92,6 +95,10 @@ public class MainActivity extends AppCompatActivity implements
                         }
                     }
                 });
+        WifiManager wifiManager = (WifiManager) SApplication.getContext().getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+        if (wifiManager != null && !wifiManager.isWifiEnabled()) {
+            wifiManager.setWifiEnabled(true);
+        }
     }
 
     private void initView() {

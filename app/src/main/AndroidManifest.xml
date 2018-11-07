@@ -28,7 +28,11 @@
             android:name=".ui.activity.MainActivity"
             android:alwaysRetainTaskState="true"
             android:launchMode="singleTask">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
 
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
         </activity>
 
         <service android:name=".service.MusicServerService" />
@@ -37,11 +41,7 @@
 
         <activity android:name=".ui.activity.SettingActivity"></activity>
         <activity android:name=".ui.activity.LoginActivity">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
 
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
         </activity>
     </application>
 
