@@ -16,6 +16,7 @@ import android.view.animation.LinearInterpolator;
 import android.view.animation.OvershootInterpolator;
 
 import com.leaves.app.shareme.R;
+import com.leaves.app.shareme.util.DensityUtil;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -101,7 +102,7 @@ public class ColorfulAnimView extends View implements RoundBean.Refresher{
         if (specMode == MeasureSpec.EXACTLY) {
             result = specSize;
         } else {
-            result = px2dip(getContext(), 1000);
+            result = DensityUtil.dip2px(getContext(), 30);
             if (specMode == MeasureSpec.AT_MOST) {
                 result = Math.min(result, specSize);
             }
@@ -119,7 +120,7 @@ public class ColorfulAnimView extends View implements RoundBean.Refresher{
         if (specMode == MeasureSpec.EXACTLY) {
             result = specSize;
         } else {
-            result = px2dip(getContext(), 1500);
+            result = DensityUtil.dip2px(getContext(), 100);
             if (specMode == MeasureSpec.AT_MOST) {
                 result = Math.min(result, specSize);
             }
@@ -140,15 +141,17 @@ public class ColorfulAnimView extends View implements RoundBean.Refresher{
         post(new Runnable() {
             @Override
             public void run() {
-                if(animatorSet!=null)
+                if (animatorSet != null) {
                     animatorSet.start();
+                }
             }
         });
     }
 
     public void stopAnim(){
-        if(animatorSet!=null)
+        if (animatorSet != null) {
             animatorSet.cancel();
+        }
     }
 
     public void setSpeedFactor(float factor) {
@@ -213,13 +216,5 @@ public class ColorfulAnimView extends View implements RoundBean.Refresher{
     protected void onDetachedFromWindow() {
         super.onDetachedFromWindow();
         stopAnim();
-    }
-
-    /**
-     * 根据手机的分辨率从 px(像素) 的单位 转成为 dp
-     */
-    public static int px2dip(Context context, float pxValue) {
-        final float scale = context.getResources().getDisplayMetrics().density;
-        return (int) (pxValue / scale + 0.5f);
     }
 }

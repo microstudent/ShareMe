@@ -149,7 +149,7 @@ class MainActivity : AppCompatActivity(), OnNumberClickListener, BottomSheetFrag
 
     override fun onFragmentMeasure(width: Int, height: Int) {}
 
-    override fun onDialpadClick(position: Int, number: String) {
+    override fun onDialpadClick(position: Int, number: String?) {
         mPasswordFragment.onDialpadClick(position, number)
         mPresenter.onDialpadClick(position, number)
     }
