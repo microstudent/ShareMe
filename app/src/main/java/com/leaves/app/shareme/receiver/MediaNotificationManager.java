@@ -197,7 +197,7 @@ public class MediaNotificationManager extends BroadcastReceiver {
         Intent openUI = new Intent(mService, MainActivity.class);
         openUI.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
         if (media != null) {
-            openUI.putExtra(MainActivity.EXTRA_CURRENT_MEDIA_DESCRIPTION, media);
+            openUI.putExtra(MainActivity.Companion.getEXTRA_CURRENT_MEDIA_DESCRIPTION(), media);
         }
         return PendingIntent.getActivity(mService, REQUEST_CODE, openUI,
                 PendingIntent.FLAG_CANCEL_CURRENT);

@@ -60,6 +60,7 @@ dependencies {
     implementation 'com.squareup.retrofit2:adapter-rxjava2:2.4.0'
     implementation 'com.squareup.retrofit2:converter-scalars:2.4.0'
     implementation 'com.google.firebase:firebase-core:16.0.1'
+    implementation "org.jetbrains.anko:anko:$anko_version"
 }
 repositories {
     mavenCentral()
