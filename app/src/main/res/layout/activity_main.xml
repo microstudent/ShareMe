@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout
+<androidx.constraintlayout.widget.ConstraintLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
@@ -18,9 +18,11 @@
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
-        app:theme="@style/ToolbarTheme"
+        app:theme="@style/MainToolbarTheme"
         app:popupTheme="@style/ToolbarPopupTheme"
-        app:logo="@drawable/ic_action">
+        app:logo="@drawable/ic_action"
+        app:layout_constraintTop_toTopOf="parent"
+        >
         <TextView
             android:text="@string/app_name"
             android:textColor="@color/colorPrimary"
@@ -29,37 +31,37 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"/>
     </androidx.appcompat.widget.Toolbar>
-    <androidx.coordinatorlayout.widget.CoordinatorLayout
-        android:layout_marginTop="85dp"
+    <androidx.cardview.widget.CardView
+        app:layout_constraintTop_toBottomOf="@id/toolbar"
+        app:layout_constraintBottom_toTopOf="@+id/layout_bottom"
+        app:layout_constraintVertical_chainStyle="packed"
+        android:id="@+id/view_content"
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
-        <androidx.cardview.widget.CardView
-            android:id="@+id/view_content"
+        android:layout_height="0dp"
+        app:cardCornerRadius="10dp"
+        android:layout_marginLeft="@dimen/spacing_more_small"
+        android:layout_marginRight="@dimen/spacing_more_small"
+        android:layout_marginBottom="@dimen/spacing_small"
+        app:layout_behavior="com.leaves.app.shareme.ui.behavior.DockerBehavior">
+        <FrameLayout
+            android:id="@+id/container_main"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            app:cardCornerRadius="10dp"
-            android:layout_marginLeft="@dimen/spacing_more_small"
-            android:layout_marginRight="@dimen/spacing_more_small"
-            android:layout_marginBottom="@dimen/spacing_small"
-            app:layout_behavior="com.leaves.app.shareme.ui.behavior.DockerBehavior">
-            <FrameLayout
-                android:id="@+id/container_main"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"/>
-        </androidx.cardview.widget.CardView>
+            android:layout_height="match_parent"/>
+    </androidx.cardview.widget.CardView>
 
-        <androidx.cardview.widget.CardView
-            android:id="@+id/layout_bottom"
+    <androidx.cardview.widget.CardView
+        app:layout_constraintTop_toBottomOf="@id/view_content"
+        app:layout_constraintBottom_toBottomOf="parent"
+        android:id="@+id/layout_bottom"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="@dimen/spacing_more_small"
+        app:cardPreventCornerOverlap="false"
+        app:cardCornerRadius="10dp">
+        <FrameLayout
+            android:id="@+id/container_bottom"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_gravity="bottom"
-            android:layout_margin="@dimen/spacing_more_small"
-            app:cardPreventCornerOverlap="false"
-            app:cardCornerRadius="10dp">
-            <FrameLayout
-                android:id="@+id/container_bottom"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"/>
-        </androidx.cardview.widget.CardView>
-    </androidx.coordinatorlayout.widget.CoordinatorLayout>
-</FrameLayout>
+            android:layout_height="wrap_content"/>
+    </androidx.cardview.widget.CardView>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

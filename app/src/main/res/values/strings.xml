@@ -18,4 +18,6 @@
     <string name="left_channel">左声道</string>
     <string name="right_channel">右声道</string>
     <string name="login">登录</string>
+    <string name="search_hint">Search songs and artists</string>
+    <string name="search">搜索</string>
 </resources>

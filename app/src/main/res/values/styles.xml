@@ -7,9 +7,27 @@
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/colorAccent</item>
         <item name="android:textColorPrimary">@color/colorPrimaryText</item>
+        <item name="android:textColorSecondary">@android:color/white</item>
+        <item name="searchViewStyle">@style/SearchViewStyle</item>
     </style>
 
-    <style name="ToolbarTheme" parent="@style/ThemeOverlay.AppCompat.ActionBar">
+
+    <style name="SearchViewStyle" parent="Widget.AppCompat.SearchView">
+        <!--<item name="searchIcon">@mipmap/ic_search</item>-->
+        <item name="searchHintIcon">@null</item>
+    </style>
+
+    <style name="ToolbarStyle" parent="Base.Widget.AppCompat.Toolbar">
+        <item name="contentInsetStart">0dp</item>
+        <item name="contentInsetStartWithNavigation">0dp</item>
+    </style>
+
+    <style name="ToolbarTheme" parent="Base.ThemeOverlay.AppCompat.ActionBar">
+        <item name="actionMenuTextColor">@color/white</item>
+        <item name="colorControlNormal">@color/white</item>
+    </style>
+
+    <style name="MainToolbarTheme" parent="Base.ThemeOverlay.AppCompat.ActionBar">
         <item name="actionMenuTextColor">@color/colorPrimary</item>
         <item name="colorControlNormal">@color/colorPrimary</item>
     </style>

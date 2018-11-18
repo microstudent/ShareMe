@@ -9,6 +9,8 @@ import android.widget.Toast
 import butterknife.BindView
 import butterknife.ButterKnife
 import butterknife.OnClick
+import com.alibaba.android.arouter.facade.Postcard
+import com.alibaba.android.arouter.facade.callback.NavCallback
 import com.alibaba.android.arouter.launcher.ARouter
 import com.leaves.app.shareme.R
 import com.leaves.app.shareme.RoutePath
@@ -50,7 +52,11 @@ class LoginActivity : AppCompatActivity() {
                 .autoDisposable(AndroidLifecycleScopeProvider.from(this))
                 .subscribe({
                     Toast.makeText(this, it, Toast.LENGTH_SHORT).show()
-                    ARouter.getInstance().build(RoutePath.Main.it).navigation()
+                    ARouter.getInstance().build(RoutePath.Main.it).navigation(this,object : NavCallback(){
+                        override fun onArrival(postcard: Postcard?) {
+                            finish()
+                        }
+                    })
                 }, {
                     Log.e("LAZY", (it as HttpException).response().toString())
                 })

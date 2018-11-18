@@ -1,5 +1,7 @@
 package com.leaves.app.shareme.ui.activity
 
+import android.app.SearchManager
+import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.drawable.Drawable
@@ -13,6 +15,7 @@ import android.widget.Toast
 
 import androidx.annotation.IdRes
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.widget.SearchView
 import androidx.appcompat.widget.Toolbar
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
@@ -44,6 +47,8 @@ import com.leaves.app.shareme.ui.fragment.MusicFragment
 import com.leaves.app.shareme.ui.fragment.PasswordFragment
 import com.leaves.app.shareme.ui.widget.dialpad.listener.OnNumberClickListener
 import com.tbruyelle.rxpermissions2.RxPermissions
+import com.uber.autodispose.android.lifecycle.AndroidLifecycleScopeProvider
+import com.uber.autodispose.autoDisposable
 
 @Route(path = RoutePath.Main.it)
 class MainActivity : AppCompatActivity(), OnNumberClickListener, BottomSheetFragment.OnFragmentMeasureListener, PasswordFragment.MainFragmentCallback, AudioListFragment.OnAudioClickListener, BehaviorFragment.OnBehaviorClickListener, MainActivityContract.View {
@@ -79,6 +84,7 @@ class MainActivity : AppCompatActivity(), OnNumberClickListener, BottomSheetFrag
         val rxPermissions = RxPermissions(this)
 
         rxPermissions.request(android.Manifest.permission.READ_EXTERNAL_STORAGE)
+                .autoDisposable(AndroidLifecycleScopeProvider.from(this))
                 .subscribe { aBoolean ->
                     if (!aBoolean) {
                         Toast.makeText(applicationContext, "必须赋予存储权限才可以使用", Toast.LENGTH_SHORT).show()
