@@ -39,7 +39,6 @@ public class ConnectionFragment extends Fragment {
     RecyclerView mRecyclerView;
 
     public WifiDirect mWifiDirect;
-
     private DeviceListAdapter mAdapter;
     private ArrayList<WifiP2pDevice> mDeviceList;
 
