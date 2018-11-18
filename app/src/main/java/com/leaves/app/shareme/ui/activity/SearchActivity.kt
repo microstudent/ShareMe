@@ -3,6 +3,7 @@ package com.leaves.app.shareme.ui.activity
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.Menu
+import android.widget.Toast
 import androidx.appcompat.widget.SearchView
 import androidx.appcompat.widget.Toolbar
 import butterknife.BindView
@@ -19,6 +20,8 @@ class SearchActivity : BaseActivity() {
         setContentView(R.layout.activity_search)
         ButterKnife.bind(this)
         setSupportActionBar(toolbar)
+
+        title = ""
     }
 
 
@@ -33,14 +36,16 @@ class SearchActivity : BaseActivity() {
         searchView.setIconifiedByDefault(false)
         searchView.isIconified = false
         searchView.onActionViewExpanded()
+
         searchView.isSubmitButtonEnabled = true
         searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String?): Boolean {
-                TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+                Toast.makeText(this@SearchActivity, query, Toast.LENGTH_SHORT)
+                return true
             }
 
             override fun onQueryTextChange(newText: String?): Boolean {
-                TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+                return true
             }
         })
 
