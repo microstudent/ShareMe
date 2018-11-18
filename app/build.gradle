@@ -15,12 +15,21 @@ android {
         versionName "1.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         multiDexEnabled true
+        javaCompileOptions {
+            annotationProcessorOptions {
+                arguments = [AROUTER_MODULE_NAME: project.getName()]
+            }
+        }
     }
     buildTypes {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
     }
 }
 
@@ -32,12 +41,12 @@ dependencies {
     implementation project(':AndroidAsync')
     implementation project(':libstreaming')
     implementation project(':bouncyfastscroller')
-    implementation 'androidx.appcompat:appcompat:1.0.0'
+    implementation 'androidx.appcompat:appcompat:1.0.2'
     implementation 'com.google.android.material:material:1.1.0-alpha01'
-    implementation 'io.reactivex.rxjava2:rxjava:2.2.2'
+    implementation 'io.reactivex.rxjava2:rxjava:2.2.3'
     implementation 'com.jakewharton:butterknife:9.0.0-rc1'
     kapt 'com.jakewharton:butterknife-compiler:9.0.0-rc1'
-    api 'io.reactivex.rxjava2:rxandroid:2.0.1'
+    api 'io.reactivex.rxjava2:rxandroid:2.1.0'
     implementation 'com.github.bumptech.glide:glide:4.8.0'
     kapt 'com.github.bumptech.glide:compiler:4.8.0'
     implementation 'androidx.recyclerview:recyclerview:1.0.0'
@@ -59,6 +68,12 @@ dependencies {
     implementation 'com.squareup.retrofit2:adapter-rxjava2:2.4.0'
     implementation 'com.squareup.retrofit2:converter-scalars:2.4.0'
     implementation "org.jetbrains.anko:anko:$anko_version"
+    implementation 'com.alibaba:arouter-api:1.4.1'
+    kapt 'com.alibaba:arouter-compiler:1.2.2'
+    implementation 'com.uber.autodispose:autodispose:1.0.0'
+    implementation 'com.uber.autodispose:autodispose-android-archcomponents:1.0.0'
+    implementation 'com.uber.autodispose:autodispose-ktx:1.0.0'
+    implementation 'com.uber.autodispose:autodispose-android-archcomponents-ktx:1.0.0'
 }
 repositories {
     mavenCentral()

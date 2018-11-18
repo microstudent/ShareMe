@@ -19,6 +19,7 @@ import androidx.fragment.app.FragmentManager
 import androidx.fragment.app.FragmentTransaction
 import butterknife.BindView
 import butterknife.ButterKnife
+import com.alibaba.android.arouter.facade.annotation.Route
 import io.reactivex.functions.Consumer
 import jp.wasabeef.blurry.Blurry
 
@@ -30,6 +31,7 @@ import com.bumptech.glide.request.target.Target
 import com.leaves.app.shareme.Constant
 import com.leaves.app.shareme.GlideApp
 import com.leaves.app.shareme.R
+import com.leaves.app.shareme.RoutePath
 import com.leaves.app.shareme.bean.Media
 import com.leaves.app.shareme.contract.MainActivityContract
 import com.leaves.app.shareme.presenter.MainPresenter
@@ -43,7 +45,7 @@ import com.leaves.app.shareme.ui.fragment.PasswordFragment
 import com.leaves.app.shareme.ui.widget.dialpad.listener.OnNumberClickListener
 import com.tbruyelle.rxpermissions2.RxPermissions
 
-
+@Route(path = RoutePath.Main.it)
 class MainActivity : AppCompatActivity(), OnNumberClickListener, BottomSheetFragment.OnFragmentMeasureListener, PasswordFragment.MainFragmentCallback, AudioListFragment.OnAudioClickListener, BehaviorFragment.OnBehaviorClickListener, MainActivityContract.View {
     private lateinit var mFragmentManager: FragmentManager
 
@@ -51,7 +53,7 @@ class MainActivity : AppCompatActivity(), OnNumberClickListener, BottomSheetFrag
     lateinit var mImageView: ImageView
 
     @BindView(R.id.activity_main)
-    lateinit  var mRootView: ViewGroup
+    lateinit var mRootView: ViewGroup
 
     @BindView(R.id.view_content)
     lateinit var mContentView: View
