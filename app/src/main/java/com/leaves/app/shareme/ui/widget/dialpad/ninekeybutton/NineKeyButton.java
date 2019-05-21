@@ -60,8 +60,8 @@ public class NineKeyButton extends View implements INineKeyButton {
             if (keywords != null) {
                 setKeyWord(keywords);
             }
-            String title = array.getString(R.styleable.NineKeyButton_number);
-            if (title != null&&!title.isEmpty()) {
+            String title = array.getString(R.styleable.NineKeyButton_key_number);
+            if (title != null && !title.isEmpty()) {
                 setNumber(title);
             }
             mDrawable = array.getDrawable(R.styleable.NineKeyButton_drawable);

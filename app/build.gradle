@@ -1,7 +1,7 @@
 apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
-apply plugin: 'realm-android'
 apply plugin: 'kotlin-kapt'
+apply plugin: 'realm-android'
 apply plugin: 'kotlin-android-extensions'
 
 android {
@@ -42,10 +42,10 @@ dependencies {
     implementation project(':libstreaming')
     implementation project(':bouncyfastscroller')
     implementation 'androidx.appcompat:appcompat:1.0.2'
-    implementation 'com.google.android.material:material:1.1.0-alpha01'
-    implementation 'io.reactivex.rxjava2:rxjava:2.2.3'
-    implementation 'com.jakewharton:butterknife:9.0.0-rc1'
-    kapt 'com.jakewharton:butterknife-compiler:9.0.0-rc1'
+    implementation 'com.google.android.material:material:1.1.0-alpha06'
+    implementation 'io.reactivex.rxjava2:rxjava:2.2.6'
+    implementation 'com.jakewharton:butterknife:10.1.0'
+    kapt 'com.jakewharton:butterknife-compiler:10.1.0'
     api 'io.reactivex.rxjava2:rxandroid:2.1.0'
     implementation 'com.github.bumptech.glide:glide:4.8.0'
     kapt 'com.github.bumptech.glide:compiler:4.8.0'
@@ -58,7 +58,7 @@ dependencies {
     implementation 'com.google.code.gson:gson:2.8.5'
     implementation 'com.devbrackets.android:exomedia:4.0.1'
     testCompile 'junit:junit:4.12'
-    implementation 'androidx.constraintlayout:constraintlayout:2.0.0-alpha2'
+    implementation 'androidx.constraintlayout:constraintlayout:2.0.0-beta1'
     api 'com.xw.repo:bubbleseekbar:3.4-lite'
     implementation 'de.hdodenhof:circleimageview:2.1.0'
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
@@ -74,6 +74,7 @@ dependencies {
     implementation 'com.uber.autodispose:autodispose-android-archcomponents:1.0.0'
     implementation 'com.uber.autodispose:autodispose-ktx:1.0.0'
     implementation 'com.uber.autodispose:autodispose-android-archcomponents-ktx:1.0.0'
+    implementation 'com.tencent.bugly:crashreport:3.0.0'
 }
 repositories {
     mavenCentral()

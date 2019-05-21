@@ -5,6 +5,7 @@ import android.app.Application;
 import android.content.Context;
 
 import com.alibaba.android.arouter.launcher.ARouter;
+import com.tencent.bugly.crashreport.CrashReport;
 
 import io.realm.Realm;
 
@@ -29,6 +30,7 @@ public class SApplication extends Application {
             ARouter.openDebug();   // Turn on debugging mode (If you are running in InstantRun mode, you must turn on debug mode! Online version needs to be closed, otherwise there is a security risk)
         }
         ARouter.init(this); // As early as possible, it is recommended to initialize in the Application
+        CrashReport.initCrashReport(getApplicationContext(), "883f8226b9", !BuildConfig.DEBUG);
     }
 
     public static Context getContext() {
