@@ -98,15 +98,17 @@ public class Media extends RealmObject implements Serializable, Comparable<Media
 
     @Override
     public int compareTo(@NonNull Media o) {
-        if (TextUtils.isEmpty(o.getTitle())) {
-            if (TextUtils.isEmpty(getTitle())) {
-                return 0;
-            } else {
-                return -1;
-            }
-        }
         String thisTitle = getTitle();
         String objTitle = o.getTitle();
+        if (TextUtils.isEmpty(thisTitle) && TextUtils.isEmpty(objTitle)) {
+            return 0;
+        }
+        if (TextUtils.isEmpty(thisTitle)) {
+            return 1;
+        }
+        if (TextUtils.isEmpty(objTitle)) {
+            return -1;
+        }
         if (CharacterUtils.isChinese(thisTitle.charAt(0))) {
             String[] pinyinArray = PinyinHelper.toHanyuPinyinStringArray(thisTitle.charAt(0));
             if (pinyinArray != null) {

@@ -5,6 +5,9 @@ import android.media.AudioFormat;
 import android.media.AudioManager;
 import android.media.AudioTrack;
 import android.os.IBinder;
+import android.os.Handler;
+import android.os.Looper;
+import android.os.SystemClock;
 import androidx.annotation.Nullable;
 import android.util.Log;
 import android.widget.Toast;
@@ -50,8 +53,12 @@ public class MusicClientService extends AbsMusicService implements Runnable, Rts
     private static final String TAG = "MusicClientService";
 
     private static final boolean DEBUG = false;
-    private static final long RETRY_DELAY = 3000;//3sec重试一次
     private static final long MAX_SYNC_DELAY = 25;//最大不可忍受延迟，millsec
+    private static final int MAX_FRAME_QUEUE = 200;
+    private static final long BASE_RETRY_DELAY = 1000;
+    private static final long MAX_RETRY_DELAY = 30000;
+    private static final long TARGET_BUFFER_MS = 120;
+    private static final long BUFFER_TOLERANCE_MS = 40;
     private AudioTrack mAudioTrack;
     private ClientBinder mBinder;
     private ReceiveSession mSession;
@@ -65,14 +72,25 @@ public class MusicClientService extends AbsMusicService implements Runnable, Rts
     private volatile long mPlayDelay;
     private boolean needSync = true;
     private MusicPlayerListener mMusicPlayerListener;
-    private long mInitDelay = -1;//服务器端与本地的ntp时间初始差距
+    private long mInitDelay = -1;//服务器端与本地的elapsedRealtime差距
     private long mInitRtpTime = -1;
     private double mMsPerAACFrame;
     private volatile long mPlayTimeToSync;
     private volatile long mPlayingRTPTime;
+    private volatile long mLastQueuedRtpTime;
     private Disposable mPlayDisposable;
     private float mLeftF = 1;
     private float mRightF = 1;
+    private Handler mHandler;
+    private int mRetryAttempt;
+    private boolean mReconnectScheduled;
+    private final Runnable mReconnectRunnable = new Runnable() {
+        @Override
+        public void run() {
+            mReconnectScheduled = false;
+            tryConnectToWebSocketServer();
+        }
+    };
 
     @Override
     public void onCreate() {
@@ -89,6 +107,7 @@ public class MusicClientService extends AbsMusicService implements Runnable, Rts
                         return false;
                     }
                 }).create();
+        mHandler = new Handler(Looper.getMainLooper());
         // Configures the SessionBuilder
     }
 
@@ -123,6 +142,9 @@ public class MusicClientService extends AbsMusicService implements Runnable, Rts
     }
 
     private void tryConnectToWebSocketServer() {
+        if (mConnectedWebSocket != null) {
+            return;
+        }
         //web socket
         AsyncHttpClient.getDefaultInstance().websocket("http://" + mServerIp + ":" + Constant.WebSocket.PORT, null,
                 new AsyncHttpClient.WebSocketConnectCallback() {
@@ -131,16 +153,13 @@ public class MusicClientService extends AbsMusicService implements Runnable, Rts
                         if (ex != null) {
                             Log.e(TAG, "ex:" + ex.getMessage());
                             ex.printStackTrace();
-                            try {
-                                Thread.sleep(RETRY_DELAY);
-                            } catch (InterruptedException e) {
-                                e.printStackTrace();
-                            }
-                            tryConnectToWebSocketServer();
+                            scheduleReconnect();
                             return;
                         }
                         mConnectedWebSocket = webSocket;
                         mConnectedWebSocket.setClosedCallback(MusicClientService.this);
+                        mRetryAttempt = 0;
+                        cancelReconnect();
                         Observable.just(this)
                                 .observeOn(AndroidSchedulers.mainThread())
                                 .subscribe(new Consumer<AsyncHttpClient.WebSocketConnectCallback>() {
@@ -152,6 +171,25 @@ public class MusicClientService extends AbsMusicService implements Runnable, Rts
                         webSocket.setStringCallback(MusicClientService.this);
                     }
                 });
+    }
+
+    private void scheduleReconnect() {
+        if (mReconnectScheduled || mHandler == null) {
+            return;
+        }
+        long delay = BASE_RETRY_DELAY << Math.min(mRetryAttempt, 5);
+        delay = Math.min(delay, MAX_RETRY_DELAY);
+        mRetryAttempt++;
+        mReconnectScheduled = true;
+        mHandler.postDelayed(mReconnectRunnable, delay);
+    }
+
+    private void cancelReconnect() {
+        if (mHandler == null) {
+            return;
+        }
+        mHandler.removeCallbacks(mReconnectRunnable);
+        mReconnectScheduled = false;
     }
 
     @Override
@@ -303,7 +341,11 @@ public class MusicClientService extends AbsMusicService implements Runnable, Rts
         Frame frame = new Frame();
         frame.setRtpTime(rtpTime);
         frame.setPCMData(data);
+        if (mFrameQueue.size() >= MAX_FRAME_QUEUE) {
+            mFrameQueue.poll();
+        }
         mFrameQueue.add(frame);
+        mLastQueuedRtpTime = rtpTime;
         if (DEBUG) Log.d(TAG, "onPCMDataAvailable" + ",timeStamp = " + rtpTime);
     }
 
@@ -313,11 +355,13 @@ public class MusicClientService extends AbsMusicService implements Runnable, Rts
 //        Log.d(TAG, "do sync ntp =  " + ntpTime + "millsec,while rtp ts = " + rtpTs + ",and current rtp ts = " + mCurrentRtpTime);
 
         if (playTime > 0) {
+            long localElapsed = SystemClock.elapsedRealtime();
             if (mInitDelay == -1) {
-                mInitDelay =  System.currentTimeMillis() - ntpTime - 180;//越大越快
+                mInitDelay = localElapsed - ntpTime;
             } else {
-                mPlayDelay = getCurrentPosition() - (playTime + (System.currentTimeMillis() - mInitDelay - ntpTime));
-                mPlayTimeToSync = playTime + (System.currentTimeMillis() - mInitDelay - ntpTime);
+                long serverTimeAtLocal = playTime + (localElapsed - mInitDelay - ntpTime);
+                mPlayDelay = getCurrentPosition() - serverTimeAtLocal;
+                mPlayTimeToSync = serverTimeAtLocal;
             }
 
             if (Math.abs(mPlayDelay) > MAX_SYNC_DELAY) {
@@ -397,6 +441,8 @@ public class MusicClientService extends AbsMusicService implements Runnable, Rts
                     } else {
                         needSync = true;
                     }
+                } else {
+                    Thread.sleep(20);
                 }
             }
         } catch (InterruptedException e) {
@@ -440,12 +486,38 @@ public class MusicClientService extends AbsMusicService implements Runnable, Rts
                         } else {
                             break;
                         }
+                    } else {
+                        break;
                     }
                 }
             }
             needSync = Math.abs(mPlayDelay) > MAX_SYNC_DELAY;
             mPlayDelay = 0;
         }
+        long bufferedMs = getBufferedMs();
+        if (bufferedMs > TARGET_BUFFER_MS + BUFFER_TOLERANCE_MS) {
+            Frame frame;
+            while (!mFrameQueue.isEmpty()) {
+                frame = mFrameQueue.peek();
+                if (getFramePlayTime(frame) < getCurrentPosition() + TARGET_BUFFER_MS) {
+                    mFrameQueue.poll();
+                } else {
+                    break;
+                }
+            }
+        } else if (bufferedMs < TARGET_BUFFER_MS - BUFFER_TOLERANCE_MS) {
+            long sleepMs = Math.min(TARGET_BUFFER_MS - bufferedMs, 60);
+            Thread.sleep(sleepMs);
+        }
+    }
+
+    private long getBufferedMs() {
+        long last = mLastQueuedRtpTime;
+        long playing = mPlayingRTPTime;
+        if (last <= 0 || playing <= 0 || last <= playing) {
+            return 0;
+        }
+        return (last - playing) / 1000;
     }
 
     @Override
@@ -484,7 +556,13 @@ public class MusicClientService extends AbsMusicService implements Runnable, Rts
     @Override
     public void onCompleted(Exception ex) {
         mConnectedWebSocket = null;
-        tryConnectToWebSocketServer();
+        scheduleReconnect();
+    }
+
+    @Override
+    public void onDestroy() {
+        cancelReconnect();
+        super.onDestroy();
     }
 
 
@@ -574,4 +652,3 @@ public class MusicClientService extends AbsMusicService implements Runnable, Rts
         }
     }
 }
-

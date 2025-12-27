@@ -5,6 +5,7 @@ import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.IBinder;
 import android.os.PowerManager;
+import android.os.SystemClock;
 import android.preference.PreferenceManager;
 import androidx.annotation.Nullable;
 import android.text.TextUtils;
@@ -22,6 +23,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.koushikdutta.async.callback.CompletedCallback;
 import com.koushikdutta.async.http.AsyncHttpGet;
 import com.koushikdutta.async.http.WebSocket;
 import com.koushikdutta.async.http.server.AsyncHttpServer;
@@ -43,7 +45,9 @@ import net.majorkernelpanic.streaming.rtsp.RtspServer;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.Callable;
+import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.TimeUnit;
 
 import io.reactivex.Observable;
@@ -69,7 +73,7 @@ public class MusicServerService extends AbsMusicService implements WebSocket.Str
     private ServerBinder mBinder;
 
     private AsyncHttpServer mAsyncHttpServer;
-    private WebSocket mConnectedWebSocket;
+    private final Set<WebSocket> mConnectedWebSockets = new CopyOnWriteArraySet<>();
     private Gson mGson;
     private MusicPlayerListener mMusicPlayerListener;
     private Observable<Message<List<Long>>> mSyncSignalSender;
@@ -93,7 +97,13 @@ public class MusicServerService extends AbsMusicService implements WebSocket.Str
             @Override
             public void onConnected(WebSocket webSocket, AsyncHttpServerRequest request) {
                 Log.d("MusicServerService", "server connect success");
-                mConnectedWebSocket = webSocket;
+                mConnectedWebSockets.add(webSocket);
+                webSocket.setClosedCallback(new CompletedCallback() {
+                    @Override
+                    public void onCompleted(Exception ex) {
+                        mConnectedWebSockets.remove(webSocket);
+                    }
+                });
                 sendAudioList();
                 webSocket.setStringCallback(MusicServerService.this);
             }
@@ -114,7 +124,7 @@ public class MusicServerService extends AbsMusicService implements WebSocket.Str
             @Override
             public Message<List<Long>> call() throws Exception {
                 List<Long> times = new ArrayList<>(2);//ntp time and play time
-                times.add(System.currentTimeMillis());
+                times.add(SystemClock.elapsedRealtime());
                 times.add(getCurrentPlayTime());
                 return new Message<>(Message.TYPE_SYNC, times);
             }
@@ -126,9 +136,7 @@ public class MusicServerService extends AbsMusicService implements WebSocket.Str
                 .doOnNext(new Consumer<Message<List<Long>>>() {
                     @Override
                     public void accept(Message<List<Long>> message) throws Exception {
-                        if (mConnectedWebSocket != null) {
-                            mConnectedWebSocket.send(mGson.toJson(message));
-                        }
+                        sendToClients(mGson.toJson(message));
                     }
                 });
         mAudioListPresenter = new AudioListPresenter(this, this);
@@ -137,12 +145,17 @@ public class MusicServerService extends AbsMusicService implements WebSocket.Str
     }
 
     private void sendAudioList() {
-        if (mConnectedWebSocket != null && mAudioList != null) {
+        if (!mConnectedWebSockets.isEmpty() && mAudioList != null) {
             Message<List<Media>> message = new Message<>(Message.TYPE_LIST, mAudioList);
-            mConnectedWebSocket.send(mGson.toJson(message));
+            sendToClients(mGson.toJson(message));
         }
     }
 
+    private void sendToClients(String payload) {
+        for (WebSocket webSocket : mConnectedWebSockets) {
+            webSocket.send(payload);
+        }
+    }
 
     @Override
     protected void stop() {
@@ -266,11 +279,11 @@ public class MusicServerService extends AbsMusicService implements WebSocket.Str
     @Override
     protected void start(boolean invalidate) {
         //notifyThe client
-        if (mConnectedWebSocket != null) {
+        if (!mConnectedWebSockets.isEmpty()) {
             if (invalidate) {
-                mConnectedWebSocket.send(mGson.toJson(new Message<>(Message.TYPE_MEDIA, mMedia)));
+                sendToClients(mGson.toJson(new Message<>(Message.TYPE_MEDIA, mMedia)));
             } else {
-                mConnectedWebSocket.send(mGson.toJson(new Message<>(Message.TYPE_RESUME, null)));
+                sendToClients(mGson.toJson(new Message<>(Message.TYPE_RESUME, null)));
             }
         }
         if (invalidate) {
@@ -415,11 +428,12 @@ public class MusicServerService extends AbsMusicService implements WebSocket.Str
         if (isBusy || mPlayMediaIndex == -1) {
             return;
         }
-        if (mPlayMediaIndex >= 0 && mAudioList != null && mPlayMediaIndex < mAudioList.size()) {
+        if (mPlayMediaIndex >= 0 && mAudioList != null && !mAudioList.isEmpty() && mPlayMediaIndex < mAudioList.size()) {
             if (mAudioList.size() == 1) {
                 play(mAudioList.get(0), true);
             } else {
-                play(mAudioList.get((mPlayMediaIndex + 1) % (mAudioList.size() - 1)), true);
+                int nextIndex = (mPlayMediaIndex + 1) % mAudioList.size();
+                play(mAudioList.get(nextIndex), true);
             }
         }
     }
@@ -430,7 +444,8 @@ public class MusicServerService extends AbsMusicService implements WebSocket.Str
             return;
         }
         if (mAudioList != null && !mAudioList.isEmpty()) {
-            play(mAudioList.get(mPlayMediaIndex == 0 ? mPlayMediaIndex - 1 : mAudioList.size() - 1 % mAudioList.size()), true);
+            int prevIndex = (mPlayMediaIndex - 1 + mAudioList.size()) % mAudioList.size();
+            play(mAudioList.get(prevIndex), true);
         }
     }
 
@@ -503,8 +518,8 @@ public class MusicServerService extends AbsMusicService implements WebSocket.Str
         @Override
         public void pause() {
             MusicServerService.this.pause();
-            if (mConnectedWebSocket != null) {
-                mConnectedWebSocket.send(mGson.toJson(new Message<>(Message.TYPE_PAUSE, null)));
+            if (!mConnectedWebSockets.isEmpty()) {
+                sendToClients(mGson.toJson(new Message<>(Message.TYPE_PAUSE, null)));
             }
         }
 
@@ -515,7 +530,7 @@ public class MusicServerService extends AbsMusicService implements WebSocket.Str
 
         @Override
         public boolean isConnectionAlive() {
-            return mConnectedWebSocket != null;
+            return !mConnectedWebSockets.isEmpty();
         }
 
         @Override
