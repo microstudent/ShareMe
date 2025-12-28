@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.leaves.app.shareme">
+    xmlns:tools="http://schemas.android.com/tools">
 
     <uses-feature android:name="android.hardware.camera" />
     <uses-feature android:name="android.hardware.camera.autofocus" />
@@ -33,6 +33,7 @@
         <activity
             android:name=".ui.activity.MainActivity"
             android:alwaysRetainTaskState="true"
+            android:exported="true"
             android:launchMode="singleTask"
             android:screenOrientation="portrait">
             <intent-filter>
@@ -45,6 +46,11 @@
         <service android:name=".service.MusicServerService" />
         <service android:name="net.majorkernelpanic.streaming.rtsp.RtspServer" />
         <service android:name=".service.MusicClientService" />
+
+        <receiver
+            android:name="com.instacart.library.truetime.BootCompletedBroadcastReceiver"
+            android:exported="true"
+            tools:node="merge" />
 
         <activity android:name=".ui.activity.SettingActivity" />
         <activity android:name=".ui.activity.LoginActivity"></activity>

@@ -57,7 +57,7 @@ public class SettingActivity extends AppCompatActivity {
 
     private BubbleSeekBar.OnProgressChangedListener mLeftSeekListener = new BubbleSeekBar.OnProgressChangedListenerAdapter() {
         @Override
-        public void getProgressOnActionUp(int progress, float progressFloat) {
+        public void getProgressOnActionUp(BubbleSeekBar bubbleSeekBar, int progress, float progressFloat) {
             if (mBinder != null) {
                 mBinder.setVolume(progress, -1);
             }
@@ -66,7 +66,7 @@ public class SettingActivity extends AppCompatActivity {
     };
     private BubbleSeekBar.OnProgressChangedListener mRightSeekListener = new BubbleSeekBar.OnProgressChangedListenerAdapter() {
         @Override
-        public void getProgressOnActionUp(int progress, float progressFloat) {
+        public void getProgressOnActionUp(BubbleSeekBar bubbleSeekBar, int progress, float progressFloat) {
             if (mBinder != null) {
                 mBinder.setVolume(-1, progress);
             }

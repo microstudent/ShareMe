@@ -16,7 +16,6 @@ import android.widget.Toast;
 import com.devbrackets.android.exomedia.AudioPlayer;
 import com.devbrackets.android.exomedia.listener.OnCompletionListener;
 import com.devbrackets.android.exomedia.listener.OnPreparedListener;
-import com.devbrackets.android.exomedia.util.DeviceUtil;
 import com.google.gson.ExclusionStrategy;
 import com.google.gson.FieldAttributes;
 import com.google.gson.Gson;
@@ -191,7 +190,7 @@ public class MusicServerService extends AbsMusicService implements WebSocket.Str
         }
         mAudioPlayer = new AudioPlayer(this); // initialize it here
         mAudioPlayer.setOnPreparedListener(this);
-        mAudioPlayer.setWakeMode(getApplicationContext(), PowerManager.PARTIAL_WAKE_LOCK);
+        mAudioPlayer.setWakeLevel(PowerManager.PARTIAL_WAKE_LOCK);
         mAudioPlayer.setOnCompletionListener(this);
 //        mAudioPlayer.setOnPreparedListener(this);
 //        mAudioPlayer.setOnErrorListener(this);
@@ -260,7 +259,7 @@ public class MusicServerService extends AbsMusicService implements WebSocket.Str
 
 
     private void resetMediaPlayer() {
-        mAudioPlayer.stopPlayback();
+        mAudioPlayer.stop();
         mAudioPlayer.reset();
         isPrepared = false;
     }
@@ -291,8 +290,7 @@ public class MusicServerService extends AbsMusicService implements WebSocket.Str
             isBusy = true;
             SessionBuilder.getInstance().setMp3Path(mMedia.getSrc());
             Uri uri = Uri.parse(mMedia.getSrc());
-            mAudioPlayer.setDataSource(uri);
-            mAudioPlayer.prepareAsync();
+            mAudioPlayer.setMedia(uri);
             mPlayDisposable =  Observable.just(uri)
                     .observeOn(Schedulers.io())
                     .delay(Constant.DEFAULT_PLAY_TIME_DELAY, TimeUnit.MILLISECONDS)
@@ -488,7 +486,7 @@ public class MusicServerService extends AbsMusicService implements WebSocket.Str
             mRightF = (float) right / 100;
         }
         if (mAudioPlayer != null) {
-            mAudioPlayer.setVolume(mLeftF, mRightF);
+            mAudioPlayer.setVolume((mLeftF + mRightF) / 2f);
         }
     }
 

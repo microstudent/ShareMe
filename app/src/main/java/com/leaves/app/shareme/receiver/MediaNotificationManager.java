@@ -87,7 +87,7 @@ public class MediaNotificationManager extends BroadcastReceiver {
     public MediaNotificationManager(AbsMusicService service) throws RemoteException {
         mService = service;
 
-        mNotificationColor = ResourceHelper.getThemeColor(mService, R.attr.colorPrimary,
+        mNotificationColor = ResourceHelper.getThemeColor(mService, androidx.appcompat.R.attr.colorPrimary,
                 Color.DKGRAY);
 
         mNotificationManager = NotificationManagerCompat.from(service);

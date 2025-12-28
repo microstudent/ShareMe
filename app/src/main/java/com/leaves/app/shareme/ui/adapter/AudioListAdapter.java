@@ -15,7 +15,6 @@ import com.leaves.app.shareme.ui.fragment.AudioListFragment;
 import java.util.ArrayList;
 import java.util.List;
 
-import hugo.weaving.DebugLog;
 
 /**
  * Created by Leaves on 2017/4/11.
@@ -38,7 +37,6 @@ public class AudioListAdapter extends BaseAdapter<Media> implements BaseViewHold
     protected BaseViewHolder<Media> creatingHolder(View view, final Context context, int viewType) {
         BaseViewHolder<Media> viewHolder = new BaseViewHolder<Media>(view) {
             @Override
-            @DebugLog
             public void setData(Media media) {
                 setTextView(R.id.tv_title, media.getTitle());
                 setTextView(R.id.tv_author, media.getArtist());
